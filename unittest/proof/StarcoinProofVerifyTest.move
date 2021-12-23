@@ -162,5 +162,12 @@ module StarcoinVerifyTest {
         assert(result == true, 1103);
     }
 
+    #[test]
+    public fun test_vec_u8_length() {
+        let len = Vector::length<u8>(&x"6c6e4784a4692516afaf129656f58dd40770f93aba116647afdd80ddc69b206f");
+        Debug::print(&len);
+        assert(len == 32, 1104);
+    }
+
 }
 }

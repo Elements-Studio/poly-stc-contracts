@@ -8,11 +8,11 @@ module MerkleProofNonExists {
     use 0x1::Errors;
     use 0x1::Vector;
     use 0x1::Hash;
-    //use 0x1::Debug;
+    use 0x1::Debug;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofElementBits;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofStructuredHash;
+    //use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofStructuredHash;
 
     const ERROR_ELEMENT_KEY_EXISTS_IN_PROOF: u64 = 101;
     const ERROR_LEFA_NODE_DATA_INVALID: u64 = 102;
@@ -54,31 +54,103 @@ module MerkleProofNonExists {
         calculate_root_hash(element_key, &current_hash, proof_siblings) == *except_root_hash
     }
 
+//    /// Update leaf to the SMT for generate new root hash
+//    public fun update_leaf(element_key: &vector<u8>,
+//                           proof_leaf: &vector<u8>,
+//                           proof_siblings: &vector<vector<u8>>): vector<u8> {
+//
+//        Debug::print(element_key);
+//        Debug::print(proof_leaf);
+//        Debug::print(proof_siblings);
+//
+//        let proof_leaf_len = Vector::length(proof_leaf);
+//        let proof_siblings_len = Vector::length<vector<u8>>(proof_siblings);
+//
+//        let current_hash = crypto_leaf_node_from_path(element_key);
+//
+//
+//        let new_siblings = if (proof_leaf_len > 0) {
+//            let (_, leaf_node_path, _) = split_leaf_node_data(proof_leaf);
+//            assert(*element_key != *&leaf_node_path, Errors::invalid_state(ERROR_ELEMENT_KEY_EXISTS_IN_PROOF));
+//
+//            // Handle leaf
+//            // Auto fill 0 to proof
+//            let this_leaf_path = MerkleProofStructuredHash::create_literal_hash(&leaf_node_path);
+//
+//            // Find common prefix bits from two keys, and put place holer to `new_siblings`
+//            let new_siblings = Vector::empty<vector<u8>>();
+//            // Vector::push_back(&mut new_siblings, Hash::sha3_256(*proof_leaf));
+//
+//            let this_leaf_path_bits = MerkleProofElementBits::iter_bits(&this_leaf_path);
+//            let common_prefix_len = MerkleProofElementBits::common_prefix_bits_len<bool>(
+//                &this_leaf_path_bits,
+//                &MerkleProofElementBits::iter_bits(element_key));
+//
+//            Debug::print(&common_prefix_len);
+//
+//            if (common_prefix_len > proof_siblings_len) {
+//                let place_holder_len = (common_prefix_len - proof_siblings_len) + 1;
+//
+//                // Put placeholder
+//                let idx = 0;
+//                while (idx < place_holder_len) {
+//                    Vector::push_back(&mut new_siblings, SPARSE_MERKLE_PLACEHOLDER_HASH);
+//                    idx = idx + 1;
+//                };
+//            };
+//            new_siblings
+//        } else {
+//            Vector::empty<vector<u8>>()
+//        };
+//
+//
+//
+//        // Extend old siblings to new siblings array
+//        let idx = 0;
+//        while (idx < proof_siblings_len) {
+//            Vector::push_back(&mut new_siblings, *Vector::borrow(proof_siblings, idx));
+//            idx = idx + 1;
+//        };
+//
+//        // Generate root hash
+//        calculate_root_hash(element_key, &current_hash, &new_siblings)
+//    }
+
     /// Update leaf to the SMT for generate new root hash
-    public fun update_leaf(element_key: &vector<u8>,
+    public fun update_leaf(element_path: &vector<u8>,
                            proof_leaf: &vector<u8>,
                            proof_siblings: &vector<vector<u8>>): vector<u8> {
+        Debug::print(element_path);
+        Debug::print(proof_leaf);
+        Debug::print(proof_siblings);
+
         let proof_leaf_len = Vector::length(proof_leaf);
         let proof_siblings_len = Vector::length<vector<u8>>(proof_siblings);
 
-        let new_siblings = if (proof_leaf_len > 0) {
+        let (current_hash, new_siblings) = if (proof_leaf_len > 0) {
             let (_, leaf_node_path, _) = split_leaf_node_data(proof_leaf);
-            assert(*element_key != *&leaf_node_path, Errors::invalid_state(ERROR_ELEMENT_KEY_EXISTS_IN_PROOF));
+            assert(*element_path != *&leaf_node_path, Errors::invalid_state(ERROR_ELEMENT_KEY_EXISTS_IN_PROOF));
 
-            // Handle leaf
-            // Auto fill 0 to proof
-            let this_leaf_path = MerkleProofStructuredHash::create_literal_hash(&leaf_node_path);
+            let new_leaf_path_bits = MerkleProofElementBits::iter_bits(element_path);
+            let old_leaf_path_bits = MerkleProofElementBits::iter_bits(&leaf_node_path);
+            let common_prefix_count =
+                MerkleProofElementBits::common_prefix_bits_len<bool>(
+                    &old_leaf_path_bits,
+                    &new_leaf_path_bits);
+            let old_leaf_hash = crypto_leaf_node_hash(proof_leaf);
+            let new_leaf_hash = crypto_leaf_node_from_path(element_path);
+            Debug::print(&new_leaf_path_bits);
+            let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
+                Debug::print(&x"01010101");
+                crypto_internal_node_hash(&old_leaf_hash, &new_leaf_hash)
+            } else {
+                Debug::print(&x"FFFFFFFF");
+                crypto_internal_node_hash(&new_leaf_hash, &old_leaf_hash)
+            };
 
-            // Find common prefix bits from two keys, and put place holer to `new_siblings`
             let new_siblings = Vector::empty<vector<u8>>();
-            Vector::push_back(&mut new_siblings, Hash::sha3_256(*proof_leaf));
-            let this_leaf_path_bits = MerkleProofElementBits::iter_bits(&this_leaf_path);
-            let prefix_len = MerkleProofElementBits::common_prefix_bits_len<bool>(
-                &this_leaf_path_bits,
-                &MerkleProofElementBits::iter_bits(element_key));
-
-            if (prefix_len > proof_siblings_len) {
-                let place_holder_len = (prefix_len - proof_siblings_len) + 1;
+            if (common_prefix_count > proof_siblings_len) {
+                let place_holder_len = (common_prefix_count - proof_siblings_len);
 
                 // Put placeholder
                 let idx = 0;
@@ -87,19 +159,12 @@ module MerkleProofNonExists {
                     idx = idx + 1;
                 };
             };
-            new_siblings
+            (current_hash, new_siblings)
         } else {
-            Vector::empty<vector<u8>>()
+            (crypto_leaf_node_from_path(element_path), Vector::empty<vector<u8>>())
         };
 
-        let new_leaf_data = Vector::empty<u8>();
-        new_leaf_data = Bytes::concat(&new_leaf_data, SPARSE_MERKLE_LEAF_NODE_PREFIX);
-        new_leaf_data = Bytes::concat(&new_leaf_data, *element_key);
-        new_leaf_data = Bytes::concat(&new_leaf_data, SPARSE_MERKLE_NODE_VALUE_HASH);
-
-        let current_hash = crypto_leaf_node_hash(&new_leaf_data);
-
-        // Extend old siblings
+        // Extend old siblings to new siblings array
         let idx = 0;
         while (idx < proof_siblings_len) {
             Vector::push_back(&mut new_siblings, *Vector::borrow(proof_siblings, idx));
@@ -107,7 +172,7 @@ module MerkleProofNonExists {
         };
 
         // Generate root hash
-        calculate_root_hash(element_key, &current_hash, &new_siblings)
+        calculate_root_hash(element_path, &current_hash, &new_siblings)
     }
 
     /// Calculate root hash from element key and siblings
@@ -129,27 +194,40 @@ module MerkleProofNonExists {
             element_key_bits_len - sibling_len,
             element_key_bits_len);
 
+        Debug::print(siblings);
+
         let i = 0;
         let result_hash = *current_hash;
         while (i < sibling_len) {
-            //Debug::print(&111111111);
-
             let bit = *Vector::borrow<bool>(&skiped_element_key_bits, i);
             let sibling_hash = Vector::borrow<vector<u8>>(siblings, i);
-
-            //Debug::print(sibling_hash);
-            //Debug::print(&result_hash);
-
-            if (bit) {
+            if (bit) { // right
+                Debug::print(&111111);
+                Debug::print(sibling_hash);
+                Debug::print(&result_hash);
                 result_hash = crypto_internal_node_hash(sibling_hash, &result_hash);
-            } else {
+                Debug::print(&result_hash);
+                Debug::print(&111111);
+            } else { // left
+                Debug::print(&222222);
+                Debug::print(sibling_hash);
+                Debug::print(&result_hash);
                 result_hash = crypto_internal_node_hash(&result_hash, sibling_hash);
+                Debug::print(&result_hash);
+                Debug::print(&222222);
             };
-            //Debug::print(&result_hash);
-            //Debug::print(&22222222);
             i = i + 1;
         };
         result_hash
+    }
+
+    /// Crypto a leaf node from path vector
+    fun crypto_leaf_node_from_path(path: &vector<u8>) :vector<u8> {
+        let new_leaf_data = Vector::empty<u8>();
+        new_leaf_data = Bytes::concat(&new_leaf_data, SPARSE_MERKLE_LEAF_NODE_PREFIX);
+        new_leaf_data = Bytes::concat(&new_leaf_data, *path);
+        new_leaf_data = Bytes::concat(&new_leaf_data, SPARSE_MERKLE_NODE_VALUE_HASH);
+        crypto_leaf_node_hash(&new_leaf_data)
     }
 
     /// Crypto hash encapsulation function for crypto leaf node
@@ -186,22 +264,19 @@ module MerkleProofNonExists {
 
     /// Crypto hash encapsulation function for internal node
     public fun crypto_internal_node_hash(left_child: &vector<u8>, right_child: &vector<u8>): vector<u8> {
-        //Debug::print(&11111111);
-
         assert(Vector::length(left_child) == SPARSE_MERKLE_INTER_NODE_LENGTH, Errors::invalid_state(ERROR_INTERNAL_NODE_DATA_INVALID));
         assert(Vector::length(right_child) == SPARSE_MERKLE_INTER_NODE_LENGTH, Errors::invalid_state(ERROR_INTERNAL_NODE_DATA_INVALID));
+
         let result = SPARSE_MERKLE_INTERNAL_NODE_PREFIX;
         result = Bytes::concat(&result, *left_child);
         result = Bytes::concat(&result, *right_child);
-        //Debug::print(&result);
-        //Debug::print(&11111111);
 
         Hash::sha3_256(result)
     }
 
-    /// Get placeholder hash
     public fun get_place_holder_hash(): vector<u8> {
         SPARSE_MERKLE_PLACEHOLDER_HASH
     }
+
 }
 }
