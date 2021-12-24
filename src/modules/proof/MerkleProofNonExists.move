@@ -120,9 +120,9 @@ module MerkleProofNonExists {
     public fun update_leaf(element_path: &vector<u8>,
                            proof_leaf: &vector<u8>,
                            proof_siblings: &vector<vector<u8>>): vector<u8> {
-        Debug::print(element_path);
-        Debug::print(proof_leaf);
-        Debug::print(proof_siblings);
+//        Debug::print(element_path);
+//        Debug::print(proof_leaf);
+//        Debug::print(proof_siblings);
 
         let proof_leaf_len = Vector::length(proof_leaf);
         let proof_siblings_len = Vector::length<vector<u8>>(proof_siblings);
@@ -139,12 +139,10 @@ module MerkleProofNonExists {
                     &new_leaf_path_bits);
             let old_leaf_hash = crypto_leaf_node_hash(proof_leaf);
             let new_leaf_hash = crypto_leaf_node_from_path(element_path);
-            Debug::print(&new_leaf_path_bits);
+
             let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
-                Debug::print(&x"01010101");
                 crypto_internal_node_hash(&old_leaf_hash, &new_leaf_hash)
             } else {
-                Debug::print(&x"FFFFFFFF");
                 crypto_internal_node_hash(&new_leaf_hash, &old_leaf_hash)
             };
 
@@ -202,19 +200,19 @@ module MerkleProofNonExists {
             let bit = *Vector::borrow<bool>(&skiped_element_key_bits, i);
             let sibling_hash = Vector::borrow<vector<u8>>(siblings, i);
             if (bit) { // right
-                Debug::print(&111111);
-                Debug::print(sibling_hash);
-                Debug::print(&result_hash);
+                // Debug::print(&111111);
+                // Debug::print(sibling_hash);
+                // Debug::print(&result_hash);
                 result_hash = crypto_internal_node_hash(sibling_hash, &result_hash);
-                Debug::print(&result_hash);
-                Debug::print(&111111);
+                // Debug::print(&result_hash);
+                // Debug::print(&111111);
             } else { // left
-                Debug::print(&222222);
-                Debug::print(sibling_hash);
-                Debug::print(&result_hash);
+                // Debug::print(&222222);
+                // Debug::print(sibling_hash);
+                // Debug::print(&result_hash);
                 result_hash = crypto_internal_node_hash(&result_hash, sibling_hash);
-                Debug::print(&result_hash);
-                Debug::print(&222222);
+                // Debug::print(&result_hash);
+                // Debug::print(&222222);
             };
             i = i + 1;
         };
