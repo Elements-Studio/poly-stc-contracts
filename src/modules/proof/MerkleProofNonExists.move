@@ -54,68 +54,6 @@ module MerkleProofNonExists {
         calculate_root_hash(element_key, &current_hash, proof_siblings) == *except_root_hash
     }
 
-//    /// Update leaf to the SMT for generate new root hash
-//    public fun update_leaf(element_key: &vector<u8>,
-//                           proof_leaf: &vector<u8>,
-//                           proof_siblings: &vector<vector<u8>>): vector<u8> {
-//
-//        Debug::print(element_key);
-//        Debug::print(proof_leaf);
-//        Debug::print(proof_siblings);
-//
-//        let proof_leaf_len = Vector::length(proof_leaf);
-//        let proof_siblings_len = Vector::length<vector<u8>>(proof_siblings);
-//
-//        let current_hash = crypto_leaf_node_from_path(element_key);
-//
-//
-//        let new_siblings = if (proof_leaf_len > 0) {
-//            let (_, leaf_node_path, _) = split_leaf_node_data(proof_leaf);
-//            assert(*element_key != *&leaf_node_path, Errors::invalid_state(ERROR_ELEMENT_KEY_EXISTS_IN_PROOF));
-//
-//            // Handle leaf
-//            // Auto fill 0 to proof
-//            let this_leaf_path = MerkleProofStructuredHash::create_literal_hash(&leaf_node_path);
-//
-//            // Find common prefix bits from two keys, and put place holer to `new_siblings`
-//            let new_siblings = Vector::empty<vector<u8>>();
-//            // Vector::push_back(&mut new_siblings, Hash::sha3_256(*proof_leaf));
-//
-//            let this_leaf_path_bits = MerkleProofElementBits::iter_bits(&this_leaf_path);
-//            let common_prefix_len = MerkleProofElementBits::common_prefix_bits_len<bool>(
-//                &this_leaf_path_bits,
-//                &MerkleProofElementBits::iter_bits(element_key));
-//
-//            Debug::print(&common_prefix_len);
-//
-//            if (common_prefix_len > proof_siblings_len) {
-//                let place_holder_len = (common_prefix_len - proof_siblings_len) + 1;
-//
-//                // Put placeholder
-//                let idx = 0;
-//                while (idx < place_holder_len) {
-//                    Vector::push_back(&mut new_siblings, SPARSE_MERKLE_PLACEHOLDER_HASH);
-//                    idx = idx + 1;
-//                };
-//            };
-//            new_siblings
-//        } else {
-//            Vector::empty<vector<u8>>()
-//        };
-//
-//
-//
-//        // Extend old siblings to new siblings array
-//        let idx = 0;
-//        while (idx < proof_siblings_len) {
-//            Vector::push_back(&mut new_siblings, *Vector::borrow(proof_siblings, idx));
-//            idx = idx + 1;
-//        };
-//
-//        // Generate root hash
-//        calculate_root_hash(element_key, &current_hash, &new_siblings)
-//    }
-
     /// Update leaf to the SMT for generate new root hash
     public fun update_leaf(element_path: &vector<u8>,
                            proof_leaf: &vector<u8>,
