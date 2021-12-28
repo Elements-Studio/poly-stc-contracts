@@ -47,8 +47,8 @@ module CrossChainGlobal {
         let account = Signer::address_of(signer);
         require_genesis_account(account);
 
-        Debug::print(&11111111);
-        Debug::print(&chain_id);
+        //Debug::print(&11111111);
+        //Debug::print(&chain_id);
 
         move_to(signer, ChainId<ChainType> {
             chain_id,
@@ -60,12 +60,12 @@ module CrossChainGlobal {
     public fun chain_id_match<ChainType: store>(chain_id: u64) : bool acquires ChainId {
         if (exists<ChainId<ChainType>>(genesis_account())) {
             let chain_id_store = borrow_global<ChainId<ChainType>>(genesis_account());
-            Debug::print(&33333333);
-            Debug::print(&chain_id_store.chain_id);
+            //Debug::print(&33333333);
+            //Debug::print(&chain_id_store.chain_id);
 
             chain_id_store.chain_id == chain_id
         } else {
-            Debug::print(&22222222);
+            //Debug::print(&22222222);
             false
         }
     }
