@@ -55,5 +55,9 @@ module MerkleProofElementBits {
     public fun hash_length(): u64 {
         LENGTH
     }
+
+    public fun hash_length_in_bits(): u64 {
+        LENGTH_IN_BITS
+    }
 }
 }

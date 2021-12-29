@@ -7,13 +7,14 @@ module MerkleProofHelper {
 
     const ERROR_SIBLING_PACKAGE_LENGTH_INVALID: u64 = 101;
 
-    const SIBLING_LENGTH: u64 = 64;
+    const SIBLING_LENGTH: u64 = 32;
 
     /// Extract siblings from packed siblings serialize data
     /// Due `Move` API call not support the parameter type such as vector<vector<u8>>
     /// so we compact all array element into one vector<u8>
     public fun extract_sibling(sibling_serial: &vector<u8>): vector<vector<u8>> {
         let len = Vector::length(sibling_serial);
+
         assert(len % SIBLING_LENGTH == 0, Errors::invalid_state(ERROR_SIBLING_PACKAGE_LENGTH_INVALID));
 
         if (len > 0) {
@@ -30,6 +31,27 @@ module MerkleProofHelper {
         } else {
             Vector::empty<vector<u8>>()
         }
+    }
+
+    #[test] use 0x1::Debug;
+    #[test] public fun test_extract_sibling() {
+        let data = x"df0254bd96f7bc830a65bf798dafc527f1a118cdfbe0c6453d4c689bbc9b788ddf0254bd96f7bc830a65bf798dafc527f1a118cdfbe0c6453d4c689bbc9b788ddf0254bd96f7bc830a65bf798dafc527f1a118cdfbe0c6453d4c689bbc9b788d";
+        let results = extract_sibling(&data);
+        let len = Vector::length<vector<u8>>(&results);
+        Debug::print(&len);
+        assert(len == 3, 1101);
+
+        let data1 = x"6f9bb267d56d0feecdd121f682df52b22d366fa7652975bec3ddabe457207eab";
+        let results1 = extract_sibling(&data1);
+        let len1 = Vector::length<vector<u8>>(&results1);
+        Debug::print(&len1);
+        assert(len1 == 1, 1102);
+
+        let data2 = x"";
+        let results2 = extract_sibling(&data2);
+        let len2 = Vector::length<vector<u8>>(&results2);
+        Debug::print(&len2);
+        assert(len2 == 0, 1103);
     }
 }
 }
