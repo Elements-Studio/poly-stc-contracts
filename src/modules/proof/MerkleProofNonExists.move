@@ -3,6 +3,52 @@ address 0x2d81a0427d64ff61b11ede9085efa5ad {
 /// Merkle proof for non exists,
 /// reference Starcoin project which locate file named: "./commons/forkable-jellyfish-merkle/src/proof.rs"
 ///
+/// Computes the hash of internal node according to [`JellyfishTree`](crate::JellyfishTree)
+/// data structure in the logical view. `start` and `nibble_height` determine a subtree whose
+/// root hash we want to get. For an internal node with 16 children at the bottom level, we compute
+/// the root hash of it as if a full binary Merkle tree with 16 leaves as below:
+///
+/// ```text
+///   4 ->              +------ root hash ------+
+///                     |                       |
+///   3 ->        +---- # ----+           +---- # ----+
+///               |           |           |           |
+///   2 ->        #           #           #           #
+///             /   \       /   \       /   \       /   \
+///   1 ->     #     #     #     #     #     #     #     #
+///           / \   / \   / \   / \   / \   / \   / \   / \
+///   0 ->   0   1 2   3 4   5 6   7 8   9 A   B C   D E   F
+///   ^
+/// height
+/// ```
+///
+/// As illustrated above, at nibble height 0, `0..F` in hex denote 16 chidren hashes.  Each `#`
+/// means the hash of its two direct children, which will be used to generate the hash of its
+/// parent with the hash of its sibling. Finally, we can get the hash of this internal node.
+///
+/// However, if an internal node doesn't have all 16 chidren exist at height 0 but just a few of
+/// them, we have a modified hashing rule on top of what is stated above:
+/// 1. From top to bottom, a node will be replaced by a leaf child if the subtree rooted at this
+/// node has only one child at height 0 and it is a leaf child.
+/// 2. From top to bottom, a node will be replaced by the placeholder node if the subtree rooted at
+/// this node doesn't have any child at height 0. For example, if an internal node has 3 leaf
+/// children at index 0, 3, 8, respectively, and 1 internal node at index C, then the computation
+/// graph will be like:
+///
+/// ```text
+///   4 ->              +------ root hash ------+
+///                     |                       |
+///   3 ->        +---- # ----+           +---- # ----+
+///               |           |           |           |
+///   2 ->        #           @           8           #
+///             /   \                               /   \
+///   1 ->     0     3                             #     @
+///                                               / \
+///   0 ->                                       C   @
+///   ^
+/// height
+/// Note: @ denotes placeholder hash.
+/// ```
 module MerkleProofNonExists {
 
     use 0x1::Errors;
@@ -12,7 +58,6 @@ module MerkleProofNonExists {
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofElementBits;
-    //use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofStructuredHash;
 
     const ERROR_ELEMENT_KEY_EXISTS_IN_PROOF: u64 = 101;
     const ERROR_LEFA_NODE_DATA_INVALID: u64 = 102;
@@ -58,10 +103,6 @@ module MerkleProofNonExists {
     public fun update_leaf(element_path: &vector<u8>,
                            proof_leaf: &vector<u8>,
                            proof_siblings: &vector<vector<u8>>): vector<u8> {
-//        Debug::print(element_path);
-//        Debug::print(proof_leaf);
-//        Debug::print(proof_siblings);
-
         let proof_leaf_len = Vector::length(proof_leaf);
         let proof_siblings_len = Vector::length<vector<u8>>(proof_siblings);
 
@@ -138,19 +179,9 @@ module MerkleProofNonExists {
             let bit = *Vector::borrow<bool>(&skiped_element_key_bits, i);
             let sibling_hash = Vector::borrow<vector<u8>>(siblings, i);
             if (bit) { // right
-                // Debug::print(&111111);
-                // Debug::print(sibling_hash);
-                // Debug::print(&result_hash);
                 result_hash = crypto_internal_node_hash(sibling_hash, &result_hash);
-                // Debug::print(&result_hash);
-                // Debug::print(&111111);
             } else { // left
-                // Debug::print(&222222);
-                // Debug::print(sibling_hash);
-                // Debug::print(&result_hash);
                 result_hash = crypto_internal_node_hash(&result_hash, sibling_hash);
-                // Debug::print(&result_hash);
-                // Debug::print(&222222);
             };
             i = i + 1;
         };
