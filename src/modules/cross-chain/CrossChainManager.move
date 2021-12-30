@@ -12,7 +12,6 @@ module CrossChainManager {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainLibrary;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
 
@@ -27,7 +26,7 @@ module CrossChainManager {
     const ERR_FAILED_VEIRFY_POLY_CHAIN_CUR_EPOCH_HEADER_SIGNATURE: u64 = 109;
     const ERR_EXECUTE_TX_FAILED: u64 = 110;
     const ERR_UNSUPPORT_CHAIN_TYPE: u64 = 111;
-
+    const ERR_CHAIN_ID_NOT_MATCH: u64 = 112;
 
     struct EventStore has key, store {
         init_genesis_block_event: Event::EventHandle<InitGenesisBlockEvent>,
@@ -99,7 +98,19 @@ module CrossChainManager {
         let pub_key_bytes = CrossChainData::get_cur_epoch_con_pubkey_bytes();
         assert(Vector::is_empty<u8>(&pub_key_bytes), Errors::invalid_state(ERR_CONTRACT_INITIALIZE_REPEATE));
 
-        let (_, _, _, header_height, _, _, _, _, _, _, header_next_bookkeeper) = CrossChainLibrary::deserialize_header(raw_header);
+        let (
+            _,
+            _,
+            _,
+            header_height,
+            _,
+            _,
+            _,
+            _,
+            _,
+            _,
+            header_next_bookkeeper
+        ) = CrossChainLibrary::deserialize_header(raw_header);
         let (next_book_keeper, keepers) = CrossChainLibrary::verify_pubkey(pub_key_list);
         assert(header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
 
@@ -125,9 +136,9 @@ module CrossChainManager {
     *  @return              true or false
     */
     public fun change_book_keeper(signer: &signer,
-                                  _raw_header: &vector<u8>,
-                                  _pub_key_list: &vector<u8>,
-                                  _sig_list: &vector<u8>) acquires EventStore {
+                                  raw_header: &vector<u8>,
+                                  pub_key_list: &vector<u8>,
+                                  sig_list: &vector<u8>) acquires EventStore {
         // // Load Ethereum cross chain data contract
         // ECCUtils.Header memory header = ECCUtils.deserialize_header(rawHeader);
         // IEthCrossChainData eccd = IEthCrossChainData(EthCrossChainDataAddress);
@@ -159,23 +170,38 @@ module CrossChainManager {
 
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
 
-        let (_, _, _, header_height, _, _, _, _, _, _, _header_next_bookkeeper) = CrossChainLibrary::deserialize_header(_raw_header);
-        let _cur_epoch_start_height = CrossChainData::get_cur_epoch_start_height();
+        let (
+            _,
+            _,
+            _,
+            header_height,
+            _,
+            _,
+            _,
+            _,
+            _,
+            _,
+            header_next_bookkeeper
+        ) = CrossChainLibrary::deserialize_header(raw_header);
+
+        let cur_epoch_start_height = CrossChainData::get_cur_epoch_start_height();
 
         // Make sure rawHeader.height is higher than recorded current epoch start height
-        assert(header_height > _cur_epoch_start_height, Errors::invalid_state(ERR_INVALID_HEADER_HEIGHT));
-        assert(!Vector::is_empty<u8>(&_header_next_bookkeeper), Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_EMPTY));
+        assert(header_height > cur_epoch_start_height, Errors::invalid_state(ERR_INVALID_HEADER_HEIGHT));
+        assert(!Vector::is_empty<u8>(&header_next_bookkeeper), Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_EMPTY));
 
         // Verify signature of rawHeader comes from pubKeyList
          let pub_key_bytes = CrossChainData::get_cur_epoch_con_pubkey_bytes();
-         let _poly_chain_bks = CrossChainLibrary::deserialize_keepers(&pub_key_bytes);
-         let n = Vector::length<vector<u8>>(&_poly_chain_bks);
-         assert(CrossChainLibrary::verify_sig(_raw_header, _sig_list, &_poly_chain_bks, ((n - (n - 1) / 3) as u64)), Errors::invalid_state(ERR_FAILED_VERIFY_SIGNATURE));
+         let poly_chain_bks = CrossChainLibrary::deserialize_keepers(&pub_key_bytes);
+         let n = Vector::length<vector<u8>>(&poly_chain_bks);
+         assert(CrossChainLibrary::verify_sig(
+             raw_header, sig_list, &poly_chain_bks, ((n - (n - 1) / 3) as u64)),
+             Errors::invalid_state(ERR_FAILED_VERIFY_SIGNATURE));
 
         // Convert pubKeyList into ethereum address format and make sure the compound address from the converted ethereum addresses
         // equals passed in header.nextBooker
-        let (next_book_keeper, keepers) = CrossChainLibrary::verify_pubkey(_pub_key_list);
-        assert(_header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
+        let (next_book_keeper, keepers) = CrossChainLibrary::verify_pubkey(pub_key_list);
+        assert(header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
 
         // update current epoch start height of Poly chain and current epoch consensus peers book keepers addresses
         CrossChainData::put_cur_epoch_start_height(header_height);
@@ -188,7 +214,7 @@ module CrossChainManager {
             &mut event_store.change_book_keeper_event,
             ChangeBookKeeperEvent {
                 height: (header_height as u128),
-                raw_header: *_raw_header,
+                raw_header: *raw_header,
             },
         );
     }
@@ -234,7 +260,7 @@ module CrossChainManager {
         // return true;
 
         // Capability handle
-        CrossChainGlobal::verify_execution_cap_opt_code(&cap, &b"lock");
+        CrossChainGlobal::verify_execution_cap(&cap, tx_data);
         CrossChainGlobal::destroy_execution_cap(cap);
 
         let account = Signer::address_of(signer);
@@ -261,8 +287,6 @@ module CrossChainManager {
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(method));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(tx_data));
 
-        // TODO(9191stc): Hwow to encode address of current contract in Move ?
-        //let encode_raw = CrosschainUtils::encodePacked(&raw);
         // Must save it in the storage to be included in the proof to be verified.
         CrossChainData::put_eth_tx_hash(Hash::keccak_256(*&raw_param));
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
@@ -290,19 +314,17 @@ module CrossChainManager {
     *                       used to verify the validity of curRawHeader
     *  @return              true or false
     */
-    public fun verify_header_and_execute_tx(_proof: &vector<u8>,
-                                            _raw_header: &vector<u8>,
-                                            _header_proof: &vector<u8>,
-                                            _cur_raw_header: &vector<u8>,
-                                            _header_sig: &vector<u8>,
-                                            _merkle_proof_root: &vector<u8>,
-                                            _merkle_proof_leaf: &vector<u8>,
-                                            _merkle_proof_siblings: &vector<vector<u8>>)
+    public fun verify_header(proof: &vector<u8>,
+                             raw_header: &vector<u8>,
+                             header_proof: &vector<u8>,
+                             cur_raw_header: &vector<u8>,
+                             header_sig: &vector<u8>)
     : (
         vector<u8>,
         vector<u8>,
         u64,
-        CrossChainGlobal::ExecutionCapability
+        CrossChainGlobal::ExecutionCapability,
+        vector<u8>
     ) acquires EventStore {
 
         // Load ehereum cross chain data contract
@@ -317,63 +339,63 @@ module CrossChainManager {
             header_cross_states_root,
             _,
             _,
-            _header_next_bookkeeper
-        ) = CrossChainLibrary::deserialize_header(_raw_header);
+            _
+        ) = CrossChainLibrary::deserialize_header(raw_header);
 
         // Get stored consensus public key bytes of current poly chain epoch and
         // deserialize Poly chain consensus public key bytes to address[]
         let pub_key_bytes = CrossChainData::get_cur_epoch_con_pubkey_bytes();
-        let _poly_chain_bks = CrossChainLibrary::deserialize_keepers(&pub_key_bytes);
+        let poly_chain_bks = CrossChainLibrary::deserialize_keepers(&pub_key_bytes);
         let cur_epoch_start_height = CrossChainData::get_cur_epoch_start_height();
 
-        let n = Vector::length<vector<u8>>(&_poly_chain_bks);
+        let n = Vector::length<vector<u8>>(&poly_chain_bks);
         if (header_height >= cur_epoch_start_height) {
 
             // It's enough to verify rawHeader signature
-            assert(CrossChainLibrary::verify_sig(_raw_header, _header_sig, &_poly_chain_bks, ((n - (n - 1) / 3) as u64)),
+            assert(CrossChainLibrary::verify_sig(raw_header, header_sig, &poly_chain_bks, ((n - (n - 1) / 3) as u64)),
                 Errors::invalid_state(ERR_FAILED_VERIFY_SIGNATURE));
         } else {
             // We need to verify the signature of curHeader
-            assert(CrossChainLibrary::verify_sig(_cur_raw_header, _header_sig, &_poly_chain_bks, ((n - (n - 1) / 3) as u64)),
+            assert(CrossChainLibrary::verify_sig(cur_raw_header, header_sig, &poly_chain_bks, ((n - (n - 1) / 3) as u64)),
                 Errors::invalid_state(ERR_FAILED_VEIRFY_POLY_CHAIN_CUR_EPOCH_HEADER_SIGNATURE));
             // Then use curHeader.StateRoot and headerProof to verify rawHeader.CrossStateRoot
-            let (_, _, _, _, _, _, _, _, block_root, _, _) = CrossChainLibrary::deserialize_header(_cur_raw_header);
-            let prove_value = CrossChainLibrary::merkle_prove(_header_proof, &block_root);
-            assert(CrossChainLibrary::get_header_hash(_raw_header) == prove_value,
+            let (_, _, _, _, _, _, _, _, block_root, _, _) = CrossChainLibrary::deserialize_header(cur_raw_header);
+            let prove_value = CrossChainLibrary::merkle_prove(header_proof, &block_root);
+            assert(CrossChainLibrary::get_header_hash(raw_header) == prove_value,
                 Errors::invalid_state(ERR_FAILDE_VERIFY_HEADER_PROOF));
         };
 
         // Through rawHeader.CrossStateRoot, the toMerkleValue or cross chain msg can be verified and parsed from proof
-        let to_merkle_value_bs = CrossChainLibrary::merkle_prove(_proof, &header_cross_states_root);
+        let to_merkle_value_bs = CrossChainLibrary::merkle_prove(proof, &header_cross_states_root);
 
         // Parse the toMerkleValue struct and make sure the tx has not been processed, then mark this tx as processed
         let (
             cross_chain_tx_hash,
             from_chain_id,
             source_chain_tx_hash,
-            _cross_chain_id,
             _,
-            to_chain_id,
+            _,
+            _,
             to_contract,
             method,
             args
         ) = CrossChainLibrary::deserialize_merkle_value(&to_merkle_value_bs);
 
         // Check if from chain transaction is exists
-        let check_ret =
-            check_and_mark_transaction_exists<CrossChainType::Starcoin>(
-                from_chain_id,
-                &cross_chain_tx_hash,
-                _merkle_proof_root,
-                _merkle_proof_leaf,
-                _merkle_proof_siblings) ||
-            check_and_mark_transaction_exists<CrossChainType::Ethereum>(
-                from_chain_id,
-                &cross_chain_tx_hash,
-                _merkle_proof_root,
-                _merkle_proof_leaf,
-                _merkle_proof_siblings);
-        assert(check_ret, Errors::invalid_state(ERR_UNSUPPORT_CHAIN_TYPE));
+//        let check_ret =
+//            check_and_mark_transaction_exists<CrossChainType::Starcoin>(
+//                from_chain_id,
+//                &cross_chain_tx_hash,
+//                merkle_proof_root,
+//                merkle_proof_leaf,
+//                merkle_proof_siblings) ||
+//            check_and_mark_transaction_exists<CrossChainType::Ethereum>(
+//                from_chain_id,
+//                &cross_chain_tx_hash,
+//                merkle_proof_root,
+//                merkle_proof_leaf,
+//                merkle_proof_siblings);
+//        assert(check_ret, Errors::invalid_state(ERR_UNSUPPORT_CHAIN_TYPE));
         // Ethereum ChainId is 2, we need to check the transaction is for Ethereum network
         // assert(to_chain_id == 2, Errors::invalid_state(ERR_NOT_AIMING_ETHEREUM_NETWORK));
 
@@ -393,11 +415,18 @@ module CrossChainManager {
             VerifyHeaderAndExecuteTxEvent {
                 from_chain_id,
                 to_contract,
-                cross_chain_tx_hash,
+                cross_chain_tx_hash: *&cross_chain_tx_hash,
                 from_chain_tx_hash: source_chain_tx_hash,
             },
         );
-        (method, args, to_chain_id, CrossChainGlobal::generate_execution_cap(&b"tx_verified"))
+
+        (
+            method,
+            args,
+            from_chain_id,
+            CrossChainGlobal::generate_execution_cap(&cross_chain_tx_hash, false),
+            cross_chain_tx_hash,
+        )
     }
 
     /// Process undefine execution after verify success.
@@ -406,70 +435,32 @@ module CrossChainManager {
     }
 
     /// Check and marking transaction exists
-    public fun check_and_mark_transaction_exists<ChainType: key + store>(chain_id: u64,
-                                                                         tx_hash: &vector<u8>,
-                                                                         merkle_proof_root: &vector<u8>,
-                                                                         merkle_proof_leaf: &vector<u8>,
-                                                                         merkle_proof_siblings: &vector<vector<u8>>): bool {
-        let has_match = CrossChainGlobal::chain_id_match<ChainType>(chain_id);
-        if (has_match) {
-            assert(
-                CrossChainData::check_chain_tx_not_exists<ChainType>(
-                    tx_hash,
-                    merkle_proof_root,
-                    merkle_proof_leaf,
-                    merkle_proof_siblings),
-                Errors::invalid_state(ERR_TRANSACTION_EXECUTE_REPEATE));
+    public fun check_and_mark_transaction_exists<ChainType: store>(chain_id: u64,
+                                                                   tx_hash: &vector<u8>,
+                                                                   merkle_proof_root: &vector<u8>,
+                                                                   merkle_proof_leaf: &vector<u8>,
+                                                                   merkle_proof_siblings: &vector<vector<u8>>,
+                                                                   cap: &mut CrossChainGlobal::ExecutionCapability
+    ) {
+        assert(
+            CrossChainGlobal::chain_id_match<ChainType>(chain_id),
+            Errors::invalid_state(ERR_CHAIN_ID_NOT_MATCH));
 
-            CrossChainData::mark_from_chain_tx_exists<ChainType>(
+        assert(
+            CrossChainData::check_chain_tx_not_exists<ChainType>(
                 tx_hash,
+                merkle_proof_root,
                 merkle_proof_leaf,
-                merkle_proof_siblings);
-            true
-        } else {
-            false
-        }
+                merkle_proof_siblings),
+            Errors::invalid_state(ERR_TRANSACTION_EXECUTE_REPEATE));
+
+        CrossChainData::mark_from_chain_tx_exists<ChainType>(
+            tx_hash,
+            merkle_proof_leaf,
+            merkle_proof_siblings);
+
+        CrossChainGlobal::tx_hash_has_proof(cap);
     }
 
-//    /* @notice                  Dynamically invoke the targeting contract, and trigger executation of cross chain tx on Ethereum side
-//    *  @param _toContract       The targeting contract that will be invoked by the Ethereum Cross Chain Manager contract
-//    *  @param _method           At which method will be invoked within the targeting contract
-//    *  @param _args             The parameter that will be passed into the targeting contract
-//    *  @param _fromContractAddr From chain smart contract address
-//    *  @param _fromChainId      Indicate from which chain current cross chain tx comes
-//    */
-//    fun execute_cross_chain_tx(_to_contract: &vector<u8>,
-//                               _method: &vector<u8>,
-//                               _args: &vector<u8>,
-//                               _from_contract_addr: &vector<u8>,
-//                               _from_chain_id: u64): bool {
-//        // // Ensure the targeting contract gonna be invoked is indeed a contract rather than a normal account address
-//        // require(Utils.isContract(_toContract), "The passed in address is not a contract!");
-//        // bytes memory returnData;
-//        // bool success;
-//
-//        // // The returnData will be bytes32, the last byte must be 01;
-//        // (success, returnData) = _toContract.call(abi.encodePacked(bytes4(keccak256(abi.encodePacked(_method, "(bytes,bytes,uint64)"))), abi.encode(_args, _fromContractAddr, _fromChainId)));
-//
-//        // // Ensure the executation is successful
-//        // require(success == true, "EthCrossChain call business contract failed");
-//
-//        // // Ensure the returned value is true
-//        // require(returnData.length != 0, "No return value from business contract!");
-//        // (bool res,) = ZeroCopySource.NextBool(returnData, 31);
-//        // require(res == true, "EthCrossChain call business contract return is not true");
-//
-//        // return true;
-//
-//        // TODO(9191stc): To determine which function be calling
-//        //        if (_method != b"unlock") {
-//        //            false
-//        //        };
-//        //
-//        //        if (_from_chain_id == 2) {
-//        //            UnlockProxy::unlock<CrossChainType::Ethereum>(_args, _from_contract_addr, _from_chain_id);
-//        //        };
-//        true
-//    }
 }
 }

@@ -8,10 +8,8 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
-    use 0x1::STC;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainToken;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal::{Self, ExecutionCapability};
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Address;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
@@ -192,7 +190,7 @@ module LockProxy {
         vector<u8>,
         vector<u8>,
         LockEvent,
-        ExecutionCapability,
+        CrossChainGlobal::ExecutionCapability,
     )
     acquires LockGlobalHashStore, LockToken {
         // bytes memory toAssetHash = assetHashMap[fromAssetHash][toChainId];
@@ -235,7 +233,7 @@ module LockProxy {
             *&hash_store.chain_id,
             *&hash_store.proxy_hash,
             b"unlock",
-            tx_data,
+            *&tx_data,
             LockEvent {
                 from_address: Address::bytify(Signer::address_of(signer)),
                 from_asset_hash: Token::token_code<TokenType>(),
@@ -244,7 +242,7 @@ module LockProxy {
                 to_address: *to_address,
                 amount
             },
-            CrossChainGlobal::generate_execution_cap(&b"lock"),
+            CrossChainGlobal::generate_execution_cap(&tx_data, true),
         )
     }
 
@@ -265,40 +263,23 @@ module LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock<ChainType: store>(args_bs: &vector<u8>,
-                                        from_chain_id: u64,
-                                        cap: ExecutionCapability) acquires LockGlobalHashStore, LockToken, LockEventStore {
-        // TxArgs memory args = deserialize_tx_args(argsBs);
-
-        // require(fromContractAddr.length != 0, "from proxy contract address cannot be empty");
-        // require(Utils.equalStorage(proxyHashMap[fromChainId], fromContractAddr), "From Proxy contract address error!");
-
-        // require(args.toAssetHash.length != 0, "toAssetHash cannot be empty");
-        // address toAssetHash = Utils.bytesToAddress(args.toAssetHash);
-
-        // require(args.toAddress.length != 0, "toAddress cannot be empty");
-        // address toAddress = Utils.bytesToAddress(args.toAddress);
-
-        // require(_transferFromContract(toAssetHash, toAddress, args.amount), "transfer asset from lock_proxy contract to toAddress failed!");
-
-        // emit UnlockEvent(toAssetHash, toAddress, args.amount);
-        // return true;
-
+    public fun unlock<TokenType: store,
+                      ChainType: store>(
+        args_bs: &vector<u8>,
+        tx_hash: &vector<u8>,
+        from_chain_id: u64,
+        cap: &CrossChainGlobal::ExecutionCapability) acquires LockGlobalHashStore, LockToken, LockEventStore {
         assert(
-            CrossChainGlobal::verify_execution_cap_opt_code(&cap, &b"tx_verified"),
+            CrossChainGlobal::verify_execution_cap(cap, tx_hash),
             Errors::invalid_state(ERR_UNLOCK_EXECUTECAP_INVALID)
         );
 
-        CrossChainGlobal::destroy_execution_cap(cap);
-
         let (to_asset_hash, to_address, amount) = deserialize_tx_args(*args_bs);
 
-        //assert(Vector::length(&to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
-        let to_addr = Address::addressify(*&to_address);
+        assert(Vector::length(&to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
+        let native_to_address = Address::addressify(*&to_address);
 
-        let ret = inner_unlock<STC::STC, ChainType>(from_chain_id, &to_asset_hash, to_addr, amount) ||
-                  inner_unlock<CrossChainToken::X_BTC, ChainType>(from_chain_id, &to_asset_hash, to_addr, amount) ||
-                  inner_unlock<CrossChainToken::X_ETH, ChainType>(from_chain_id, &to_asset_hash, to_addr, amount);
+        let ret = inner_unlock<TokenType, ChainType>(from_chain_id, &to_asset_hash, native_to_address, amount);
         assert(ret, Errors::invalid_state(ERR_UNLOCK_CHAIN_TYPE_NOT_SUPPORT));
 
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());

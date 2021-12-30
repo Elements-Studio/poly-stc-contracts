@@ -4,41 +4,33 @@
 
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
-module alice::CrossChainScriptTestHelper {
-
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
+module alice::CrossChainType {
 
     struct XETH has copy, drop, store {}
 
     struct XBTC has copy, drop, store {}
 
+    struct Ethereum has key, store {}
 
-    /// Bind a new token type and chain type  proxy and asset to contract
-    public fun bind_asset_and_proxy<TokenType: store, ChainType: store>(signer: &signer,
-                                                                 chain_id: u64,
-                                                                 proxy_hash: &vector<u8>,
-                                                                 asset_hash: &vector<u8>) {
-        CrossChainGlobal::set_chain_id<ChainType>(signer, chain_id);
-        CrossChainData::init_txn_exists_proof<ChainType>(signer);
-        LockProxy::bind_asset_and_proxy<TokenType, ChainType>(signer, chain_id, proxy_hash, asset_hash);
-    }
+    struct Bitcoin has key, store {}
+
+    struct Starcoin has key, store {}
+
 }
 
 
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x1::STC;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
+    use alice::CrossChainType;
 
     const CHAINID_STARCOIN: u64 = 8;
 
@@ -52,9 +44,7 @@ script {
         LockProxy::init_event(&signer);
 
         // Init asset proxy bind information
-        CrossChainGlobal::set_chain_id<CrossChainType::Starcoin>(&signer, CHAINID_STARCOIN);
-        CrossChainData::init_txn_exists_proof<CrossChainType::Starcoin>(&signer);
-        LockProxy::bind_asset_and_proxy<STC::STC, CrossChainType::Starcoin>(
+        CrossChainRouter::bind_asset_and_proxy<STC::STC, CrossChainType::Starcoin>(
             &signer,
             CHAINID_STARCOIN,
             &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
@@ -65,7 +55,7 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x1::Vector;
 
@@ -92,7 +82,7 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
 
@@ -107,11 +97,10 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
-    use 0x1::Debug;
     use 0x1::Vector;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
 
     fun test_verify_header_and_execute_tx(_signer: signer) {
         let proof_x = x"d020e91d858cba58b3dff91bf4b3adcacabf899e106ed6ad86a16a4a29e7817e307c080000000000000020b697330bd7a5850235f97d1bcd1c37739f4bc79a4f8e635dcb46ba45bc600ef4012f14f71b55ef55cedc91fd007f7a9ba386ec978f3aa80200000000000000144ddcf539d13e92d4151b7f5e607d4a09f725c47d06756e6c6f636b4a14000000000000000000000000000000000000000014344cfc3b8635f72f14200aaf2168d9f75df86fd36226100000000000000000000000000000000000000000000000000000000000";
@@ -122,53 +111,45 @@ script {
 
         let root_hash = x"0000000000000000000000000000000000000000000000000000000000000000";
         let proof_leaf = Vector::empty<u8>();
-        let proof_siblings = Vector::empty<vector<u8>>();
+        let proof_siblings = Vector::empty<u8>();
 
-        let (method, args, to_chain_id, cap) =
-            CrossChainManager::verify_header_and_execute_tx(
-                &proof_x,
-                &block_header_x1,
-                &header_proof_x,
-                &cur_raw_header,
-                &signatures_x1,
-                &root_hash,
-                &proof_leaf,
-                &proof_siblings);
-
-        Debug::print(&method);
-        Debug::print(&args);
-        Debug::print(&to_chain_id);
-
-        CrossChainManager::undefine_execution(cap);
+        CrossChainRouter::verify_header_and_execute_tx(
+            &proof_x,
+            &block_header_x1,
+            &header_proof_x,
+            &cur_raw_header,
+            &signatures_x1,
+            &root_hash,
+            &proof_leaf,
+            &proof_siblings);
     }
 }
 // check: EXECUTED
 
-
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
-    use alice::CrossChainScriptTestHelper;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
+    use alice::CrossChainType;
 
     const CHAINID_ETHERUM: u64 = 100;
     const CHAINID_BITCOIN: u64 = 101;
 
     fun test_bind_add_new_token_type(signer: signer) {
-        CrossChainScriptTestHelper::bind_asset_and_proxy<CrossChainScriptTestHelper::XETH, CrossChainType::Ethereum>(
+        CrossChainRouter::bind_asset_and_proxy<CrossChainType::XETH, CrossChainType::Ethereum>(
             &signer,
             CHAINID_ETHERUM,
             &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
-            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScriptTestHelper::XETH");
+            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType::XETH");
         assert(CrossChainGlobal::chain_id_match<CrossChainType::Ethereum>(CHAINID_ETHERUM), 10001);
 
-        CrossChainScriptTestHelper::bind_asset_and_proxy<CrossChainScriptTestHelper::XBTC, CrossChainType::Bitcoin>(
+        CrossChainRouter::bind_asset_and_proxy<CrossChainType::XBTC, CrossChainType::Bitcoin>(
             &signer,
             CHAINID_BITCOIN,
             &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
-            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScriptTestHelper::XBTC");
+            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType::XBTC");
         assert(CrossChainGlobal::chain_id_match<CrossChainType::Bitcoin>(CHAINID_BITCOIN), 10002);
     }
 }

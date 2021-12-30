@@ -3,23 +3,29 @@
 
 //! new-transaction
 //! sender: admin
-address admin = {{admin}};
-module admin::MockTokenType {
+address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
+module admin::CrossChainType {
     struct TokenA has copy, drop, store {}
 
     struct TokenB has copy, drop, store {}
 
     struct TokenC has copy, drop, store {}
+
+    struct Starcoin has key, store {}
+
+    struct Ethereum has key, store {}
+
+    struct Bitcoin has key, store {}
 }
 
 //! new-transaction
 //! sender: admin
-address admin = {{admin}};
+address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x1::Vector;
 
+    use admin::CrossChainType;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
 
     fun test_initialize_chain_placeholder(signer: signer) {
         CrossChainData::init_genesis(&signer);
@@ -42,10 +48,10 @@ script {
 
 //! new-transaction
 //! sender: admin
-address admin = {{admin}};
+address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use admin::MockTokenType::{TokenA, TokenB, TokenC};
+    use admin::CrossChainType::{TokenA, TokenB, TokenC};
 
     fun test_cross_chain_id_storage(signer: signer) {
         CrossChainGlobal::set_chain_id<TokenA>(&signer, 1);

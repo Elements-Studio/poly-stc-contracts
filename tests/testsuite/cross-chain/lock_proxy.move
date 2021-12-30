@@ -1,17 +1,18 @@
 //! account: alice, 0x2d81a0427d64ff61b11ede9085efa5ad, 1000000000000000000 0x1::STC::STC
 //! account: bob, 0x49156896A605F092ba1862C50a9036c9, 1000000000000000000 0x1::STC::STC
 
+
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x1::STC;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
 
     const CHAINID_STARCOIN: u64 = 8;
 
@@ -25,9 +26,7 @@ script {
         LockProxy::init_event(&signer);
 
         // Init asset proxy bind information
-        CrossChainGlobal::set_chain_id<CrossChainType::Starcoin>(&signer, CHAINID_STARCOIN);
-        CrossChainData::init_txn_exists_proof<CrossChainType::Starcoin>(&signer);
-        LockProxy::bind_asset_and_proxy<STC::STC, CrossChainType::Starcoin>(
+        CrossChainRouter::bind_asset_and_proxy<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer,
             CHAINID_STARCOIN,
             &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
@@ -36,9 +35,10 @@ script {
 }
 // check: EXECUTED
 
+
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
 
@@ -51,15 +51,16 @@ script {
 }
 // check: EXECUTED
 
-
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
     use 0x1::STC;
+
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
+
 
     fun test_lock_cross_to_other(signer: signer) {
         let to_adderss = x"49156896A605F092ba1862C50a9036c9";
@@ -70,7 +71,7 @@ script {
             tx_data,
             event,
             cap,
-        ) = LockProxy::lock<STC::STC, CrossChainType::Starcoin>(&signer, &to_adderss, 1000000000000000000);
+        ) = LockProxy::lock<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(&signer, &to_adderss, 1000000000000000000);
 
         // Do crosschain option from cross chain manager
         CrossChainManager::cross_chain(&signer, chain_id, &proxy_hash, &fun_name, &tx_data, cap);
@@ -83,14 +84,11 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = {{alice}};
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
-    use 0x1::Debug;
     use 0x1::Vector;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
 
     const CHAINID_STARCOIN: u64 = 8;
 
@@ -102,28 +100,18 @@ script {
         let signatures_x1 = x"6d905d095fc1b47eb30b8f176c94b01b64502790f3c20db2a5b7e555791bdbf8458a24c73c8f690ad8481e3754c3297991f9f4148d03316e2e5a6c6af9e7bbc900a81911a6eb529979ee021124c242a828657865fc7a899ab55fb7d2a1623341a67ae83c90a40bec8bf54fa3c5caad445062568d3c4c4099e84ad6c774e70d7d7d000b5d0a2ebc3685a6deeb96cfabf71e4a9d05606a5918e4765be6cc4cad38c3954e248d97b2fa378b954f323335c93298913c61048cf0b396467df1c6b6bbba4d01cd68657ad3c6d5a979093ff1345eefb269e86498b519418fa0e5e756ce01a9b939d46b405d2a167883bda0a40023cce39659890c97a59e3f772b6fc3c2e03221004d425ad3bfef2de8b1d523cbfd754d4ea2c8e8fa5f6904b0389f4e5d62039083454e2a24da6e1c90334fd760eaa1921bdac10158758f682cb401e1df16ee0ec801b8e8eb23200a1571c6ad516528ce3f1280506eed9f1e380b9a5e770f1e89d8414182c7b83dc8f230d288c4745d0a8102cfc015d422af77d139bc606054363ecf0138fc63be97c354539b517bd8abd97d86fa3484894663aa7dcf578cfad7368df577206e28daf800cba179314f34f1a6dec569ff12e15c22b598028cce64bfa54601";
         let root_hash = x"0000000000000000000000000000000000000000000000000000000000000000";
         let proof_leaf = Vector::empty<u8>();
-        let proof_siblings = Vector::empty<vector<u8>>();
+        let proof_siblings = Vector::empty<u8>();
 
-        let (method, args, to_chain_id, cap) =
-            CrossChainManager::verify_header_and_execute_tx(
-                &proof_x,
-                &block_header_x1,
-                &header_proof_x,
-                &cur_raw_header,
-                &signatures_x1,
-                &root_hash,
-                &proof_leaf,
-                &proof_siblings);
-
-        Debug::print(&method);
-        Debug::print(&args);
-        Debug::print(&to_chain_id);
-
-        if (method == b"unlock" && to_chain_id == CHAINID_STARCOIN) {
-            LockProxy::unlock<CrossChainType::Starcoin>(&args, to_chain_id, cap);
-        } else {
-            CrossChainManager::undefine_execution(cap);
-        };
+        CrossChainRouter::verify_header_and_execute_tx(
+            &proof_x,
+            &block_header_x1,
+            &header_proof_x,
+            &cur_raw_header,
+            &signatures_x1,
+            &root_hash,
+            &proof_leaf,
+            &proof_siblings);
     }
 }
-// check: EXECUTED
+// check: "Keep(ABORTED { code: 27137"
+// TODO: must set a correct native address
