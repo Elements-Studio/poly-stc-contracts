@@ -8,11 +8,10 @@ module XUSDT {
     struct XUSDT has copy, drop, store {}
 
     /// Chain type
-    struct USD_CHAIN has copy, drop, store {}
+    struct ETHEREUM has copy, drop, store {}
 
     /// precision of XUSDT token.
     const PRECISION: u8 = 9;
-    const CHAINID: u64 = 200;
 
     /// XUSDT initialization.
     public fun init(account: &signer) {
@@ -24,15 +23,12 @@ module XUSDT {
         let token = Token::mint<XUSDT>(account, amount);
         Account::deposit_to_self<XUSDT>(account, token)
     }
-
-    public fun get_chain_id() : u64 {
-        CHAINID
-    }
 }
 
 module XUSDTScripts {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
 
     public(script) fun init(account: signer,
                             proxy_hash: vector<u8>,
@@ -42,9 +38,9 @@ module XUSDTScripts {
         // bind asset and proxy
         CrossChainRouter::bind_asset_and_proxy<
             XUSDT::XUSDT,
-            XUSDT::USD_CHAIN>(
+            CrossChainGlobal::ETHEREUM_CHAIN>(
             &account,
-            XUSDT::get_chain_id(),
+            CrossChainGlobal::get_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(),
             &proxy_hash,
             &asset_hash);
     }

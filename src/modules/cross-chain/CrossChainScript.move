@@ -26,6 +26,10 @@ module CrossChainScript {
         // Init asset proxy asset
         LockProxy::init_event(&signer);
 
+        // Initialize default chain id
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, CHAINID_STARCOIN);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, CHAINID_ETHEREUM);
+
         // Starcoin
         CrossChainRouter::bind_asset_and_proxy<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer,

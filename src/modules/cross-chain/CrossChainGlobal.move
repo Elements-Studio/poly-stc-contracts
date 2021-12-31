@@ -13,6 +13,8 @@ module CrossChainGlobal {
 
     struct STARCOIN_CHAIN has key, store {}
 
+    struct ETHEREUM_CHAIN has key, store {}
+
     struct ExecutionCapability {
         tx_data: vector<u8>,
         proof_tx_non_exists: bool,
@@ -62,13 +64,27 @@ module CrossChainGlobal {
 
 
     /// Set chain id to Chain Type
-    public fun set_chain_id<ChainType: store>(signer: &signer, chain_id: u64) {
+    public fun set_chain_id<ChainType: store>(signer: &signer, chain_id: u64) acquires ChainId {
         let account = Signer::address_of(signer);
         require_genesis_account(account);
 
-        move_to(signer, ChainId<ChainType>{
-            chain_id
-        });
+        if (exists<ChainId<ChainType>>(genesis_account())) {
+            let chain_id_store = borrow_global_mut<ChainId<ChainType>>(genesis_account());
+            chain_id_store.chain_id = chain_id;
+        } else {
+            move_to(signer, ChainId<ChainType>{
+                chain_id
+            });
+        }
+    }
+
+    public fun get_chain_id<ChainType: store>() : u64 acquires ChainId {
+        if (exists<ChainId<ChainType>>(genesis_account())) {
+            let chain_id_store = borrow_global<ChainId<ChainType>>(genesis_account());
+            chain_id_store.chain_id
+        } else {
+            0
+        }
     }
 
     /// Check chain id is matched to type

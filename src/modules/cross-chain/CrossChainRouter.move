@@ -41,9 +41,9 @@ module CrossChainRouter {
         if (*&method == b"unlock") {
             check_exists_and_execute_unlock<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
                 chain_id, &args, &cross_chain_tx_hash, merkle_proof_root, merkle_proof_leaf, &merkle_proof_siblings, &mut cap) ||
-            check_exists_and_execute_unlock<XUSDT::XUSDT, XUSDT::USD_CHAIN>(
+            check_exists_and_execute_unlock<XUSDT::XUSDT, CrossChainGlobal::ETHEREUM_CHAIN>(
                 chain_id, &args, &cross_chain_tx_hash, merkle_proof_root, merkle_proof_leaf, &merkle_proof_siblings, &mut cap) ||
-            check_exists_and_execute_unlock<XETH::XETH, XETH::ETHEREUM>(
+            check_exists_and_execute_unlock<XETH::XETH, CrossChainGlobal::ETHEREUM_CHAIN>(
                 chain_id, &args, &cross_chain_tx_hash, merkle_proof_root, merkle_proof_leaf, &merkle_proof_siblings, &mut cap);
         };
 
