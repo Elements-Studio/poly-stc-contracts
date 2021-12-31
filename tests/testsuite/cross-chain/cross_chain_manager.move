@@ -136,33 +136,33 @@ script {
 }
 // check: "Keep(ABORTED { code: 27137"
 // TODO: must set a correct native address
-//
-////! new-transaction
-////! sender: alice
-//address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
-//script {
-//    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-//    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
-//    use alice::CrossChainType;
-//
-//    const CHAINID_ETHERUM: u64 = 100;
-//    const CHAINID_BITCOIN: u64 = 101;
-//
-//    fun test_bind_add_new_token_type(signer: signer) {
-//        CrossChainRouter::bind_asset_and_proxy<CrossChainType::XETH, CrossChainType::Ethereum>(
-//            &signer,
-//            CHAINID_ETHERUM,
-//            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
-//            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType::XETH");
-//        assert(CrossChainGlobal::chain_id_match<CrossChainType::Ethereum>(CHAINID_ETHERUM), 10001);
-//
-//        CrossChainRouter::bind_asset_and_proxy<CrossChainType::XBTC, CrossChainType::Bitcoin>(
-//            &signer,
-//            CHAINID_BITCOIN,
-//            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
-//            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType::XBTC");
-//        assert(CrossChainGlobal::chain_id_match<CrossChainType::Bitcoin>(CHAINID_BITCOIN), 10002);
-//    }
-//}
-//// check: EXECUTED
+
+//! new-transaction
+//! sender: alice
+address alice = 0x2d81a0427d64ff61b11ede9085efa5ad;
+script {
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
+    use alice::CrossChainType;
+
+    const CHAINID_ETHERUM: u64 = 100;
+    const CHAINID_BITCOIN: u64 = 101;
+
+    fun test_bind_add_new_token_type(signer: signer) {
+        CrossChainRouter::bind_asset_and_proxy<CrossChainType::XETH, CrossChainType::Ethereum>(
+            &signer,
+            CHAINID_ETHERUM,
+            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
+            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType::XETH");
+        assert(CrossChainGlobal::chain_id_match<CrossChainType::Ethereum>(CHAINID_ETHERUM), 10001);
+
+        CrossChainRouter::bind_asset_and_proxy<CrossChainType::XBTC, CrossChainType::Bitcoin>(
+            &signer,
+            CHAINID_BITCOIN,
+            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
+            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainType::XBTC");
+        assert(CrossChainGlobal::chain_id_match<CrossChainType::Bitcoin>(CHAINID_BITCOIN), 10002);
+    }
+}
+// check: EXECUTED
 
