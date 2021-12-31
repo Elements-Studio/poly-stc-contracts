@@ -7,8 +7,6 @@ module XUSDT {
     /// XUSDT token marker.
     struct XUSDT has copy, drop, store {}
 
-    /// Chain type
-    struct ETHEREUM has copy, drop, store {}
 
     /// precision of XUSDT token.
     const PRECISION: u8 = 9;
