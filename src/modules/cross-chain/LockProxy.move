@@ -8,10 +8,8 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
-    use 0x1::STC;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainToken;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal::{Self, ExecutionCapability};
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Address;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
@@ -24,16 +22,17 @@ module LockProxy {
     const ERR_UNLOCK_EXECUTECAP_INVALID: u64 = 105;
     const ERROR_UNLOCK_INVALID_ADDRESS: u64 = 106;
 
-    const ADDRESS_LENGTH: u64 = 32;
+    const ADDRESS_LENGTH: u64 = 16;
 
-    struct LockGlobalHashStore<TokenTyppe, ChainType> has key, store {
+    struct LockGlobal<TokenT, ChainType> has key, store {
         chain_id: u64,
         proxy_hash: vector<u8>,
         asset_hash: vector<u8>,
+        lock_amount: u128,
     }
 
-    struct LockToken<TokenType> has key, store {
-        token: Token::Token<TokenType>,
+    struct LockTreasury<TokenT> has key, store {
+        token: Token::Token<TokenT>,
     }
 
     struct LockEventStore has key, store {
@@ -92,7 +91,7 @@ module LockProxy {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
-        move_to(signer, LockEventStore {
+        move_to(signer, LockEventStore{
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(signer),
             bind_asset_event: Event::new_event_handle<BindAssetEvent>(signer),
             unlock_event: Event::new_event_handle<UnlockEvent>(signer),
@@ -101,67 +100,68 @@ module LockProxy {
     }
 
     /// Initialize asset and proxy for support chain and coin type, only called by genesis account
-    public fun bind_asset_and_proxy<TokenType: store, ChainType: store>(signer: &signer,
-                                                                        chain_id: u64,
-                                                                        proxy_hash: &vector<u8>,
-                                                                        asset_hash: &vector<u8>)
-    acquires LockEventStore, LockGlobalHashStore, LockToken {
+    public fun bind_asset_and_proxy<TokenT: store, ChainType: store>(signer: &signer,
+                                                                     chain_id: u64,
+                                                                     proxy_hash: &vector<u8>,
+                                                                     asset_hash: &vector<u8>)
+    acquires LockEventStore, LockGlobal, LockTreasury {
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
 
         // Lock token struct initialization
-        move_to(signer, LockToken<TokenType> {
-            token: Token::zero<TokenType>(),
+        move_to(signer, LockTreasury<TokenT>{
+            token: Token::zero<TokenT>(),
         });
 
         // Bind Proxy hash of starcoin self
-        bind_proxy_hash<TokenType, ChainType>(signer, chain_id, proxy_hash);
+        bind_proxy_hash<TokenT, ChainType>(signer, chain_id, proxy_hash);
 
         // Bind Asset type hash initialization
-        bind_asset_hash<TokenType, ChainType>(signer, chain_id, asset_hash);
+        bind_asset_hash<TokenT, ChainType>(signer, chain_id, asset_hash);
     }
 
-    fun bind_proxy_hash<TokenType: store, ChainType: store>(signer: &signer,
-                                                            to_chain_id: u64,
-                                                            target_proxy_hash: &vector<u8>)
-    acquires LockEventStore, LockGlobalHashStore {
+    fun bind_proxy_hash<TokenT: store, ChainType: store>(signer: &signer,
+                                                         to_chain_id: u64,
+                                                         target_proxy_hash: &vector<u8>) acquires LockEventStore, LockGlobal {
         let account = Signer::address_of(signer);
         //CrossChainGlobal::require_genesis_account(account);
-        if (!exists<LockGlobalHashStore<TokenType, ChainType>>(account)) {
-            move_to(signer, LockGlobalHashStore<TokenType, ChainType> {
+        if (!exists<LockGlobal<TokenT, ChainType>>(account)) {
+            move_to(signer, LockGlobal<TokenT, ChainType>{
                 chain_id: to_chain_id,
                 proxy_hash: *target_proxy_hash,
                 asset_hash: Vector::empty<u8>(),
+                lock_amount: 0,
             });
         };
-        let store = borrow_global_mut<LockGlobalHashStore<TokenType, ChainType>>(account);
+        let store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(account);
         store.chain_id = to_chain_id;
         store.proxy_hash = *target_proxy_hash;
 
         let event_store = borrow_global_mut<LockEventStore>(account);
         Event::emit_event(
             &mut event_store.bind_proxy_event,
-            BindProxyEvent {
-                to_chain_id: to_chain_id,
+            BindProxyEvent{
+                to_chain_id,
                 target_proxy_hash: *target_proxy_hash,
             },
         );
     }
 
-    fun bind_asset_hash<TokenType: store, ChainType: store>(signer: &signer,
-                                                            to_chain_id: u64,
-                                                            to_asset_hash: &vector<u8>)
-    acquires LockEventStore, LockGlobalHashStore, LockToken {
+    fun bind_asset_hash<TokenT: store, ChainType: store>(signer: &signer,
+                                                         to_chain_id: u64,
+                                                         to_asset_hash: &vector<u8>)
+    acquires LockEventStore, LockGlobal, LockTreasury {
         let account = Signer::address_of(signer);
         //CrossChainGlobal::require_genesis_account(account);
 
-        if (!exists<LockGlobalHashStore<TokenType, ChainType>>(account)) {
-            move_to(signer, LockGlobalHashStore<TokenType, ChainType> {
+        if (!exists<LockGlobal<TokenT, ChainType>>(account)) {
+            move_to(signer, LockGlobal<TokenT, ChainType>{
                 chain_id: to_chain_id,
                 proxy_hash: Vector::empty<u8>(),
                 asset_hash: *to_asset_hash,
+                lock_amount: 0
             });
         } else {
-            let store = borrow_global_mut<LockGlobalHashStore<TokenType, ChainType>>(account);
+            let store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(account);
             store.chain_id = to_chain_id;
             store.asset_hash = *to_asset_hash;
         };
@@ -169,11 +169,11 @@ module LockProxy {
         let event_store = borrow_global_mut<LockEventStore>(account);
         Event::emit_event(
             &mut event_store.bind_asset_event,
-            BindAssetEvent {
+            BindAssetEvent{
                 to_chain_id,
-                from_asset_hash: Token::token_code<TokenType>(),
+                from_asset_hash: Token::token_code<TokenT>(),
                 target_proxy_hash: *to_asset_hash,
-                initial_amount: get_balance_for<TokenType>(),
+                initial_amount: get_balance_for<TokenT>(),
             },
         );
     }
@@ -183,18 +183,18 @@ module LockProxy {
     *                           Then the same amount of tokens will be unloked from target chain proxy contract at the target chain with chainId later.
     *  @param amount            The amount of tokens to be crossed from ethereum to the chain with chainId
     */
-    public fun lock<TokenType: store, ChainType: store>(signer: &signer,
-                                                        to_address: &vector<u8>,
-                                                        amount: u128):
+    public fun lock<TokenT: store, ChainType: store>(signer: &signer,
+                                                     to_address: &vector<u8>,
+                                                     amount: u128):
     (
         u64,
         vector<u8>,
         vector<u8>,
         vector<u8>,
         LockEvent,
-        ExecutionCapability,
+        CrossChainGlobal::ExecutionCapability,
     )
-    acquires LockGlobalHashStore, LockToken {
+    acquires LockGlobal, LockTreasury {
         // bytes memory toAssetHash = assetHashMap[fromAssetHash][toChainId];
         // require(toAssetHash.length != 0, "empty illegal toAssetHash");
 
@@ -217,13 +217,13 @@ module LockProxy {
         assert(amount > 0, Errors::invalid_argument(ERR_LOCK_AMOUNT_ZERO));
 
         let genesis_account = CrossChainGlobal::genesis_account();
-        let token = Account::withdraw<TokenType>(signer, amount);
+        let token = Account::withdraw<TokenT>(signer, amount);
 
         // Lock token
-        let lock_token = borrow_global_mut<LockToken<TokenType>>(genesis_account);
-        Token::deposit<TokenType>(&mut lock_token.token, token);
+        let lock_token = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
+        Token::deposit<TokenT>(&mut lock_token.token, token);
 
-        let hash_store = borrow_global_mut<LockGlobalHashStore<TokenType, ChainType>>(genesis_account);
+        let hash_store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(genesis_account);
         let tx_data = serialize_tx_args(
             *&hash_store.asset_hash,
             *to_address,
@@ -235,16 +235,16 @@ module LockProxy {
             *&hash_store.chain_id,
             *&hash_store.proxy_hash,
             b"unlock",
-            tx_data,
-            LockEvent {
+            *&tx_data,
+            LockEvent{
                 from_address: Address::bytify(Signer::address_of(signer)),
-                from_asset_hash: Token::token_code<TokenType>(),
+                from_asset_hash: Token::token_code<TokenT>(),
                 to_chain_id: hash_store.chain_id,
                 to_asset_hash: *&hash_store.asset_hash,
                 to_address: *to_address,
                 amount
             },
-            CrossChainGlobal::generate_execution_cap(&b"lock"),
+            CrossChainGlobal::generate_execution_cap(&tx_data, true),
         )
     }
 
@@ -265,83 +265,88 @@ module LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock<ChainType: store>(args_bs: &vector<u8>,
-                                        from_chain_id: u64,
-                                        cap: ExecutionCapability) acquires LockGlobalHashStore, LockToken, LockEventStore {
-        // TxArgs memory args = deserialize_tx_args(argsBs);
-
-        // require(fromContractAddr.length != 0, "from proxy contract address cannot be empty");
-        // require(Utils.equalStorage(proxyHashMap[fromChainId], fromContractAddr), "From Proxy contract address error!");
-
-        // require(args.toAssetHash.length != 0, "toAssetHash cannot be empty");
-        // address toAssetHash = Utils.bytesToAddress(args.toAssetHash);
-
-        // require(args.toAddress.length != 0, "toAddress cannot be empty");
-        // address toAddress = Utils.bytesToAddress(args.toAddress);
-
-        // require(_transferFromContract(toAssetHash, toAddress, args.amount), "transfer asset from lock_proxy contract to toAddress failed!");
-
-        // emit UnlockEvent(toAssetHash, toAddress, args.amount);
-        // return true;
-
+    public fun unlock<TokenT: store,
+                      ChainType: store>(
+        //args_bs: &vector<u8>,
+        to_asset_hash: &vector<u8>,
+        to_address: &vector<u8>,
+        amount: u128,
+        tx_hash: &vector<u8>,
+        cap: &CrossChainGlobal::ExecutionCapability) : u8 acquires LockGlobal, LockTreasury, LockEventStore {
         assert(
-            CrossChainGlobal::verify_execution_cap_opt_code(&cap, &b"tx_verified"),
+            CrossChainGlobal::verify_execution_cap(cap, tx_hash),
             Errors::invalid_state(ERR_UNLOCK_EXECUTECAP_INVALID)
         );
 
-        CrossChainGlobal::destroy_execution_cap(cap);
+        // let (to_asset_hash, to_address, amount) = deserialize_tx_args(*args_bs);
 
-        let (to_asset_hash, to_address, amount) = deserialize_tx_args(*args_bs);
+        assert(Vector::length(to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
+        let native_to_address = Address::addressify(*to_address);
 
-        //assert(Vector::length(&to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
-        let to_addr = Address::addressify(*&to_address);
+        let genesis_account = CrossChainGlobal::genesis_account();
 
-        let ret = inner_unlock<STC::STC, ChainType>(from_chain_id, &to_asset_hash, to_addr, amount) ||
-                  inner_unlock<CrossChainToken::X_BTC, ChainType>(from_chain_id, &to_asset_hash, to_addr, amount) ||
-                  inner_unlock<CrossChainToken::X_ETH, ChainType>(from_chain_id, &to_asset_hash, to_addr, amount);
-        assert(ret, Errors::invalid_state(ERR_UNLOCK_CHAIN_TYPE_NOT_SUPPORT));
+        // Do unlock from lock token treasury
+        let token_store = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
+        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
+        Account::deposit<TokenT>(native_to_address, deposit_token);
 
-        let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
+        // Record lock amount
+        let lock_global = borrow_global_mut<LockGlobal<TokenT, ChainType>>(genesis_account);
+        lock_global.lock_amount = Token::value<TokenT>(&token_store.token);
+
+        let event_store = borrow_global_mut<LockEventStore>(genesis_account);
         Event::emit_event(
             &mut event_store.unlock_event,
-            UnlockEvent {
-                to_asset_hash,
-                to_address,
+            UnlockEvent{
+                to_asset_hash: *to_asset_hash,
+                to_address: *to_address,
                 amount,
             },
         );
+        0
     }
 
 
-    fun inner_unlock<TokenType: store, ChainType: store>(from_chain_id: u64,
-                                                         to_asset_hash: &vector<u8>,
-                                                         to_address: address,
-                                                         amount: u128): bool acquires LockGlobalHashStore, LockToken {
-        // TODO(9191stc): to check from contract address
+    //    fun inner_unlock<TokenT: store, ChainType: store>(from_chain_id: u64,
+    //                                                         to_asset_hash: &vector<u8>,
+    //                                                         to_address: address,
+    //                                                         amount: u128): bool acquires LockGlobal, LockTreasury {
+    //        // TODO(9191stc): to check from contract address
+    //        let genesis_account = CrossChainGlobal::genesis_account();
+    //        if (exists<LockGlobal<TokenT, ChainType>>(genesis_account)) {
+    //            let hash_store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(genesis_account);
+    //            if (*&hash_store.asset_hash == *to_asset_hash) {
+    //                assert(hash_store.chain_id == from_chain_id, Errors::invalid_argument(ERR_UNLOCK_CHAIN_ID_NOT_MATCH));
+    //                let token_store = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
+    //                let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
+    //                Account::deposit<TokenT>(to_address, deposit_token);
+    //                true
+    //            } else {
+    //                false
+    //            }
+    //        } else {
+    //            false
+    //        }
+    //    }
+
+    /// Check asset hash is match
+    public fun asset_hash_match<TokenT: store, ChainType: store>(asset_hash: &vector<u8>): bool acquires LockGlobal {
         let genesis_account = CrossChainGlobal::genesis_account();
-        if (exists<LockGlobalHashStore<TokenType, ChainType>>(genesis_account)) {
-            let hash_store = borrow_global_mut<LockGlobalHashStore<TokenType, ChainType>>(genesis_account);
-            if (*&hash_store.asset_hash == *to_asset_hash) {
-                assert(hash_store.chain_id == from_chain_id, Errors::invalid_argument(ERR_UNLOCK_CHAIN_ID_NOT_MATCH));
-                let token_store = borrow_global_mut<LockToken<TokenType>>(genesis_account);
-                let deposit_token = Token::withdraw<TokenType>(&mut token_store.token, amount);
-                Account::deposit<TokenType>(to_address, deposit_token);
-                true
-            } else {
-                false
-            }
+        if (exists<LockGlobal<TokenT, ChainType>>(genesis_account)) {
+            let hash_store = borrow_global<LockGlobal<TokenT, ChainType>>(genesis_account);
+            *&hash_store.asset_hash == *asset_hash
         } else {
             false
         }
     }
 
-    public fun get_balance_for<TokenType: store>(): u128 acquires LockToken {
+    public fun get_balance_for<TokenT: store>(): u128 acquires LockTreasury {
         let genesis_account = CrossChainGlobal::genesis_account();
-        if (!exists<LockToken<TokenType>>(genesis_account)) {
+        if (!exists<LockTreasury<TokenT>>(genesis_account)) {
             0
         } else {
-            let lock_token = borrow_global_mut<LockToken<TokenType>>(CrossChainGlobal::genesis_account());
-            Token::value<TokenType>(&lock_token.token)
+            let lock_token = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
+            Token::value<TokenT>(&lock_token.token)
         }
     }
 
@@ -422,7 +427,7 @@ module LockProxy {
     *    uint256 amount;
     * }
     */
-    fun deserialize_tx_args(value_bs: vector<u8>): (vector<u8>, vector<u8>, u128) {
+    public fun deserialize_tx_args(value_bs: vector<u8>): (vector<u8>, vector<u8>, u128) {
         let offset = 0;
         let (to_asset_hash, offset) = ZeroCopySource::next_var_bytes(&value_bs, offset);
         let (to_address, offset) = ZeroCopySource::next_var_bytes(&value_bs, offset);

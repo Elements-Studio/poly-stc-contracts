@@ -123,25 +123,25 @@ module CrossChainData {
 
 
     /// Query merkle root hash from data
-    public fun get_merkle_root_hash<ChainType: key + store>(): vector<u8> acquires SparseMerkleTreeRoot {
+    public fun get_merkle_root_hash<ChainType: store>(): vector<u8> acquires SparseMerkleTreeRoot {
         let smt = borrow_global<SparseMerkleTreeRoot<ChainType>>(CrossChainGlobal::genesis_account());
         *&smt.hash
     }
 
     /// Mark from chain tx fromChainTx as exist or processed
-    public fun mark_from_chain_tx_exists<ChainType: key + store>(from_chain_tx: &vector<u8>,
-                                                                 proof_leaf: &vector<u8>,
-                                                                 proof_siblings: &vector<vector<u8>>)
+    public fun mark_from_chain_tx_exists<ChainType: store>(from_chain_tx: &vector<u8>,
+                                                           proof_leaf: &vector<u8>,
+                                                           proof_siblings: &vector<vector<u8>>)
     acquires SparseMerkleTreeRoot {
         let smt_root = borrow_global_mut<SparseMerkleTreeRoot<ChainType>>(CrossChainGlobal::genesis_account());
         smt_root.hash = MerkleProofNonExists::update_leaf(&Hash::sha3_256(*from_chain_tx), proof_leaf, proof_siblings);
     }
 
     /// Check if from chain tx fromChainTx has been processed before
-    public fun check_chain_tx_not_exists<ChainType: key + store>(from_chain_tx: &vector<u8>,
-                                                                 proof_root: &vector<u8>,
-                                                                 proof_leaf: &vector<u8>,
-                                                                 proof_siblings: &vector<vector<u8>>
+    public fun check_chain_tx_not_exists<ChainType: store>(from_chain_tx: &vector<u8>,
+                                                           proof_root: &vector<u8>,
+                                                           proof_leaf: &vector<u8>,
+                                                           proof_siblings: &vector<vector<u8>>
     ): bool acquires SparseMerkleTreeRoot {
         let smt_root = borrow_global_mut<SparseMerkleTreeRoot<ChainType>>(CrossChainGlobal::genesis_account());
         assert(*&smt_root.hash == *proof_root, Errors::invalid_state(ERR_PROOF_ROOT_HASH_INVALID));

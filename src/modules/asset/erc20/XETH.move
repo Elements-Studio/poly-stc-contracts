@@ -24,9 +24,22 @@ module XETH {
 
 module XETHScripts {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
 
-    public(script) fun init(account: signer) {
+    public(script) fun init(account: signer,
+                            proxy_hash: vector<u8>,
+                            asset_hash: vector<u8>) {
         XETH::init(&account);
+
+        // bind asset and proxy
+        CrossChainRouter::bind_asset_and_proxy<
+            XETH::XETH,
+            CrossChainGlobal::ETHEREUM_CHAIN>(
+            &account,
+            CrossChainGlobal::get_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(),
+            &proxy_hash,
+            &asset_hash);
     }
 
     public(script) fun mint(account: signer, amount: u128) {
