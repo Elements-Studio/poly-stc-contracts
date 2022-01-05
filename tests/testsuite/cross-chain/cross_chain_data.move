@@ -23,20 +23,17 @@ module admin::CrossChainType {
 address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x1::Vector;
-
-    use admin::CrossChainType;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
 
     fun test_initialize_chain_placeholder(signer: signer) {
         CrossChainData::init_genesis(&signer);
-        CrossChainData::init_txn_exists_proof<CrossChainType::Starcoin>(&signer);
 
         let root_hash = x"0000000000000000000000000000000000000000000000000000000000000000";
         let tx_hash = x"61341c16ec50ec4b2c364ee3dfc3ccdb5af540eba38c89160de75afd3322052d";
         let proof_leaf = Vector::empty<u8>();
         let proof_siblings = Vector::empty<vector<u8>>();
         let checked =
-            CrossChainData::check_chain_tx_not_exists<CrossChainType::Starcoin>(
+            CrossChainData::check_chain_tx_not_exists(
                 &tx_hash,
                 &root_hash,
                 &proof_leaf,
