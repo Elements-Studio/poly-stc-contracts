@@ -27,7 +27,6 @@ module CrossChainManager {
     const ERR_FAILED_VEIRFY_POLY_CHAIN_CUR_EPOCH_HEADER_SIGNATURE: u64 = 109;
     const ERR_EXECUTE_TX_FAILED: u64 = 110;
     const ERR_UNSUPPORT_CHAIN_TYPE: u64 = 111;
-    const ERR_CHAIN_ID_NOT_MATCH: u64 = 112;
 
     struct EventStore has key, store {
         init_genesis_block_event: Event::EventHandle<InitGenesisBlockEvent>,
@@ -436,17 +435,13 @@ module CrossChainManager {
     }
 
     /// Check and marking transaction exists
-    public fun check_and_mark_transaction_exists<ChainType: store>(chain_id: u64,
-                                                                   tx_hash: &vector<u8>,
-                                                                   merkle_proof_root: &vector<u8>,
-                                                                   merkle_proof_leaf: &vector<u8>,
-                                                                   merkle_proof_siblings: &vector<vector<u8>>,
-                                                                   cap: &mut CrossChainGlobal::ExecutionCapability
+    public fun check_and_mark_transaction_exists(chain_id: u64,
+                                                 tx_hash: &vector<u8>,
+                                                 merkle_proof_root: &vector<u8>,
+                                                 merkle_proof_leaf: &vector<u8>,
+                                                 merkle_proof_siblings: &vector<vector<u8>>,
+                                                 cap: &mut CrossChainGlobal::ExecutionCapability
     ) {
-        assert(
-            CrossChainGlobal::chain_id_match<ChainType>(chain_id),
-            Errors::invalid_state(ERR_CHAIN_ID_NOT_MATCH));
-
         let proof_path_hash = MerkleProofHelper::gen_proof_path(chain_id, tx_hash);
 
         assert(

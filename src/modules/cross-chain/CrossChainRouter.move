@@ -41,18 +41,18 @@ module CrossChainRouter {
             cur_raw_header,
             header_sig);
 
+        CrossChainManager::check_and_mark_transaction_exists(
+            chain_id,
+            &cross_chain_tx_hash,
+            merkle_proof_root,
+            merkle_proof_leaf,
+            &merkle_proof_siblings,
+            &mut cap);
+
         let result = if (*&method == b"unlock") {
             let (to_asset_hash, to_address, amount) = LockProxy::deserialize_tx_args(args);
 
             if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(chain_id)) {
-                CrossChainManager::check_and_mark_transaction_exists<CrossChainGlobal::STARCOIN_CHAIN>(
-                    chain_id,
-                    &cross_chain_tx_hash,
-                    merkle_proof_root,
-                    merkle_proof_leaf,
-                    &merkle_proof_siblings,
-                    &mut cap);
-
                 LockProxy::unlock<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
                     &to_asset_hash,
                     &to_address,
@@ -61,14 +61,6 @@ module CrossChainRouter {
                     &cap)
 
             } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(chain_id)) {
-                CrossChainManager::check_and_mark_transaction_exists<CrossChainGlobal::ETHEREUM_CHAIN>(
-                    chain_id,
-                    &cross_chain_tx_hash,
-                    merkle_proof_root,
-                    merkle_proof_leaf,
-                    &merkle_proof_siblings,
-                    &mut cap);
-
                 if (LockProxy::asset_hash_match<XUSDT::XUSDT, CrossChainGlobal::ETHEREUM_CHAIN>(&to_asset_hash)) {
                     LockProxy::unlock<XUSDT::XUSDT, CrossChainGlobal::ETHEREUM_CHAIN>(&to_asset_hash,
                         &to_address,

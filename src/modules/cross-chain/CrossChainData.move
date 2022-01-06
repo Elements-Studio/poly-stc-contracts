@@ -56,8 +56,8 @@ module CrossChainData {
         });
 
         // Repeate check
-        assert(!exists<SparseMerkleTreeRoot>(
-            Signer::address_of(signer)), Errors::invalid_state(ERR_INITIALIZED_REPEATE));
+        assert(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
+            Errors::invalid_state(ERR_INITIALIZED_REPEATE));
         move_to(signer, SparseMerkleTreeRoot{
             hash: *&MerkleProofNonExists::get_place_holder_hash()
         });
@@ -83,16 +83,6 @@ module CrossChainData {
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.cur_epoch_start_height
     }
-
-    // // Store extra data, which may be used in the future
-    // public fun putExtraData(bytes32 key1, bytes32 key2, bytes memory value) : bool {
-    //     // ExtraData[key1][key2] = value;
-    //     // return true;
-    // }
-    // // Get extra data, which may be used in the future
-    // public fun getExtraData(bytes32 key1, bytes32 key2) public view returns (bytes memory) {
-    //     // return ExtraData[key1][key2];
-    // }
 
     /// Get current recorded index of cross chain txs requesting from Ethereum to other public chains
     /// in order to help cross chain manager contract differenciate two cross chain tx requests
