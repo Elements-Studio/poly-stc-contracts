@@ -14,6 +14,7 @@ module CrossChainManager {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofHelper;
 
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;
@@ -446,16 +447,18 @@ module CrossChainManager {
             CrossChainGlobal::chain_id_match<ChainType>(chain_id),
             Errors::invalid_state(ERR_CHAIN_ID_NOT_MATCH));
 
+        let proof_path_hash = MerkleProofHelper::gen_proof_path(chain_id, tx_hash);
+
         assert(
-            CrossChainData::check_chain_tx_not_exists<ChainType>(
-                tx_hash,
+            CrossChainData::check_chain_tx_not_exists(
+                &proof_path_hash,
                 merkle_proof_root,
                 merkle_proof_leaf,
                 merkle_proof_siblings),
             Errors::invalid_state(ERR_TRANSACTION_EXECUTE_REPEATE));
 
-        CrossChainData::mark_from_chain_tx_exists<ChainType>(
-            tx_hash,
+        CrossChainData::mark_from_chain_tx_exists(
+            &proof_path_hash,
             merkle_proof_leaf,
             merkle_proof_siblings);
 

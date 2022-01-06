@@ -9,7 +9,6 @@ module CrossChainRouter {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofHelper;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
 
@@ -106,7 +105,6 @@ module CrossChainRouter {
                                                                         proxy_hash: &vector<u8>,
                                                                         asset_hash: &vector<u8>) {
         CrossChainGlobal::set_chain_id<ChainType>(signer, chain_id);
-        CrossChainData::init_txn_exists_proof<ChainType>(signer);
         LockProxy::bind_asset_and_proxy<TokenType, ChainType>(signer, chain_id, proxy_hash, asset_hash);
     }
 }

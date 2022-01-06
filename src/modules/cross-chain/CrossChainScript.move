@@ -23,6 +23,7 @@ module CrossChainScript {
         // Init CCM
         CrossChainManager::init_genesis_block(&signer, &raw_header, &pub_key_list);
 
+
         // Init asset proxy asset
         LockProxy::init_event(&signer);
 
@@ -75,7 +76,14 @@ module CrossChainScript {
                                                 merkle_proof_leaf: vector<u8>,
                                                 merkle_proof_siblings: vector<u8>) {
         CrossChainRouter::verify_header_and_execute_tx(
-            &proof, &raw_header, &header_proof, &cur_raw_header, &header_sig, &merkle_proof_root, &merkle_proof_leaf, &merkle_proof_siblings);
+            &proof,
+            &raw_header,
+            &header_proof,
+            &cur_raw_header,
+            &header_sig,
+            &merkle_proof_root,
+            &merkle_proof_leaf,
+            &merkle_proof_siblings);
     }
 
     /// Get Current Epoch Start Height of Poly chain block

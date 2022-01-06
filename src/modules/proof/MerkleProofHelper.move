@@ -3,7 +3,9 @@ module MerkleProofHelper {
 
     use 0x1::Vector;
     use 0x1::Errors;
+    use 0x1::Hash;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
 
     const ERROR_SIBLING_PACKAGE_LENGTH_INVALID: u64 = 101;
 
@@ -33,7 +35,16 @@ module MerkleProofHelper {
         }
     }
 
+    /// Generate proof path hash from chain id and transaction hash
+    public fun gen_proof_path(chain_id: u64, tx_hash: &vector<u8>): vector<u8> {
+        let buff = Vector::empty<u8>();
+        buff = Bytes::concat(&buff, ZeroCopySink::write_u64(chain_id));
+        buff = Bytes::concat(&buff, ZeroCopySink::write_var_bytes(tx_hash));
+        Hash::sha3_256(buff)
+    }
+
     #[test] use 0x1::Debug;
+
     #[test] public fun test_extract_sibling() {
         let data = x"df0254bd96f7bc830a65bf798dafc527f1a118cdfbe0c6453d4c689bbc9b788ddf0254bd96f7bc830a65bf798dafc527f1a118cdfbe0c6453d4c689bbc9b788ddf0254bd96f7bc830a65bf798dafc527f1a118cdfbe0c6453d4c689bbc9b788d";
         let results = extract_sibling(&data);
