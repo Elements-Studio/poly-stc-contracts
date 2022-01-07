@@ -48,17 +48,20 @@ script {
 address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
 script {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use admin::CrossChainType::{TokenA, TokenB, TokenC};
+    use admin::CrossChainType;
 
     fun test_cross_chain_id_storage(signer: signer) {
-        CrossChainGlobal::set_chain_id<TokenA>(&signer, 1);
-        assert(CrossChainGlobal::chain_id_match<TokenA>(1), 1001);
+        CrossChainGlobal::set_chain_id<CrossChainType::Starcoin>(&signer, 1);
+        assert(CrossChainGlobal::chain_id_match<CrossChainType::Starcoin>(1), 1001);
 
-        CrossChainGlobal::set_chain_id<TokenB>(&signer, 2);
-        assert(CrossChainGlobal::chain_id_match<TokenB>(2), 1002);
+        CrossChainGlobal::set_chain_id<CrossChainType::Ethereum>(&signer, 2);
+        assert(CrossChainGlobal::chain_id_match<CrossChainType::Ethereum>(2), 1002);
 
-        CrossChainGlobal::set_chain_id<TokenC>(&signer, 3);
-        assert(CrossChainGlobal::chain_id_match<TokenC>(3), 1003);
+        CrossChainGlobal::set_chain_id<CrossChainType::Bitcoin>(&signer, 3);
+        assert(CrossChainGlobal::chain_id_match<CrossChainType::Bitcoin>(3), 1003);
+
+        CrossChainGlobal::set_asset_hash<CrossChainType::TokenA>(&signer, &b"10000001");
+        assert(CrossChainGlobal::asset_hash_match<CrossChainType::TokenA>(&b"10000001"), 1004);
     }
 }
 // check: EXECUTED

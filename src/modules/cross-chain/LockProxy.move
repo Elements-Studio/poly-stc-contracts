@@ -28,7 +28,7 @@ module LockProxy {
         chain_id: u64,
         proxy_hash: vector<u8>,
         asset_hash: vector<u8>,
-        lock_amount: u128,
+        lock_amount: u128, // Statistic variable
     }
 
     struct LockTreasury<TokenT> has key, store {
@@ -105,78 +105,146 @@ module LockProxy {
                                                                      proxy_hash: &vector<u8>,
                                                                      asset_hash: &vector<u8>)
     acquires LockEventStore, LockGlobal, LockTreasury {
-        CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
+        let account = Signer::address_of(signer);
+        CrossChainGlobal::require_genesis_account(account);
 
         // Lock token struct initialization
         move_to(signer, LockTreasury<TokenT>{
             token: Token::zero<TokenT>(),
         });
 
-        // Bind Proxy hash of starcoin self
-        bind_proxy_hash<TokenT, ChainType>(signer, chain_id, proxy_hash);
-
-        // Bind Asset type hash initialization
-        bind_asset_hash<TokenT, ChainType>(signer, chain_id, asset_hash);
-    }
-
-    fun bind_proxy_hash<TokenT: store, ChainType: store>(signer: &signer,
-                                                         to_chain_id: u64,
-                                                         target_proxy_hash: &vector<u8>) acquires LockEventStore, LockGlobal {
-        let account = Signer::address_of(signer);
-        //CrossChainGlobal::require_genesis_account(account);
         if (!exists<LockGlobal<TokenT, ChainType>>(account)) {
             move_to(signer, LockGlobal<TokenT, ChainType>{
-                chain_id: to_chain_id,
-                proxy_hash: *target_proxy_hash,
+                chain_id,
+                proxy_hash: *proxy_hash,
                 asset_hash: Vector::empty<u8>(),
                 lock_amount: 0,
             });
         };
-        let store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(account);
-        store.chain_id = to_chain_id;
-        store.proxy_hash = *target_proxy_hash;
 
         let event_store = borrow_global_mut<LockEventStore>(account);
-        Event::emit_event(
-            &mut event_store.bind_proxy_event,
-            BindProxyEvent{
-                to_chain_id,
-                target_proxy_hash: *target_proxy_hash,
-            },
-        );
-    }
-
-    fun bind_asset_hash<TokenT: store, ChainType: store>(signer: &signer,
-                                                         to_chain_id: u64,
-                                                         to_asset_hash: &vector<u8>)
-    acquires LockEventStore, LockGlobal, LockTreasury {
-        let account = Signer::address_of(signer);
-        //CrossChainGlobal::require_genesis_account(account);
 
         if (!exists<LockGlobal<TokenT, ChainType>>(account)) {
             move_to(signer, LockGlobal<TokenT, ChainType>{
-                chain_id: to_chain_id,
-                proxy_hash: Vector::empty<u8>(),
-                asset_hash: *to_asset_hash,
-                lock_amount: 0
+                chain_id,
+                proxy_hash: *proxy_hash,
+                asset_hash: *asset_hash,
+                lock_amount: 0,
             });
+
+            CrossChainGlobal::set_asset_hash<TokenT>(signer, asset_hash);
+
+            Event::emit_event(
+                &mut event_store.bind_proxy_event,
+                BindProxyEvent{
+                    to_chain_id: chain_id,
+                    target_proxy_hash: *proxy_hash,
+                },
+            );
+
+            Event::emit_event(
+                &mut event_store.bind_asset_event,
+                BindAssetEvent{
+                    to_chain_id: chain_id,
+                    from_asset_hash: Token::token_code<TokenT>(),
+                    target_proxy_hash: *asset_hash,
+                    initial_amount: get_balance_for<TokenT>(),
+                },
+            );
         } else {
             let store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(account);
-            store.chain_id = to_chain_id;
-            store.asset_hash = *to_asset_hash;
-        };
+            store.chain_id = chain_id;
 
-        let event_store = borrow_global_mut<LockEventStore>(account);
-        Event::emit_event(
-            &mut event_store.bind_asset_event,
-            BindAssetEvent{
-                to_chain_id,
-                from_asset_hash: Token::token_code<TokenT>(),
-                target_proxy_hash: *to_asset_hash,
-                initial_amount: get_balance_for<TokenT>(),
-            },
-        );
+            if (Vector::length(proxy_hash) > 0) {
+                store.proxy_hash = *proxy_hash;
+
+                Event::emit_event(
+                    &mut event_store.bind_proxy_event,
+                    BindProxyEvent{
+                        to_chain_id: chain_id,
+                        target_proxy_hash: *proxy_hash,
+                    },
+                );
+            };
+            if (Vector::length(asset_hash) > 0) {
+                store.asset_hash = *asset_hash;
+
+                CrossChainGlobal::set_asset_hash<TokenT>(signer, asset_hash);
+
+                Event::emit_event(
+                    &mut event_store.bind_asset_event,
+                    BindAssetEvent{
+                        to_chain_id: chain_id,
+                        from_asset_hash: Token::token_code<TokenT>(),
+                        target_proxy_hash: *asset_hash,
+                        initial_amount: get_balance_for<TokenT>(),
+                    },
+                );
+            };
+        };
     }
+
+    //    fun bind_proxy_hash<TokenT: store, ChainType: store>(signer: &signer,
+    //                                                         to_chain_id: u64,
+    //                                                         target_proxy_hash: &vector<u8>) acquires LockEventStore, LockGlobal {
+    //        let account = Signer::address_of(signer);
+    //        //CrossChainGlobal::require_genesis_account(account);
+    //        if (!exists<LockGlobal<TokenT, ChainType>>(account)) {
+    //            move_to(signer, LockGlobal<TokenT, ChainType>{
+    //                chain_id: to_chain_id,
+    //                proxy_hash: *target_proxy_hash,
+    //                asset_hash: Vector::empty<u8>(),
+    //                lock_amount: 0,
+    //            });
+    //        };
+    //        let store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(account);
+    //        store.chain_id = to_chain_id;
+    //        store.proxy_hash = *target_proxy_hash;
+    //
+    //        let event_store = borrow_global_mut<LockEventStore>(account);
+    //        Event::emit_event(
+    //            &mut event_store.bind_proxy_event,
+    //            BindProxyEvent{
+    //                to_chain_id,
+    //                target_proxy_hash: *target_proxy_hash,
+    //            },
+    //        );
+    //    }
+    //
+    //    fun bind_asset_hash<TokenT: store, ChainType: store>(signer: &signer,
+    //                                                         to_chain_id: u64,
+    //                                                         to_asset_hash: &vector<u8>)
+    //    acquires LockEventStore, LockGlobal, LockTreasury {
+    //        let account = Signer::address_of(signer);
+    //        //CrossChainGlobal::require_genesis_account(account);
+    //
+    //        if (!exists<LockGlobal<TokenT, ChainType>>(account)) {
+    //            move_to(signer, LockGlobal<TokenT, ChainType>{
+    //                chain_id: to_chain_id,
+    //                proxy_hash: Vector::empty<u8>(),
+    //                asset_hash: *to_asset_hash,
+    //                lock_amount: 0
+    //            });
+    //        } else {
+    //            let store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(account);
+    //            store.chain_id = to_chain_id;
+    //            store.asset_hash = *to_asset_hash;
+    //        };
+    //
+    //        // Bind asset hash with Token Type
+    //        CrossChainGlobal::set_asset_hash<TokenT>(signer, to_asset_hash);
+    //
+    //        let event_store = borrow_global_mut<LockEventStore>(account);
+    //        Event::emit_event(
+    //            &mut event_store.bind_asset_event,
+    //            BindAssetEvent{
+    //                to_chain_id,
+    //                from_asset_hash: Token::token_code<TokenT>(),
+    //                target_proxy_hash: *to_asset_hash,
+    //                initial_amount: get_balance_for<TokenT>(),
+    //            },
+    //        );
+    //    }
 
     /* @notice                  This function is meant to be invoked by the user,
     *                           a certin amount teokens will be locked in the proxy contract the invoker/msg.sender immediately.
@@ -265,79 +333,48 @@ module LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock<TokenT: store,
-                      ChainType: store>(
-        //args_bs: &vector<u8>,
+    public fun unlock<TokenT: store>(
         to_asset_hash: &vector<u8>,
         to_address: &vector<u8>,
         amount: u128,
         tx_hash: &vector<u8>,
-        cap: &CrossChainGlobal::ExecutionCapability) : u8 acquires LockGlobal, LockTreasury, LockEventStore {
+        cap: &CrossChainGlobal::ExecutionCapability): UnlockEvent acquires LockTreasury {
         assert(
             CrossChainGlobal::verify_execution_cap(cap, tx_hash),
             Errors::invalid_state(ERR_UNLOCK_EXECUTECAP_INVALID)
         );
 
-        // let (to_asset_hash, to_address, amount) = deserialize_tx_args(*args_bs);
-
         assert(Vector::length(to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
         let native_to_address = Address::addressify(*to_address);
 
-        let genesis_account = CrossChainGlobal::genesis_account();
-
         // Do unlock from lock token treasury
-        let token_store = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
+        let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
         let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
         Account::deposit<TokenT>(native_to_address, deposit_token);
 
-        // Record lock amount
+        UnlockEvent{
+            to_asset_hash: *to_asset_hash,
+            to_address: *to_address,
+            amount,
+        }
+    }
+
+    /// Emit an unlock event with `UnlockEvent` object
+    public fun emit_unlock_event<TokenT: store, ChainType: store>(event: UnlockEvent): bool
+    acquires LockGlobal, LockTreasury, LockEventStore {
+        let genesis_account = CrossChainGlobal::genesis_account();
+
+        // Update lock amount to LockGlobal information
+        let token_store = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
         let lock_global = borrow_global_mut<LockGlobal<TokenT, ChainType>>(genesis_account);
         lock_global.lock_amount = Token::value<TokenT>(&token_store.token);
 
         let event_store = borrow_global_mut<LockEventStore>(genesis_account);
         Event::emit_event(
             &mut event_store.unlock_event,
-            UnlockEvent{
-                to_asset_hash: *to_asset_hash,
-                to_address: *to_address,
-                amount,
-            },
+            event,
         );
-        0
-    }
-
-
-    //    fun inner_unlock<TokenT: store, ChainType: store>(from_chain_id: u64,
-    //                                                         to_asset_hash: &vector<u8>,
-    //                                                         to_address: address,
-    //                                                         amount: u128): bool acquires LockGlobal, LockTreasury {
-    //        // TODO(9191stc): to check from contract address
-    //        let genesis_account = CrossChainGlobal::genesis_account();
-    //        if (exists<LockGlobal<TokenT, ChainType>>(genesis_account)) {
-    //            let hash_store = borrow_global_mut<LockGlobal<TokenT, ChainType>>(genesis_account);
-    //            if (*&hash_store.asset_hash == *to_asset_hash) {
-    //                assert(hash_store.chain_id == from_chain_id, Errors::invalid_argument(ERR_UNLOCK_CHAIN_ID_NOT_MATCH));
-    //                let token_store = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
-    //                let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-    //                Account::deposit<TokenT>(to_address, deposit_token);
-    //                true
-    //            } else {
-    //                false
-    //            }
-    //        } else {
-    //            false
-    //        }
-    //    }
-
-    /// Check asset hash is match
-    public fun asset_hash_match<TokenT: store, ChainType: store>(asset_hash: &vector<u8>): bool acquires LockGlobal {
-        let genesis_account = CrossChainGlobal::genesis_account();
-        if (exists<LockGlobal<TokenT, ChainType>>(genesis_account)) {
-            let hash_store = borrow_global<LockGlobal<TokenT, ChainType>>(genesis_account);
-            *&hash_store.asset_hash == *asset_hash
-        } else {
-            false
-        }
+        true
     }
 
     public fun get_balance_for<TokenT: store>(): u128 acquires LockTreasury {

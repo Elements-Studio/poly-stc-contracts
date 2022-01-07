@@ -58,7 +58,7 @@ script {
             &signer,
             CHAINID_STARCOIN,
             &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
-            &b"0x1::STC::STC");
+            &x"0000000000000000000000000000000000000000");
     }
 }
 // check: EXECUTED
