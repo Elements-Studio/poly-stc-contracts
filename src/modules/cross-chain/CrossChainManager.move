@@ -320,11 +320,12 @@ module CrossChainManager {
                              cur_raw_header: &vector<u8>,
                              header_sig: &vector<u8>)
     : (
-        vector<u8>,
-        vector<u8>,
-        u64,
+        vector<u8>, // method
+        vector<u8>, // args
+        u64, // chain id
+        vector<u8>, // from_contract
         CrossChainGlobal::ExecutionCapability,
-        vector<u8>
+        vector<u8>, // tx hash
     ) acquires EventStore {
 
         // Load ehereum cross chain data contract
@@ -374,7 +375,7 @@ module CrossChainManager {
             from_chain_id,
             source_chain_tx_hash,
             _,
-            _,
+            from_contract,
             _,
             to_contract,
             method,
@@ -424,6 +425,7 @@ module CrossChainManager {
             method,
             args,
             from_chain_id,
+            from_contract,
             CrossChainGlobal::generate_execution_cap(&cross_chain_tx_hash, false),
             cross_chain_tx_hash,
         )

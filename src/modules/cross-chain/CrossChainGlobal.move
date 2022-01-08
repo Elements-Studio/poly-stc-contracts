@@ -4,6 +4,7 @@ module CrossChainGlobal {
 
     use 0x1::Errors;
     use 0x1::Signer;
+    use 0x1::Debug;
 
     friend 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
     friend 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
@@ -12,7 +13,6 @@ module CrossChainGlobal {
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;
 
     struct STARCOIN_CHAIN has key, store {}
-
     struct ETHEREUM_CHAIN has key, store {}
 
     struct ExecutionCapability {
@@ -104,6 +104,9 @@ module CrossChainGlobal {
     public fun set_asset_hash<TokenT: store>(signer: &signer, asset_hash: &vector<u8>) acquires AssetType {
         let account = Signer::address_of(signer);
         require_genesis_account(account);
+
+        Debug::print(&30000001);
+        Debug::print(asset_hash);
 
         if (exists<AssetType<TokenT>>(genesis_account())) {
             let asset_type = borrow_global_mut<AssetType<TokenT>>(genesis_account());

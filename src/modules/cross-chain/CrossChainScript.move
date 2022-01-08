@@ -17,64 +17,62 @@ module CrossChainScript {
     public(script) fun init_genesis(signer: signer,
                                     raw_header: vector<u8>,
                                     pub_key_list: vector<u8>) {
+        init_genesis_with_chain_id(
+            &signer, &raw_header, &pub_key_list, CHAINID_STARCOIN, CHAINID_ETHEREUM);
+
+        // Bind default proxy hash and asset hash to self chain
+        LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript");
+        LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &b"0x1::STC::STC");
+    }
+
+    public fun init_genesis_with_chain_id(signer: &signer,
+                                          raw_header: &vector<u8>,
+                                          pub_key_list: &vector<u8>,
+                                          stc_chain_id: u64,
+                                          eth_chain_id: u64) {
         // Init CCD
-        CrossChainData::init_genesis(&signer);
+        CrossChainData::init_genesis(signer);
 
         // Init CCM
-        CrossChainManager::init_genesis_block(&signer, &raw_header, &pub_key_list);
-
+        CrossChainManager::init_genesis_block(signer, raw_header, pub_key_list);
 
         // Init asset proxy asset
-        LockProxy::init_event(&signer);
+        LockProxy::init_event(signer);
 
         // Initialize default chain id
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, CHAINID_STARCOIN);
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, CHAINID_ETHEREUM);
-
-        // Starcoin
-        CrossChainRouter::bind_asset_and_proxy<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer,
-            CHAINID_STARCOIN,
-            &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript",
-            &b"0x1::STC::STC");
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(signer, stc_chain_id);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(signer, eth_chain_id);
     }
 
 
     // Lock operation from user call
-    public(script) fun lock<TokenType: store, ChainType: store>(signer: signer, to_address: vector<u8>, amount: u128) {
-        let (
-            chain_id,
-            proxy_hash,
-            fun_name,
-            tx_data,
-            event,
-            execution_cap
-        ) = LockProxy::lock<TokenType, ChainType>(&signer, &to_address, amount);
-
-        // Do crosschain option from cross chain manager
-        CrossChainManager::cross_chain(&signer, chain_id, &proxy_hash, &fun_name, &tx_data, execution_cap);
-
-        // Publish lock event
-        LockProxy::publish_lock_event(event);
+    public(script) fun lock(signer: signer,
+                            from_asset_hash: vector<u8>,
+                            to_chain_id: u64,
+                            to_address: vector<u8>,
+                            amount: u128) {
+        CrossChainRouter::lock(&signer, &from_asset_hash, to_chain_id, &to_address, amount);
     }
 
     /// Check book keeper information
-    public(script) fun changeBookKeeper(signer: signer,
-                                        raw_header: vector<u8>,
-                                        pub_key_list: vector<u8>,
-                                        sig_list: vector<u8>) {
+    public(script) fun change_book_keeper(signer: signer,
+                                          raw_header: vector<u8>,
+                                          pub_key_list: vector<u8>,
+                                          sig_list: vector<u8>) {
         CrossChainManager::change_book_keeper(&signer, &raw_header, &pub_key_list, &sig_list);
     }
 
     /// Verify header and execute transaction
-    public(script) fun verifyHeaderAndExecuteTx(proof: vector<u8>,
-                                                raw_header: vector<u8>,
-                                                header_proof: vector<u8>,
-                                                cur_raw_header: vector<u8>,
-                                                header_sig: vector<u8>,
-                                                merkle_proof_root: vector<u8>,
-                                                merkle_proof_leaf: vector<u8>,
-                                                merkle_proof_siblings: vector<u8>) {
+    public(script) fun verify_header_and_execute_tx(proof: vector<u8>,
+                                                    raw_header: vector<u8>,
+                                                    header_proof: vector<u8>,
+                                                    cur_raw_header: vector<u8>,
+                                                    header_sig: vector<u8>,
+                                                    merkle_proof_root: vector<u8>,
+                                                    merkle_proof_leaf: vector<u8>,
+                                                    merkle_proof_siblings: vector<u8>) {
         CrossChainRouter::verify_header_and_execute_tx(
             &proof,
             &raw_header,
@@ -87,13 +85,21 @@ module CrossChainScript {
     }
 
     /// Get Current Epoch Start Height of Poly chain block
-    public fun getCurEpochStartHeight(): u64 {
+    public fun get_cur_epoch_start_height(): u64 {
         CrossChainData::get_cur_epoch_start_height()
     }
 
     /// Get Consensus book Keepers Public Key Bytes
-    public fun getCurEpochConPubKeyBytes(): vector<u8> {
+    public fun get_cur_epoch_con_pubkey_bytes(): vector<u8> {
         CrossChainData::get_cur_epoch_con_pubkey_bytes()
+    }
+
+    public(script) fun bind_proxy_hash(signer: signer, chain_id: u64, target_proxy_hash: vector<u8>) {
+        CrossChainRouter::bind_proxy_hash(&signer, chain_id, &target_proxy_hash);
+    }
+
+    public(script) fun bind_asset_hash(signer: signer, from_asset_hash: vector<u8>, chain_id: u64, to_asset_hash: vector<u8>) {
+        CrossChainRouter::bind_asset_hash(&signer, &from_asset_hash, chain_id, &to_asset_hash);
     }
 }
 }
