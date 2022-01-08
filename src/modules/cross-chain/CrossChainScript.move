@@ -9,6 +9,8 @@ module CrossChainScript {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
+    use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
 
     const CHAINID_STARCOIN: u64 = 218;
     const CHAINID_ETHEREUM: u64 = 2;
@@ -24,7 +26,11 @@ module CrossChainScript {
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript");
         LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0x1::STC::STC");
+            &signer, CHAINID_STARCOIN, &b"0x00000000000000000000000000000001::STC::STC");
+        LockProxy::bind_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::XETH::XETH");
+        LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT::XUSDT");
     }
 
     public fun init_genesis_with_chain_id(signer: &signer,
