@@ -40,9 +40,9 @@ script {
             &signer, &raw_header, &pub_key_list, CHAINID_STARCOIN, CHAINID_ETHEREUM);
 
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript");
+            &signer, CHAINID_STARCOIN, &x"f71b55ef55cedc91fd007f7a9ba386ec978f3aa8");
         LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0000000000000000000000000000000000000000");
+            &signer, CHAINID_STARCOIN, &x"0000000000000000000000000000000000000000");
     }
 }
 // check: EXECUTED

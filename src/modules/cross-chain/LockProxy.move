@@ -8,7 +8,6 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
-    use 0x1::Debug;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Address;
@@ -146,13 +145,11 @@ module LockProxy {
             store.to_asset_hash = *to_asset_hash;
         };
 
-        // Lock proxy treasury
+        // Lock proxy treasury initialize
         if (!exists<LockTreasury<TokenT>>(account)) {
             move_to(signer, LockTreasury<TokenT>{
                 token: Token::zero<TokenT>(),
             });
-        } else {
-
         };
 
         // Bind asset hash with Token Type
@@ -211,13 +208,9 @@ module LockProxy {
         let genesis_account = CrossChainGlobal::genesis_account();
         let token = Account::withdraw<TokenT>(signer, amount);
 
-        Debug::print(&111111111);
-
         // Lock token
         let lock_token = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
         Token::deposit<TokenT>(&mut lock_token.token, token);
-
-        Debug::print(&111111112);
 
         let asset_hash_map = borrow_global_mut<AssetHashMap<TokenT, ChainType>>(genesis_account);
         let tx_data = serialize_tx_args(
@@ -225,12 +218,9 @@ module LockProxy {
             *to_address,
             amount);
 
-        Debug::print(&111111113);
-
         let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
         assert(Vector::length(&proxy_hash_map.to_proxy_hash) > 0, Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH));
 
-        Debug::print(&111111114);
         (
             *&proxy_hash_map.to_proxy_hash,
             b"unlock",
@@ -281,6 +271,7 @@ module LockProxy {
         // Check from contract address
         assert(Vector::length(from_contract_addr) > 0, Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
         let asset_hash_map = borrow_global<ProxyHashMap<ChainType>>(genesis_account);
+
         assert(*&asset_hash_map.to_proxy_hash == *from_contract_addr,
             Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
 
