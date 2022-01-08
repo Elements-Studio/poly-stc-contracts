@@ -4,7 +4,6 @@ module CrossChainRouter {
 
     use 0x1::STC;
     use 0x1::Errors;
-    use 0x1::Debug;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
@@ -102,21 +101,15 @@ module CrossChainRouter {
         if (*&method == b"unlock") {
             let (to_asset_hash, to_address, amount) = LockProxy::deserialize_tx_args(args);
 
-            Debug::print(&100000000);
             let ret = if (CrossChainGlobal::asset_hash_match<STC::STC>(&to_asset_hash)) {
-                Debug::print(&100000001);
                 inner_do_unlock<STC::STC>(chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
             } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(&to_asset_hash)) {
-                Debug::print(&100000002);
                 inner_do_unlock<XUSDT::XUSDT>(chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
             } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(&to_asset_hash)) {
-                Debug::print(&100000003);
                 inner_do_unlock<XETH::XETH>(chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
             } else {
-                Debug::print(&100000004);
                 false
             };
-            Debug::print(&200000000);
             assert(ret, Errors::invalid_state(ERROR_NO_SUPPORT_UNLOCK_ASSET_TYPE));
         };
         CrossChainManager::undefine_execution(cap);

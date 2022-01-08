@@ -5,7 +5,6 @@ module CrossChainData {
     use 0x1::Vector;
     use 0x1::Signer;
     use 0x1::Errors;
-    //use 0x1::Debug;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofNonExists;
