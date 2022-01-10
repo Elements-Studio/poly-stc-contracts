@@ -140,6 +140,14 @@ module CrossChainManager {
         );
     }
 
+    /// Set local chain id to local store, maybe called from testnet sometimes.
+    public fun set_local_chain_id(signer: &signer, current_chain_id: u64) acquires ChainInfo {
+        let account = Signer::address_of(signer);
+        CrossChainGlobal::require_genesis_account(account);
+        let chain_info = borrow_global_mut<ChainInfo>(account);
+        chain_info.current_chain_id = current_chain_id;
+    }
+
     /* @notice              change Poly chain consensus book keeper
     *  @param rawHeader     Poly chain change book keeper block raw header
     *  @param pubKeyList    Poly chain consensus nodes public key list

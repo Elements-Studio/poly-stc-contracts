@@ -97,6 +97,14 @@ module CrossChainScript {
             &merkle_proof_siblings);
     }
 
+    public(script) fun set_to_chain_id<ChainType: store>(signer: signer, to_chain_id: u64) {
+        CrossChainGlobal::set_chain_id<ChainType>(&signer, to_chain_id);
+    }
+
+    public(script) fun set_local_chain_id(signer: signer, current_chain_id: u64) {
+        CrossChainManager::set_local_chain_id(&signer, current_chain_id);
+    }
+
     /// Get Current Epoch Start Height of Poly chain block
     public fun get_cur_epoch_start_height(): u64 {
         CrossChainData::get_cur_epoch_start_height()
