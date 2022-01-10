@@ -21,12 +21,16 @@ module CrossChainManager {
     const ERR_NEXT_BOOK_KEEPER_EMPTY: u64 = 103;
     const ERR_INVALID_HEADER_HEIGHT: u64 = 104;
     const ERR_FAILDE_VERIFY_HEADER_PROOF: u64 = 105;
-    const ERR_NOT_AIMING_ETHEREUM_NETWORK: u64 = 106;
+    const ERR_NOT_AIMING_TARGET_NETWORK: u64 = 106;
     const ERR_TRANSACTION_EXECUTE_REPEATE: u64 = 107;
     const ERR_FAILED_VERIFY_SIGNATURE: u64 = 108;
     const ERR_FAILED_VEIRFY_POLY_CHAIN_CUR_EPOCH_HEADER_SIGNATURE: u64 = 109;
     const ERR_EXECUTE_TX_FAILED: u64 = 110;
     const ERR_UNSUPPORT_CHAIN_TYPE: u64 = 111;
+
+    struct ChainInfo has key, store {
+        current_chain_id: u64,
+    }
 
     struct EventStore has key, store {
         init_genesis_block_event: Event::EventHandle<InitGenesisBlockEvent>,
@@ -66,7 +70,10 @@ module CrossChainManager {
     *  @param rawHeader     Poly chain genesis block raw header or raw Header including switching consensus peers info
     *  @return              true or false
     */
-    public fun init_genesis_block(signer: &signer, raw_header: &vector<u8>, pub_key_list: &vector<u8>) acquires EventStore {
+    public fun init_genesis_block(signer: &signer,
+                                  current_chain_id: u64,
+                                  raw_header: &vector<u8>,
+                                  pub_key_list: &vector<u8>) acquires EventStore {
         // // Load Ethereum cross chain data contract
         // IEthCrossChainData eccd = IEthCrossChainData(EthCrossChainDataAddress);
 
@@ -87,6 +94,10 @@ module CrossChainManager {
         // return true;
 
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
+
+        move_to(signer, ChainInfo {
+            current_chain_id,
+        });
 
         move_to(signer, EventStore {
             init_genesis_block_event: Event::new_event_handle<InitGenesisBlockEvent>(signer),
@@ -326,7 +337,7 @@ module CrossChainManager {
         vector<u8>, // from_contract
         CrossChainGlobal::ExecutionCapability,
         vector<u8>, // tx hash
-    ) acquires EventStore {
+    ) acquires EventStore, ChainInfo {
 
         // Load ehereum cross chain data contract
         let (
@@ -376,7 +387,7 @@ module CrossChainManager {
             source_chain_tx_hash,
             _,
             from_contract,
-            _,
+            to_chain_id,
             to_contract,
             method,
             args
@@ -407,6 +418,11 @@ module CrossChainManager {
         //            &args,
         //            &from_contract,
         //            from_chain_id), Errors::invalid_state(ERR_EXECUTE_TX_FAILED));
+
+
+        let genesis_account = CrossChainGlobal::genesis_account();
+        let chain_info = borrow_global<ChainInfo>(genesis_account);
+        assert(to_chain_id == chain_info.current_chain_id, Errors::invalid_state(ERR_NOT_AIMING_TARGET_NETWORK));
 
         // Fire the cross chain event denoting the executation of cross chain tx is successful,
         // and this tx is coming from other public chains to current Ethereum network

@@ -17,10 +17,16 @@ module CrossChainScript {
 
     /// Initialize genesis from contract owner
     public(script) fun init_genesis(signer: signer,
+                                    current_chain_id: u64,
                                     raw_header: vector<u8>,
                                     pub_key_list: vector<u8>) {
         init_genesis_with_chain_id(
-            &signer, &raw_header, &pub_key_list, CHAINID_STARCOIN, CHAINID_ETHEREUM);
+            &signer,
+            &raw_header,
+            &pub_key_list,
+            current_chain_id,
+            CHAINID_STARCOIN,
+            CHAINID_ETHEREUM);
 
         // Bind default proxy hash and asset hash to self chain
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
@@ -36,13 +42,14 @@ module CrossChainScript {
     public fun init_genesis_with_chain_id(signer: &signer,
                                           raw_header: &vector<u8>,
                                           pub_key_list: &vector<u8>,
+                                          current_chain_id: u64,
                                           stc_chain_id: u64,
                                           eth_chain_id: u64) {
         // Init CCD
         CrossChainData::init_genesis(signer);
 
         // Init CCM
-        CrossChainManager::init_genesis_block(signer, raw_header, pub_key_list);
+        CrossChainManager::init_genesis_block(signer, current_chain_id, raw_header, pub_key_list);
 
         // Init asset proxy asset
         LockProxy::init_event(signer);
