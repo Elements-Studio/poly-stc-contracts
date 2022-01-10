@@ -28,10 +28,6 @@ module CrossChainManager {
     const ERR_EXECUTE_TX_FAILED: u64 = 110;
     const ERR_UNSUPPORT_CHAIN_TYPE: u64 = 111;
 
-    struct ChainInfo has key, store {
-        current_chain_id: u64,
-    }
-
     struct EventStore has key, store {
         init_genesis_block_event: Event::EventHandle<InitGenesisBlockEvent>,
         change_book_keeper_event: Event::EventHandle<ChangeBookKeeperEvent>,
@@ -71,7 +67,6 @@ module CrossChainManager {
     *  @return              true or false
     */
     public fun init_genesis_block(signer: &signer,
-                                  current_chain_id: u64,
                                   raw_header: &vector<u8>,
                                   pub_key_list: &vector<u8>) acquires EventStore {
         // // Load Ethereum cross chain data contract
@@ -94,10 +89,6 @@ module CrossChainManager {
         // return true;
 
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
-
-        move_to(signer, ChainInfo {
-            current_chain_id,
-        });
 
         move_to(signer, EventStore {
             init_genesis_block_event: Event::new_event_handle<InitGenesisBlockEvent>(signer),
@@ -140,13 +131,6 @@ module CrossChainManager {
         );
     }
 
-    /// Set local chain id to local store, maybe called from testnet sometimes.
-    public fun set_local_chain_id(signer: &signer, current_chain_id: u64) acquires ChainInfo {
-        let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
-        let chain_info = borrow_global_mut<ChainInfo>(account);
-        chain_info.current_chain_id = current_chain_id;
-    }
 
     /* @notice              change Poly chain consensus book keeper
     *  @param rawHeader     Poly chain change book keeper block raw header
@@ -345,7 +329,7 @@ module CrossChainManager {
         vector<u8>, // from_contract
         CrossChainGlobal::ExecutionCapability,
         vector<u8>, // tx hash
-    ) acquires EventStore, ChainInfo {
+    ) acquires EventStore {
 
         // Load ehereum cross chain data contract
         let (
@@ -427,10 +411,8 @@ module CrossChainManager {
         //            &from_contract,
         //            from_chain_id), Errors::invalid_state(ERR_EXECUTE_TX_FAILED));
 
-
-        let genesis_account = CrossChainGlobal::genesis_account();
-        let chain_info = borrow_global<ChainInfo>(genesis_account);
-        assert(to_chain_id == chain_info.current_chain_id, Errors::invalid_state(ERR_NOT_AIMING_TARGET_NETWORK));
+        assert(to_chain_id == CrossChainGlobal::get_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(),
+            Errors::invalid_state(ERR_NOT_AIMING_TARGET_NETWORK));
 
         // Fire the cross chain event denoting the executation of cross chain tx is successful,
         // and this tx is coming from other public chains to current Ethereum network

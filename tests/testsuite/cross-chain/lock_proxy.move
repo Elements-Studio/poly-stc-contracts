@@ -22,7 +22,6 @@ script {
             &signer,
             &raw_header,
             &pub_key_list,
-            2,
             CHAINID_STARCOIN,
             CHAINID_ETHEREUM);
 
