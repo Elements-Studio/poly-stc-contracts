@@ -16,6 +16,8 @@ module CrossChainManager {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofHelper;
 
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript";
+
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;
     const ERR_NEXT_BOOK_KEEPER_EMPTY: u64 = 103;
@@ -299,7 +301,7 @@ module CrossChainManager {
             CrossChainEvent {
                 sender: Address::bytify(account),
                 tx_id: param_tx_hash,
-                proxy_or_asset_contract: b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager",//Address::bytify(CrossChainGlobal::genesis_account()),
+                proxy_or_asset_contract: PROXY_HASH_STARCOIN,
                 to_chain_id,
                 to_contract: *to_contract,
                 raw_data: raw_param,
