@@ -165,12 +165,12 @@ module CrossChainRouter {
     }
 
     fun inner_do_bind_asset_hash<TokenT: store>(signer: &signer,
-                                                chain_id: u64,
+                                                to_chain_id: u64,
                                                 to_asset_hash: &vector<u8>) {
-        if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(chain_id)) {
-            LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, chain_id, to_asset_hash);
-        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(chain_id)) {
-            LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, chain_id, to_asset_hash);
+        if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
+            LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, to_asset_hash);
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
+            LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, to_asset_hash);
         } else {
             assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_CHAIN_TYPE));
         };

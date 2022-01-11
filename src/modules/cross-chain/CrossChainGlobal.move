@@ -99,7 +99,7 @@ module CrossChainGlobal {
         }
     }
 
-    /// Set asset hash for token type
+    /// Set asset hash on Starcoin for token type
     public fun set_asset_hash<TokenT: store>(signer: &signer, asset_hash: &vector<u8>) acquires AssetType {
         let account = Signer::address_of(signer);
         require_genesis_account(account);

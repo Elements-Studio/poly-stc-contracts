@@ -15,6 +15,11 @@ module CrossChainScript {
     const CHAINID_STARCOIN: u64 = 218;
     const CHAINID_ETHEREUM: u64 = 2;
 
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript";
+    const ASSET_HASH_STC: vector<u8> = b"0x00000000000000000000000000000001::STC::STC";
+    const ASSET_HASH_XETH: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::XETH::XETH";
+    const ASSET_HASH_XUSDT: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT::XUSDT";
+
     /// Initialize genesis from contract owner
     public(script) fun init_genesis(signer: signer,
                                     raw_header: vector<u8>,
@@ -28,13 +33,18 @@ module CrossChainScript {
 
         // Bind default proxy hash and asset hash to self chain
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript");
+            &signer, CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
+
+        CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &ASSET_HASH_STC);
+        CrossChainGlobal::set_asset_hash<XETH::XETH>(&signer, &ASSET_HASH_XETH);
+        CrossChainGlobal::set_asset_hash<XUSDT::XUSDT>(&signer, &ASSET_HASH_XUSDT);
+
         LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0x00000000000000000000000000000001::STC::STC");
+            &signer, CHAINID_STARCOIN, &ASSET_HASH_STC);
         LockProxy::bind_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::XETH::XETH");
+            &signer, CHAINID_STARCOIN, &ASSET_HASH_XETH);
         LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &b"0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT::XUSDT");
+            &signer, CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
     }
 
     public fun init_genesis_with_chain_id(signer: &signer,
@@ -112,8 +122,8 @@ module CrossChainScript {
         CrossChainRouter::bind_proxy_hash(&signer, chain_id, &target_proxy_hash);
     }
 
-    public(script) fun bind_asset_hash(signer: signer, from_asset_hash: vector<u8>, chain_id: u64, to_asset_hash: vector<u8>) {
-        CrossChainRouter::bind_asset_hash(&signer, &from_asset_hash, chain_id, &to_asset_hash);
+    public(script) fun bind_asset_hash(signer: signer, from_asset_hash: vector<u8>, to_chain_id: u64, to_asset_hash: vector<u8>) {
+        CrossChainRouter::bind_asset_hash(&signer, &from_asset_hash, to_chain_id, &to_asset_hash);
     }
 }
 }
