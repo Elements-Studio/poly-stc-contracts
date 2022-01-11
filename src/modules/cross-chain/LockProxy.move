@@ -170,7 +170,7 @@ module LockProxy {
     *  @param amount            The amount of tokens to be crossed from ethereum to the chain with chainId
     */
     public fun lock<TokenT: store, ChainType: store>(signer: &signer,
-                                                     chain_id: u64,
+                                                     to_chain_id: u64,
                                                      to_address: &vector<u8>,
                                                      amount: u128):
     (
@@ -225,7 +225,7 @@ module LockProxy {
             LockEvent{
                 from_address: Address::bytify(Signer::address_of(signer)),
                 from_asset_hash: Token::token_code<TokenT>(),
-                to_chain_id: chain_id,
+                to_chain_id,
                 to_asset_hash: *&asset_hash_map.to_asset_hash,
                 to_address: *to_address,
                 amount

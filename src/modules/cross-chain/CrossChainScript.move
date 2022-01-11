@@ -118,11 +118,16 @@ module CrossChainScript {
         CrossChainData::get_cur_epoch_con_pubkey_bytes()
     }
 
-    public(script) fun bind_proxy_hash(signer: signer, chain_id: u64, target_proxy_hash: vector<u8>) {
-        CrossChainRouter::bind_proxy_hash(&signer, chain_id, &target_proxy_hash);
+    public(script) fun bind_proxy_hash(signer: signer,
+                                       to_chain_id: u64,
+                                       target_proxy_hash: vector<u8>) {
+        CrossChainRouter::bind_proxy_hash(&signer, to_chain_id, &target_proxy_hash);
     }
 
-    public(script) fun bind_asset_hash(signer: signer, from_asset_hash: vector<u8>, to_chain_id: u64, to_asset_hash: vector<u8>) {
+    public(script) fun bind_asset_hash(signer: signer,
+                                       from_asset_hash: vector<u8>,
+                                       to_chain_id: u64,
+                                       to_asset_hash: vector<u8>) {
         CrossChainRouter::bind_asset_hash(&signer, &from_asset_hash, to_chain_id, &to_asset_hash);
     }
 }
