@@ -103,26 +103,26 @@ module LockProxy {
 
     /// Bind proxy hash, which called by genesis account
     public fun bind_proxy_hash<ChainType: store>(signer: &signer,
-                                                 to_chain_id: u64,
-                                                 target_proxy_hash: &vector<u8>)
+                                                 chain_id: u64, // only for emit event, Must be identical to ChainType
+                                                 proxy_hash: &vector<u8>)
     acquires LockEventStore, ProxyHashMap {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
         if (!exists<ProxyHashMap<ChainType>>(account)) {
             move_to(signer, ProxyHashMap<ChainType>{
-                to_proxy_hash: *target_proxy_hash
+                to_proxy_hash: *proxy_hash
             });
         } else {
             let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(account);
-            proxy_hash_map.to_proxy_hash = *target_proxy_hash;
+            proxy_hash_map.to_proxy_hash = *proxy_hash;
         };
 
         let event_store = borrow_global_mut<LockEventStore>(account);
         Event::emit_event(
             &mut event_store.bind_proxy_event,
             BindProxyEvent{
-                to_chain_id,
-                target_proxy_hash: *target_proxy_hash,
+                to_chain_id: chain_id,
+                target_proxy_hash: *proxy_hash,
             },
         );
     }
@@ -130,7 +130,7 @@ module LockProxy {
     /// Bind asset hash, which called by genesis account
     public fun bind_asset_hash<TokenT: store,
                                ToChainType: store>(signer: &signer,
-                                                 to_chain_id: u64,
+                                                 to_chain_id: u64, // only to emit event, MUST identical to ToChainType
                                                  to_asset_hash: &vector<u8>) acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);

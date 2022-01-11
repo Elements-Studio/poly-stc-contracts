@@ -12,8 +12,8 @@ module CrossChainScript {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
 
-    const CHAINID_STARCOIN: u64 = 318;
-    const CHAINID_ETHEREUM: u64 = 2;
+    const DEFAULT_CHAINID_STARCOIN: u64 = 318;
+    const DEFAULT_CHAINID_ETHEREUM: u64 = 2;
 
     const PROXY_HASH_STARCOIN: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript";
     const ASSET_HASH_STC: vector<u8> = b"0x00000000000000000000000000000001::STC::STC";
@@ -30,12 +30,12 @@ module CrossChainScript {
             &pub_key_list);
 
         // Initialize default chain IDs
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, CHAINID_STARCOIN);
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, CHAINID_ETHEREUM);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, DEFAULT_CHAINID_STARCOIN);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, DEFAULT_CHAINID_STARCOIN);
 
         // Bind default proxy hash of Starcoin chain
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
+            &signer, DEFAULT_CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
 
         // Set asset hashes of Starcoin chain
         CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &ASSET_HASH_STC);
@@ -44,11 +44,11 @@ module CrossChainScript {
 
         // Bind asset hashes to support Starcoin-to-Starcoin Cross-Chain transfer
         LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &ASSET_HASH_STC);
+            &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_STC);
         LockProxy::bind_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &ASSET_HASH_XETH);
+            &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XETH);
         LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
+            &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
     }
 
     public fun inner_init_genesis(signer: &signer,
