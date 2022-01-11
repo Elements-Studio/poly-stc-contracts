@@ -129,19 +129,19 @@ module LockProxy {
 
     /// Bind asset hash, which called by genesis account
     public fun bind_asset_hash<TokenT: store,
-                               ChainType: store>(signer: &signer,
+                               ToChainType: store>(signer: &signer,
                                                  to_chain_id: u64,
                                                  to_asset_hash: &vector<u8>) acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
         // Asset hash map
-        if (!exists<AssetHashMap<TokenT, ChainType>>(account)) {
-            move_to(signer, AssetHashMap<TokenT, ChainType>{
+        if (!exists<AssetHashMap<TokenT, ToChainType>>(account)) {
+            move_to(signer, AssetHashMap<TokenT, ToChainType>{
                 to_asset_hash: *to_asset_hash,
             });
         } else {
-            let store = borrow_global_mut<AssetHashMap<TokenT, ChainType>>(account);
+            let store = borrow_global_mut<AssetHashMap<TokenT, ToChainType>>(account);
             store.to_asset_hash = *to_asset_hash;
         };
 
@@ -151,9 +151,6 @@ module LockProxy {
                 token: Token::zero<TokenT>(),
             });
         };
-
-        // Bind asset hash with Token Type
-        CrossChainGlobal::set_asset_hash<TokenT>(signer, to_asset_hash);
 
         let event_store = borrow_global_mut<LockEventStore>(account);
         Event::emit_event(
