@@ -65,7 +65,7 @@ module CrossChainGlobal {
         cap.proof_tx_non_exists
     }
 
-    /// Set chain id to Chain Type
+    /// Set chain ID of ChainType
     public fun set_chain_id<ChainType: store>(signer: &signer, chain_id: u64) acquires ChainId {
         let account = Signer::address_of(signer);
         require_genesis_account(account);

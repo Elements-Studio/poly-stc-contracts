@@ -12,7 +12,7 @@ module CrossChainScript {
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
 
-    const CHAINID_STARCOIN: u64 = 218;
+    const CHAINID_STARCOIN: u64 = 318;
     const CHAINID_ETHEREUM: u64 = 2;
 
     const PROXY_HASH_STARCOIN: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript";
@@ -24,21 +24,25 @@ module CrossChainScript {
     public(script) fun init_genesis(signer: signer,
                                     raw_header: vector<u8>,
                                     pub_key_list: vector<u8>) {
-        init_genesis_with_chain_id(
+        inner_init_genesis(
             &signer,
             &raw_header,
-            &pub_key_list,
-            CHAINID_STARCOIN,
-            CHAINID_ETHEREUM);
+            &pub_key_list);
 
-        // Bind default proxy hash and asset hash to self chain
+        // Initialize default chain IDs
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, CHAINID_STARCOIN);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, CHAINID_ETHEREUM);
+
+        // Bind default proxy hash of Starcoin chain
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
 
+        // Set asset hashes of Starcoin chain
         CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &ASSET_HASH_STC);
         CrossChainGlobal::set_asset_hash<XETH::XETH>(&signer, &ASSET_HASH_XETH);
         CrossChainGlobal::set_asset_hash<XUSDT::XUSDT>(&signer, &ASSET_HASH_XUSDT);
 
+        // Bind asset hashes to support Starcoin-to-Starcoin Cross-Chain transfer
         LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &ASSET_HASH_STC);
         LockProxy::bind_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
@@ -47,23 +51,17 @@ module CrossChainScript {
             &signer, CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
     }
 
-    public fun init_genesis_with_chain_id(signer: &signer,
+    public fun inner_init_genesis(signer: &signer,
                                           raw_header: &vector<u8>,
-                                          pub_key_list: &vector<u8>,
-                                          stc_chain_id: u64,
-                                          eth_chain_id: u64) {
+                                          pub_key_list: &vector<u8>) {
         // Init CCD
         CrossChainData::init_genesis(signer);
 
         // Init CCM
         CrossChainManager::init_genesis_block(signer, raw_header, pub_key_list);
 
-        // Init asset proxy asset
+        // Init event things
         LockProxy::init_event(signer);
-
-        // Initialize default chain id
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(signer, stc_chain_id);
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(signer, eth_chain_id);
     }
 
 
@@ -104,18 +102,8 @@ module CrossChainScript {
             &merkle_proof_siblings);
     }
 
-    public(script) fun set_to_chain_id<ChainType: store>(signer: signer, to_chain_id: u64) {
-        CrossChainGlobal::set_chain_id<ChainType>(&signer, to_chain_id);
-    }
-
-    /// Get Current Epoch Start Height of Poly chain block
-    public fun get_cur_epoch_start_height(): u64 {
-        CrossChainData::get_cur_epoch_start_height()
-    }
-
-    /// Get Consensus book Keepers Public Key Bytes
-    public fun get_cur_epoch_con_pubkey_bytes(): vector<u8> {
-        CrossChainData::get_cur_epoch_con_pubkey_bytes()
+    public(script) fun set_chain_id<ChainType: store>(signer: signer, chain_id: u64) {
+        CrossChainGlobal::set_chain_id<ChainType>(&signer, chain_id);
     }
 
     public(script) fun bind_proxy_hash(signer: signer,
@@ -130,5 +118,16 @@ module CrossChainScript {
                                        to_asset_hash: vector<u8>) {
         CrossChainRouter::bind_asset_hash(&signer, &from_asset_hash, to_chain_id, &to_asset_hash);
     }
+
+    /// Get Current Epoch Start Height of Poly chain block
+    public fun get_cur_epoch_start_height(): u64 {
+        CrossChainData::get_cur_epoch_start_height()
+    }
+
+    /// Get Consensus book Keepers Public Key Bytes
+    public fun get_cur_epoch_con_pubkey_bytes(): vector<u8> {
+        CrossChainData::get_cur_epoch_con_pubkey_bytes()
+    }
+
 }
 }
