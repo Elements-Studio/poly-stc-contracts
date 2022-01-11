@@ -32,7 +32,7 @@ module CrossChainScript {
 
         // Initialize default chain IDs
         CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, DEFAULT_CHAINID_STARCOIN);
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, DEFAULT_CHAINID_STARCOIN);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, DEFAULT_CHAINID_ETHEREUM);
 
         // Bind default proxy hash of Starcoin chain
         LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
@@ -53,8 +53,8 @@ module CrossChainScript {
     }
 
     public fun inner_init_genesis(signer: &signer,
-                                          raw_header: &vector<u8>,
-                                          pub_key_list: &vector<u8>) {
+                                  raw_header: &vector<u8>,
+                                  pub_key_list: &vector<u8>) {
         // Init CCD
         CrossChainData::init_genesis(signer);
 
@@ -129,6 +129,5 @@ module CrossChainScript {
     public fun get_cur_epoch_con_pubkey_bytes(): vector<u8> {
         CrossChainData::get_cur_epoch_con_pubkey_bytes()
     }
-
 }
 }

@@ -130,8 +130,8 @@ module LockProxy {
     /// Bind asset hash, which called by genesis account
     public fun bind_asset_hash<TokenT: store,
                                ToChainType: store>(signer: &signer,
-                                                 to_chain_id: u64, // only to emit event, MUST identical to ToChainType
-                                                 to_asset_hash: &vector<u8>) acquires LockEventStore, AssetHashMap, LockTreasury {
+                                                   to_chain_id: u64, // only to emit event, MUST identical to ToChainType
+                                                   to_asset_hash: &vector<u8>) acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
