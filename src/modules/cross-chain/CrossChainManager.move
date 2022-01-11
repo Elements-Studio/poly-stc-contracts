@@ -325,7 +325,7 @@ module CrossChainManager {
     : (
         vector<u8>, // method
         vector<u8>, // args
-        u64, // chain id
+        u64, // from chain id
         vector<u8>, // from_contract
         CrossChainGlobal::ExecutionCapability,
         vector<u8>, // tx hash

@@ -79,7 +79,7 @@ module CrossChainRouter {
         let (
             method,
             args,
-            chain_id,
+            from_chain_id,
             from_contract,
             cap,
             cross_chain_tx_hash,
@@ -91,7 +91,7 @@ module CrossChainRouter {
             header_sig);
 
         CrossChainManager::check_and_mark_transaction_exists(
-            chain_id,
+            from_chain_id,
             &cross_chain_tx_hash,
             merkle_proof_root,
             merkle_proof_leaf,
@@ -102,11 +102,11 @@ module CrossChainRouter {
             let (to_asset_hash, to_address, amount) = LockProxy::deserialize_tx_args(args);
 
             let ret = if (CrossChainGlobal::asset_hash_match<STC::STC>(&to_asset_hash)) {
-                inner_do_unlock<STC::STC>(chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
+                inner_do_unlock<STC::STC>(from_chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
             } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(&to_asset_hash)) {
-                inner_do_unlock<XUSDT::XUSDT>(chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
+                inner_do_unlock<XUSDT::XUSDT>(from_chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
             } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(&to_asset_hash)) {
-                inner_do_unlock<XETH::XETH>(chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
+                inner_do_unlock<XETH::XETH>(from_chain_id, &from_contract, &to_asset_hash, &to_address, amount, &cross_chain_tx_hash, &cap)
             } else {
                 false
             };
@@ -116,17 +116,17 @@ module CrossChainRouter {
     }
 
     /// Do unlock operation on inner calling
-    public fun inner_do_unlock<TokenT: store>(chain_id: u64,
+    public fun inner_do_unlock<TokenT: store>(from_chain_id: u64,
                                               from_contract: &vector<u8>,
                                               to_asset_hash: &vector<u8>,
                                               to_address: &vector<u8>,
                                               amount: u128,
                                               tx_hash: &vector<u8>,
                                               cap: &CrossChainGlobal::ExecutionCapability): bool {
-        let ret = if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(chain_id)) {
+        let ret = if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(from_chain_id)) {
             let unlock_event = LockProxy::unlock<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(from_contract, to_asset_hash, to_address, amount, tx_hash, cap);
             LockProxy::emit_unlock_event<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(unlock_event)
-        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(chain_id)) {
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(from_chain_id)) {
             let unlock_event = LockProxy::unlock<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(from_contract, to_asset_hash, to_address, amount, tx_hash, cap);
             LockProxy::emit_unlock_event<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(unlock_event)
         } else {
@@ -138,12 +138,12 @@ module CrossChainRouter {
 
 
     public fun bind_proxy_hash(signer: &signer,
-                               chain_id: u64,
+                               to_chain_id: u64,
                                target_proxy_hash: &vector<u8>) {
-        if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(chain_id)) {
-            LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(signer, chain_id, target_proxy_hash);
-        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(chain_id)) {
-            LockProxy::bind_proxy_hash<CrossChainGlobal::ETHEREUM_CHAIN>(signer, chain_id, target_proxy_hash);
+        if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
+            LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, target_proxy_hash);
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
+            LockProxy::bind_proxy_hash<CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, target_proxy_hash);
         } else {
             assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_CHAIN_TYPE));
         };
@@ -151,14 +151,14 @@ module CrossChainRouter {
 
     public fun bind_asset_hash(signer: &signer,
                                from_asset_hash: &vector<u8>,
-                               chain_id: u64,
+                               to_chain_id: u64,
                                to_asset_hash: &vector<u8>) {
         if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
-            inner_do_bind_asset_hash<STC::STC>(signer, chain_id, to_asset_hash);
+            inner_do_bind_asset_hash<STC::STC>(signer, to_chain_id, to_asset_hash);
         } else if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
-            inner_do_bind_asset_hash<XUSDT::XUSDT>(signer, chain_id, to_asset_hash);
+            inner_do_bind_asset_hash<XUSDT::XUSDT>(signer, to_chain_id, to_asset_hash);
         } else if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
-            inner_do_bind_asset_hash<XETH::XETH>(signer, chain_id, to_asset_hash);
+            inner_do_bind_asset_hash<XETH::XETH>(signer, to_chain_id, to_asset_hash);
         } else {
             assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
         };
