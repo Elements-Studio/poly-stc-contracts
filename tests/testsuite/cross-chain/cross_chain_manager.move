@@ -4,7 +4,7 @@
 
 //! new-transaction
 //! sender: alice
-address alice = 0x18351d311d32201149a4df2a9fc2db8a;
+address alice = {{alice}};
 module alice::CrossChainType {
 
     struct XETH has copy, drop, store {}
@@ -22,7 +22,7 @@ module alice::CrossChainType {
 
 //! new-transaction
 //! sender: alice
-address alice = 0x18351d311d32201149a4df2a9fc2db8a;
+address alice = {{alice}};
 script {
     use 0x1::STC;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainScript;
@@ -60,7 +60,7 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = 0x18351d311d32201149a4df2a9fc2db8a;
+address alice = {{alice}};
 script {
     use 0x1::Vector;
 
@@ -75,7 +75,7 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = 0x18351d311d32201149a4df2a9fc2db8a;
+address alice = {{alice}};
 script {
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
 
@@ -90,7 +90,7 @@ script {
 
 //! new-transaction
 //! sender: alice
-address alice = 0x18351d311d32201149a4df2a9fc2db8a;
+address alice = {{alice}};
 script {
     use 0x1::Vector;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainRouter;

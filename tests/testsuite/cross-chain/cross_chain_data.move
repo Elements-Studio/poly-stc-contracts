@@ -3,7 +3,7 @@
 
 //! new-transaction
 //! sender: admin
-address admin = 0x18351d311d32201149a4df2a9fc2db8a;
+address admin = {{admin}};
 module admin::CrossChainType {
     struct TokenA has copy, drop, store {}
 
@@ -20,7 +20,7 @@ module admin::CrossChainType {
 
 //! new-transaction
 //! sender: admin
-address admin = 0x18351d311d32201149a4df2a9fc2db8a;
+address admin = {{admin}};
 script {
     use 0x1::Vector;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainData;
@@ -45,7 +45,7 @@ script {
 
 //! new-transaction
 //! sender: admin
-address admin = 0x18351d311d32201149a4df2a9fc2db8a;
+address admin = {{admin}};
 script {
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use admin::CrossChainType;
