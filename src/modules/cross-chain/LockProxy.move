@@ -8,7 +8,6 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
-    use 0x1::STC;
 
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use 0x18351d311d32201149a4df2a9fc2db8a::Address;
@@ -23,6 +22,7 @@ module LockProxy {
     const ERROR_UNLOCK_EXECUTECAP_INVALID: u64 = 105;
     const ERROR_UNLOCK_INVALID_ADDRESS: u64 = 106;
     const ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH: u64 = 107;
+    const ERROR_TREASURY_AMOUNT_INVALID: u64 = 108;
 
     const ADDRESS_LENGTH: u64 = 16;
 
@@ -102,6 +102,23 @@ module LockProxy {
         });
     }
 
+    /// Stake token from admin account, everyone can stake into treasury
+    public fun stake_to_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
+        assert(amount > 0, Errors::invalid_state(ERROR_TREASURY_AMOUNT_INVALID));
+
+        let genesis_account = CrossChainGlobal::genesis_account();
+
+        let withdraw_token = Account::withdraw<TokenT>(signer, amount);
+        if (!exists<LockTreasury<TokenT>>(genesis_account)) {
+            move_to(signer, LockTreasury<TokenT>{
+                token: withdraw_token,
+            });
+        } else {
+            let treasury = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
+            Token::deposit(&mut treasury.token, withdraw_token);
+        };
+    }
+
     /// Bind proxy hash, which called by genesis account
     public fun bind_proxy_hash<ChainType: store>(signer: &signer,
                                                  chain_id: u64, // only for emit event, Must be identical to ChainType
@@ -145,22 +162,6 @@ module LockProxy {
         } else {
             let store = borrow_global_mut<AssetHashMap<TokenT, ToChainType>>(account);
             store.to_asset_hash = *to_asset_hash;
-        };
-
-        // Lock proxy treasury initialize
-        if (!exists<LockTreasury<TokenT>>(account)) {
-            let token_for_lock_amount = Account::balance<TokenT>(account);
-            let token_for_lock = if (token_for_lock_amount > 0 && !STC::is_stc<TokenT>()
-            // Starcoin do not prelocking into treasury because its must be locked to treasury before unlocking.
-            // That's meaning token issuer from local chain.
-            ) {
-                Account::withdraw<TokenT>(signer, token_for_lock_amount)
-            } else {
-                Token::zero<TokenT>()
-            };
-            move_to(signer, LockTreasury<TokenT>{
-                token: token_for_lock,
-            });
         };
 
         let event_store = borrow_global_mut<LockEventStore>(account);
@@ -214,11 +215,9 @@ module LockProxy {
         assert(amount > 0, Errors::invalid_argument(ERROR_LOCK_AMOUNT_ZERO));
 
         let genesis_account = CrossChainGlobal::genesis_account();
-        let token = Account::withdraw<TokenT>(signer, amount);
 
-        // Lock token
-        let lock_token = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
-        Token::deposit<TokenT>(&mut lock_token.token, token);
+        // Stake to treasury
+        stake_to_treasury<TokenT>(signer, amount);
 
         let asset_hash_map = borrow_global_mut<AssetHashMap<TokenT, ChainType>>(genesis_account);
         let tx_data = serialize_tx_args(

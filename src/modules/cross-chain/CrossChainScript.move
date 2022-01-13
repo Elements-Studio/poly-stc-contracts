@@ -50,6 +50,15 @@ module CrossChainScript {
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XETH);
         LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
+
+        let mint_amount = 10000000000;
+        XETH::init(&signer);
+        XETH::mint(&signer, mint_amount);
+        LockProxy::stake_to_treasury<XETH::XETH>(&signer, mint_amount);
+
+        XUSDT::init(&signer);
+        XUSDT::mint(&signer, mint_amount);
+        LockProxy::stake_to_treasury<XUSDT::XUSDT>(&signer, mint_amount);
     }
 
     public fun inner_init_genesis(signer: &signer,

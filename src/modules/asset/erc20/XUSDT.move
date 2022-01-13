@@ -25,13 +25,15 @@ module XUSDT {
 
 module XUSDTScripts {
     use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
-    
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
+
     public(script) fun init(account: signer) {
         XUSDT::init(&account);
     }
 
     public(script) fun mint(account: signer, amount: u128) {
         XUSDT::mint(&account, amount);
+        LockProxy::stake_to_treasury<XUSDT::XUSDT>(&account, amount);
     }
 }
 

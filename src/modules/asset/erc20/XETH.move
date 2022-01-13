@@ -18,12 +18,13 @@ module XETH {
 
     public fun mint(account: &signer, amount: u128) {
         let token = Token::mint<XETH>(account, amount);
-        Account::deposit_to_self<XETH>(account, token)
+        Account::deposit_to_self<XETH>(account, token);
     }
 }
 
 module XETHScripts {
     use 0x18351d311d32201149a4df2a9fc2db8a::XETH;
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
 
     public(script) fun init(account: signer) {
         XETH::init(&account);
@@ -31,6 +32,7 @@ module XETHScripts {
 
     public(script) fun mint(account: signer, amount: u128) {
         XETH::mint(&account, amount);
+        LockProxy::stake_to_treasury<XETH::XETH>(&account, amount);
     }
 }
 
