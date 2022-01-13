@@ -103,7 +103,7 @@ module LockProxy {
     }
 
     /// Stake token from admin account, everyone can stake into treasury
-    public fun stake_to_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
+    public fun move_to_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
         assert(amount > 0, Errors::invalid_state(ERROR_TREASURY_AMOUNT_INVALID));
 
         let genesis_account = CrossChainGlobal::genesis_account();
@@ -217,7 +217,7 @@ module LockProxy {
         let genesis_account = CrossChainGlobal::genesis_account();
 
         // Stake to treasury
-        stake_to_treasury<TokenT>(signer, amount);
+        move_to_treasury<TokenT>(signer, amount);
 
         let asset_hash_map = borrow_global_mut<AssetHashMap<TokenT, ChainType>>(genesis_account);
         let tx_data = serialize_tx_args(
