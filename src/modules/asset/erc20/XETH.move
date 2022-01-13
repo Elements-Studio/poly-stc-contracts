@@ -32,7 +32,7 @@ module XETHScripts {
 
     public(script) fun mint(account: signer, amount: u128) {
         XETH::mint(&account, amount);
-        LockProxy::stake_to_treasury<XETH::XETH>(&account, amount);
+        LockProxy::move_to_treasury<XETH::XETH>(&account, amount);
     }
 }
 

@@ -33,7 +33,7 @@ module XUSDTScripts {
 
     public(script) fun mint(account: signer, amount: u128) {
         XUSDT::mint(&account, amount);
-        LockProxy::stake_to_treasury<XUSDT::XUSDT>(&account, amount);
+        LockProxy::move_to_treasury<XUSDT::XUSDT>(&account, amount);
     }
 }
 

@@ -51,7 +51,7 @@ module CrossChainScript {
         LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
 
-        let mint_amount = 1000000000000000000;
+        let mint_amount = 13611294676837538538534984297270728458;
         XETH::init(&signer);
         XETH::mint(&signer, mint_amount);
         LockProxy::move_to_treasury<XETH::XETH>(&signer, mint_amount);
