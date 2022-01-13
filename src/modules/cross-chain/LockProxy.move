@@ -8,6 +8,7 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
+    use 0x1::STC;
 
     use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
     use 0x2d81a0427d64ff61b11ede9085efa5ad::Address;
@@ -131,7 +132,8 @@ module LockProxy {
     public fun bind_asset_hash<TokenT: store,
                                ToChainType: store>(signer: &signer,
                                                    to_chain_id: u64, // only to emit event, MUST identical to ToChainType
-                                                   to_asset_hash: &vector<u8>) acquires LockEventStore, AssetHashMap, LockTreasury {
+                                                   to_asset_hash: &vector<u8>)
+    acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
@@ -147,8 +149,17 @@ module LockProxy {
 
         // Lock proxy treasury initialize
         if (!exists<LockTreasury<TokenT>>(account)) {
+            let token_for_lock_amount = Account::balance<TokenT>(account);
+            let token_for_lock = if (token_for_lock_amount > 0 && !STC::is_stc<TokenT>()
+            // Starcoin do not prelocking into treasury because its must be locked to treasury before unlocking.
+            // That's meaning token issuer from local chain.
+            ) {
+                Account::withdraw<TokenT>(signer, token_for_lock_amount)
+            } else {
+                Token::zero<TokenT>()
+            };
             move_to(signer, LockTreasury<TokenT>{
-                token: Token::zero<TokenT>(),
+                token: token_for_lock,
             });
         };
 
