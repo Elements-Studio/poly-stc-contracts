@@ -1,16 +1,16 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 module CrossChainRouter {
 
     use 0x1::STC;
     use 0x1::Errors;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofHelper;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
+    use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
+    use 0x18351d311d32201149a4df2a9fc2db8a::XETH;
+    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
 
     const ERROR_NO_SUPPORT_UNLOCK_ASSET_TYPE: u64 = 101;
     const ERROR_NO_SUPPORT_UNLOCK_CHAIN_TYPE: u64 = 102;

@@ -1,4 +1,4 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 module TestHelper {
     use 0x1::Token;
     use 0x1::Account;
@@ -9,8 +9,8 @@ module TestHelper {
     use 0x1::ChainId;
     use 0x1::Oracle;
     use 0x1::CoreAddresses;
-//    use 0x2d81a0427d64ff61b11ede9085efa5ad::CommonHelper;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::TokenMock::{Self, WETH, WUSDT, WDAI, WBTC};
+//    use 0x18351d311d32201149a4df2a9fc2db8a::CommonHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::TokenMock::{Self, WETH, WUSDT, WDAI, WBTC};
 
     struct GenesisSignerCapability has key {
         cap: Account::SignerCapability,
@@ -19,7 +19,7 @@ module TestHelper {
     const PRECISION_9: u8 = 9;
     const PRECISION_18: u8 = 18;
 
-    const ADMIN_ADDRESS : address = @0x2d81a0427d64ff61b11ede9085efa5ad;
+    const ADMIN_ADDRESS : address = @0x18351d311d32201149a4df2a9fc2db8a;
     const TOKEN_HOLDER_ADDRESS : address = @0x49156896A605F092ba1862C50a9036c9;
 
     public fun before_test() {

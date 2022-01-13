@@ -1,12 +1,12 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 module CrossChainGlobal {
 
     use 0x1::Errors;
     use 0x1::Signer;
 
-    friend 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainManager;
-    friend 0x2d81a0427d64ff61b11ede9085efa5ad::LockProxy;
+    friend 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
+    friend 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
 
     const ERR_INVALID_ACCOUNT: u64 = 101;
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;
@@ -33,7 +33,7 @@ module CrossChainGlobal {
     }
 
     public fun genesis_account(): address {
-        @0x2d81a0427d64ff61b11ede9085efa5ad
+        @0x18351d311d32201149a4df2a9fc2db8a
     }
 
     public(friend) fun generate_execution_cap(tx_data: &vector<u8>,

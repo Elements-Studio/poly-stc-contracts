@@ -1,11 +1,11 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 module MerkleProofStructuredHash {
     use 0x1::Hash;
     use 0x1::Vector;
     use 0x1::BCS;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofElementBits;
+    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofElementBits;
 
     const STARCOIN_HASH_PREFIX: vector<u8> = b"STARCOIN::";
 

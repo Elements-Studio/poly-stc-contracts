@@ -1,4 +1,4 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 module CrossChainManager {
     use 0x1::Vector;
@@ -8,15 +8,15 @@ module CrossChainManager {
     use 0x1::BCS;
     use 0x1::Hash;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::Address;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainLibrary;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::Address;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainData;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainLibrary;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySink;
+    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
+    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
 
-    const PROXY_HASH_STARCOIN: vector<u8> = b"0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainScript";
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::CrossChainScript";
 
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;

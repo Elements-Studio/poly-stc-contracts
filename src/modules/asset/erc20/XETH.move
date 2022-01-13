@@ -1,5 +1,5 @@
 
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 module XETH {
     use 0x1::Token;
     use 0x1::Account;
@@ -23,7 +23,7 @@ module XETH {
 }
 
 module XETHScripts {
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::XETH;
+    use 0x18351d311d32201149a4df2a9fc2db8a::XETH;
 
     public(script) fun init(account: signer) {
         XETH::init(&account);

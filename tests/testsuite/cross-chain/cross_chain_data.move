@@ -1,9 +1,9 @@
-//! account: admin, 0x2d81a0427d64ff61b11ede9085efa5ad, 10000000000 0x1::STC::STC
+//! account: admin, 0x18351d311d32201149a4df2a9fc2db8a, 10000000000 0x1::STC::STC
 //! account: bob, 0x49156896A605F092ba1862C50a9036c9, 10000000000 0x1::STC::STC
 
 //! new-transaction
 //! sender: admin
-address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
+address admin = 0x18351d311d32201149a4df2a9fc2db8a;
 module admin::CrossChainType {
     struct TokenA has copy, drop, store {}
 
@@ -20,10 +20,10 @@ module admin::CrossChainType {
 
 //! new-transaction
 //! sender: admin
-address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
+address admin = 0x18351d311d32201149a4df2a9fc2db8a;
 script {
     use 0x1::Vector;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainData;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainData;
 
     fun test_initialize_chain_placeholder(signer: signer) {
         CrossChainData::init_genesis(&signer);
@@ -45,9 +45,9 @@ script {
 
 //! new-transaction
 //! sender: admin
-address admin = 0x2d81a0427d64ff61b11ede9085efa5ad;
+address admin = 0x18351d311d32201149a4df2a9fc2db8a;
 script {
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use admin::CrossChainType;
 
     fun test_cross_chain_id_storage(signer: signer) {

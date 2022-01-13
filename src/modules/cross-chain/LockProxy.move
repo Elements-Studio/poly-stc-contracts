@@ -1,4 +1,4 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 module LockProxy {
 
@@ -10,11 +10,11 @@ module LockProxy {
     use 0x1::Account;
     use 0x1::STC;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::Address;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySink;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySource;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::Address;
+    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
+    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySink;
+    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySource;
 
     const ERROR_LOCK_AMOUNT_ZERO: u64 = 101;
     const ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH: u64 = 102;
