@@ -279,18 +279,31 @@ module CrossChainManager {
         // Reverse little edian to big edian
         Vector::reverse(&mut param_tx_hash);
 
+        // --------- serialize MakeTxParam start ---------
+        // Golang version:
+        // type MakeTxParam struct {
+        // 	TxHash              []byte
+        // 	CrossChainID        []byte
+        // 	FromContractAddress []byte
+        // 	ToChainID           uint64
+        // 	ToContractAddress   []byte
+        // 	Method              string
+        // 	Args                []byte
+        // }
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&param_tx_hash));
-
+        // hash genesis_addr and tx_hash to CrossChainID! 
+        // Solidity code:
         // Contract address: ZeroCopySink.WriteVarBytes(abi.encodePacked(sha256(abi.encodePacked(address(this), paramTxHash))))
         let genesis_addr_byte = Address::bytify(CrossChainGlobal::genesis_account());
-        let contract_addr_serialize =
-            Hash::sha3_256(Bytes::concat(&genesis_addr_byte, *&param_tx_hash));
-        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&contract_addr_serialize));
-        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&Address::bytify(account)));
+        let cross_chain_id =
+            Hash::sha3_256(Bytes::concat(&genesis_addr_byte, *&param_tx_hash)); 
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&cross_chain_id));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&PROXY_HASH_STARCOIN));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_u64(to_chain_id));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(to_contract));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(method));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(tx_data));
+        // --------- serialize MakeTxParam end ---------
 
         // Must save it in the storage to be included in the proof to be verified.
         CrossChainData::put_eth_tx_hash(Hash::keccak_256(*&raw_param));
