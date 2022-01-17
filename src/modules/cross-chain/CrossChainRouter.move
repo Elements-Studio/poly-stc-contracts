@@ -155,9 +155,9 @@ module CrossChainRouter {
                                to_asset_hash: &vector<u8>) {
         if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
             inner_do_bind_asset_hash<STC::STC>(signer, to_chain_id, to_asset_hash);
-        } else if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
+        } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(from_asset_hash)) {
             inner_do_bind_asset_hash<XUSDT::XUSDT>(signer, to_chain_id, to_asset_hash);
-        } else if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
+        } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(from_asset_hash)) {
             inner_do_bind_asset_hash<XETH::XETH>(signer, to_chain_id, to_asset_hash);
         } else {
             assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
