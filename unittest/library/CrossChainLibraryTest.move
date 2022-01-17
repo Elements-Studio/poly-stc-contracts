@@ -1,7 +1,7 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 module CrossChainLibraryTest {
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainLibrary;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::ZeroCopySource;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainLibrary;
+    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySource;
     use 0x1::Debug::{Self};
     use 0x1::Vector;
 

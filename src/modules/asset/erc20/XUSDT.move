@@ -1,5 +1,5 @@
 
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 module XUSDT {
     use 0x1::Token;
     use 0x1::Account;
@@ -24,27 +24,16 @@ module XUSDT {
 }
 
 module XUSDTScripts {
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::XUSDT;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainRouter;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
 
-    public(script) fun init(account: signer,
-                            proxy_hash: vector<u8>,
-                            asset_hash: vector<u8>) {
+    public(script) fun init(account: signer) {
         XUSDT::init(&account);
-
-        // bind asset and proxy
-        CrossChainRouter::bind_asset_and_proxy<
-            XUSDT::XUSDT,
-            CrossChainGlobal::ETHEREUM_CHAIN>(
-            &account,
-            CrossChainGlobal::get_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(),
-            &proxy_hash,
-            &asset_hash);
     }
 
     public(script) fun mint(account: signer, amount: u128) {
         XUSDT::mint(&account, amount);
+        LockProxy::move_to_treasury<XUSDT::XUSDT>(&account, amount);
     }
 }
 

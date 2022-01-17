@@ -1,4 +1,4 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 /// Merkle proof for non exists,
 /// reference Starcoin project which locate file named: "./commons/forkable-jellyfish-merkle/src/proof.rs"
@@ -56,8 +56,8 @@ module MerkleProofNonExists {
     use 0x1::Hash;
     use 0x1::Debug;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofElementBits;
+    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
+    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofElementBits;
 
     const ERROR_ELEMENT_KEY_EXISTS_IN_PROOF: u64 = 101;
     const ERROR_LEFA_NODE_DATA_INVALID: u64 = 102;

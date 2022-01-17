@@ -1,6 +1,6 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 module BytesTest {
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::Bytes;
+    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
     use 0x1::Debug::{Self};
     use 0x1::Vector;
     use 0x1::BCS;
@@ -124,6 +124,18 @@ module BytesTest {
         Debug::print(&converted_addr);
         assert(converted_addr != @0x01, 1001);
     }
+
+    /// Using python convert decimal array to hex string
+    /// ```
+    /// ''.join(str(e) for e in [('%02X' % x) for x in [247, 27, 85, 239, 85, 206, 220, 145, 253, 0, 127, 122, 155, 163, 134, 236, 151, 143, 58, 168]])
+    /// ```
+    #[test]
+    public fun test_bcs_equals1() {
+        //let addr = x"344CFC3B8635F72F14200AAF2168D9F75DF86FD3000000000000000000000000";
+        let bcs1 = x"F71B55EF55CEDC91FD007F7A9BA386EC978F3AA8";
+        Debug::print(&bcs1);
+    }
+
 
 }
 }

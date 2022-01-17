@@ -1,14 +1,13 @@
-address 0x2d81a0427d64ff61b11ede9085efa5ad {
+address 0x18351d311d32201149a4df2a9fc2db8a {
 
 module CrossChainData {
 
     use 0x1::Vector;
     use 0x1::Signer;
     use 0x1::Errors;
-    //use 0x1::Debug;
 
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::CrossChainGlobal;
-    use 0x2d81a0427d64ff61b11ede9085efa5ad::MerkleProofNonExists;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
 
     const ERR_INITIALIZED_REPEATE: u64 = 101;
     const ERR_PROOF_HASH_INVALID: u64 = 102;
@@ -56,8 +55,8 @@ module CrossChainData {
         });
 
         // Repeate check
-        assert(!exists<SparseMerkleTreeRoot>(
-            Signer::address_of(signer)), Errors::invalid_state(ERR_INITIALIZED_REPEATE));
+        assert(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
+            Errors::invalid_state(ERR_INITIALIZED_REPEATE));
         move_to(signer, SparseMerkleTreeRoot{
             hash: *&MerkleProofNonExists::get_place_holder_hash()
         });
@@ -83,16 +82,6 @@ module CrossChainData {
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.cur_epoch_start_height
     }
-
-    // // Store extra data, which may be used in the future
-    // public fun putExtraData(bytes32 key1, bytes32 key2, bytes memory value) : bool {
-    //     // ExtraData[key1][key2] = value;
-    //     // return true;
-    // }
-    // // Get extra data, which may be used in the future
-    // public fun getExtraData(bytes32 key1, bytes32 key2) public view returns (bytes memory) {
-    //     // return ExtraData[key1][key2];
-    // }
 
     /// Get current recorded index of cross chain txs requesting from Ethereum to other public chains
     /// in order to help cross chain manager contract differenciate two cross chain tx requests
