@@ -1,9 +1,9 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address NamedAddr {
 module BytesTest {
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x1::Debug::{Self};
-    use 0x1::Vector;
-    use 0x1::BCS;
+    use NamedAddr::Bytes;
+    use StarcoinFramework::Debug::{Self};
+    use StarcoinFramework::Vector;
+    use StarcoinFramework::BCS;
 
     public fun slice(data: &vector<u8>, start: u64, end: u64): vector<u8> {
         let i = start;
@@ -27,8 +27,8 @@ module BytesTest {
         let hex:vector<u8> = x"014e95f5a48100"; //8955205
         let number = Bytes::bytes_to_u128(&hex);
         Debug::print<u128>(&number);
-//        assert(number == 653427142018, 1001);
-        assert(number == 367880955003136, 1001);
+//        assert!(number == 653427142018, 1001);
+        assert!(number == 367880955003136, 1001);
     }
 
 //    #[test, expected_failure(abort_code = 1)] //
@@ -37,7 +37,7 @@ module BytesTest {
         let hex:vector<u8> = x"c4c8b2db715e9f7e1d3306b9f6860a389635dfb3943db13f1005544a50fbb2"; //
         let number = Bytes::bytes_to_u128(&hex);
         Debug::print<u128>(&number);
-//        assert(number == 367880955003136, 1001);
+//        assert!(number == 367880955003136, 1001);
     }
 
     #[test]
@@ -57,8 +57,8 @@ module BytesTest {
         let reverse_number = Bytes::bytes_reverse_to_u128(&hex);
         Debug::print<u128>(&number);
         Debug::print<u128>(&reverse_number);
-        assert(number == 367880955003136, 1001);
-        assert(number == reverse_number, 1002);
+        assert!(number == 367880955003136, 1001);
+        assert!(number == reverse_number, 1002);
     }
 
     #[test]
@@ -88,9 +88,9 @@ module BytesTest {
         Debug::print<vector<u8>>(&data2);
         Debug::print<vector<u8>>(&hex3);
         Debug::print<vector<u8>>(&data3);
-        assert(data1 == hex1, 1003);
-        assert(data2 != copy hex2, 1004);
-        assert(data3 != hex3, 1005);
+        assert!(data1 == hex1, 1003);
+        assert!(data2 != copy hex2, 1004);
+        assert!(data3 != hex3, 1005);
 
         Debug::print<u128>(&(Bytes::bytes_to_u128(&hex2)));
     }
@@ -102,8 +102,8 @@ module BytesTest {
         let _hex_right:vector<u8> = x"01234f0000000000";
         let left_padding_bytes = Bytes::left_padding(&hex, 8);
         let right_padding_bytes = Bytes::right_padding(&hex, 8);
-        assert(_hex_left == copy left_padding_bytes, 1007);
-        assert(_hex_right == copy right_padding_bytes, 1008);
+        assert!(_hex_left == copy left_padding_bytes, 1007);
+        assert!(_hex_right == copy right_padding_bytes, 1008);
         Debug::print<vector<u8>>(&left_padding_bytes);
         Debug::print<vector<u8>>(&right_padding_bytes);
     }
@@ -112,8 +112,8 @@ module BytesTest {
     public fun test_bytes_equal() {
         let hex:vector<u8> = x"01234f";
         let hex2:vector<u8> = Bytes::concat(&x"01", x"234f");
-        assert(copy hex == copy hex2, 1009);
-        assert(&hex ==  &hex2, 1011);
+        assert!(copy hex == copy hex2, 1009);
+        assert!(&hex ==  &hex2, 1011);
     }
 
     #[test]
@@ -122,7 +122,7 @@ module BytesTest {
         let addr1 = x"344CFC3B8635F72F14200AAF2168D9F7";
         let converted_addr = BCS::to_address(addr1);
         Debug::print(&converted_addr);
-        assert(converted_addr != @0x01, 1001);
+        assert!(converted_addr != @0x01, 1001);
     }
 
     /// Using python convert decimal array to hex string

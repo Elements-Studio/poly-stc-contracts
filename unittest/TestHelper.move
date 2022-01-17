@@ -1,16 +1,16 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address NamedAddr {
 module TestHelper {
-    use 0x1::Token;
-    use 0x1::Account;
-    use 0x1::Signer;
-    use 0x1::STC::STC ;
-    use 0x1::Timestamp;
-    use 0x1::NFT;
-    use 0x1::ChainId;
-    use 0x1::Oracle;
-    use 0x1::CoreAddresses;
-//    use 0x18351d311d32201149a4df2a9fc2db8a::CommonHelper;
-    use 0x18351d311d32201149a4df2a9fc2db8a::TokenMock::{Self, WETH, WUSDT, WDAI, WBTC};
+    use StarcoinFramework::Token;
+    use StarcoinFramework::Account;
+    use StarcoinFramework::Signer;
+    use StarcoinFramework::STC::STC ;
+    use StarcoinFramework::Timestamp;
+    use StarcoinFramework::NFT;
+    use StarcoinFramework::ChainId;
+    use StarcoinFramework::Oracle;
+    use StarcoinFramework::CoreAddresses;
+//    use NamedAddr::CommonHelper;
+    use NamedAddr::TokenMock::{Self, WETH, WUSDT, WDAI, WBTC};
 
     struct GenesisSignerCapability has key {
         cap: Account::SignerCapability,
@@ -19,7 +19,7 @@ module TestHelper {
     const PRECISION_9: u8 = 9;
     const PRECISION_18: u8 = 18;
 
-    const ADMIN_ADDRESS : address = @0x18351d311d32201149a4df2a9fc2db8a;
+    const ADMIN_ADDRESS : address = @NamedAddr;
     const TOKEN_HOLDER_ADDRESS : address = @0x49156896A605F092ba1862C50a9036c9;
 
     public fun before_test() {
@@ -65,7 +65,7 @@ module TestHelper {
         if (amount > 0) {
             deposit_stc_to(account, amount);
             let stc_balance = Account::balance<STC>(account_address);
-            assert(stc_balance == amount, 999);
+            assert!(stc_balance == amount, 999);
         };
     }
 

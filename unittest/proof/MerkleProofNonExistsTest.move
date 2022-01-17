@@ -1,14 +1,14 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address NamedAddr {
 module MerkleProofNonExistsTest {
-    use 0x1::Vector;
-    use 0x1::Debug;
-    use 0x1::BitOperators;
-    use 0x1::Hash;
+    use StarcoinFramework::Vector;
+    use StarcoinFramework::Debug;
+    use StarcoinFramework::BitOperators;
+    use StarcoinFramework::Hash;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofElementBits;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
+    use NamedAddr::Bytes;
+    use NamedAddr::MerkleProofNonExists;
+    use NamedAddr::MerkleProofElementBits;
+    use NamedAddr::MerkleProofHelper;
 
     struct MerkleInternalNode has store, drop {
         left_child: vector<u8>,
@@ -22,18 +22,18 @@ module MerkleProofNonExistsTest {
 
         let bit_vec = MerkleProofElementBits::iter_bits(&hash);
         Debug::print(&bit_vec);
-        assert(Vector::length<bool>(&bit_vec) == 256, 1101);
+        assert!(Vector::length<bool>(&bit_vec) == 256, 1101);
 
         let sub_bits = Bytes::slice_range_with_template<bool>(&bit_vec, 252, 256);
         Debug::print(&sub_bits);
-        assert(Vector::length<bool>(&sub_bits) == 4, 1102);
+        assert!(Vector::length<bool>(&sub_bits) == 4, 1102);
     }
 
     #[test]
     public fun test_bit() {
-        assert(BitOperators::and(1, 2) == 0, 1103);
-        assert(BitOperators::and(1, 3) == 1, 1104);
-        assert(BitOperators::and(1, 16 >> 4) == 1, 1105);
+        assert!(BitOperators::and(1, 2) == 0, 1103);
+        assert!(BitOperators::and(1, 3) == 1, 1104);
+        assert!(BitOperators::and(1, 16 >> 4) == 1, 1105);
     }
 
     #[test]
@@ -59,7 +59,7 @@ module MerkleProofNonExistsTest {
 
         let bit = BitOperators::and(BitOperators::rshift((first_byte as u64), 4), (1 as u64));
         Debug::print(&bit);
-        assert((first_byte >> 4 & 1) == 1, 1106);
+        assert!((first_byte >> 4 & 1) == 1, 1106);
 
         let bit_hash = Vector::empty();
         let i = 0;
@@ -87,7 +87,7 @@ module MerkleProofNonExistsTest {
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
-        assert(crypto_hash == expect, 1107);
+        assert!(crypto_hash == expect, 1107);
     }
 
     #[test]
@@ -101,7 +101,7 @@ module MerkleProofNonExistsTest {
         Debug::print(&crypto_hash);
         Debug::print(&expect);
 
-        assert(crypto_hash == expect, 1108);
+        assert!(crypto_hash == expect, 1108);
     }
 
     #[test]
@@ -112,22 +112,22 @@ module MerkleProofNonExistsTest {
         Debug::print(&bits2);
         let len = MerkleProofElementBits::common_prefix_bits_len<bool>(&bits1, &bits2);
         Debug::print(&len);
-        assert(len == 3, 1109);
+        assert!(len == 3, 1109);
     }
 
     #[test]
     public fun test_fixed_split_leaf_node_data() {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let (prefix, leaf_node_path, leaf_node_value) = MerkleProofNonExists::split_leaf_node_data(&data);
-        assert(prefix == x"00", 1110);
+        assert!(prefix == x"00", 1110);
 
         Debug::print(&leaf_node_path);
         Debug::print(&x"76d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c01");
-        assert(leaf_node_path == x"76d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c01", 1106);
+        assert!(leaf_node_path == x"76d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c01", 1106);
 
         Debug::print(&leaf_node_value);
         Debug::print(&x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7");
-        assert(leaf_node_value == x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7", 1107);
+        assert!(leaf_node_value == x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7", 1107);
     }
 
     public fun gen_proof_path_hash(tx_hash: &vector<u8>): vector<u8> {
@@ -256,7 +256,7 @@ module MerkleProofNonExistsTest {
             element_path,
             leaf_data,
             siblings);
-        assert(checked, 1112);
+        assert!(checked, 1112);
     }
 
     fun test_update_leaf(element_path: &vector<u8>,
@@ -269,7 +269,7 @@ module MerkleProofNonExistsTest {
             siblings);
         Debug::print(&new_root_hash);
         Debug::print(expect_root_hash);
-        assert(new_root_hash == *expect_root_hash, 1113);
+        assert!(new_root_hash == *expect_root_hash, 1113);
     }
 
     #[test]

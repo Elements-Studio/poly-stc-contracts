@@ -1,10 +1,10 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address NamedAddr {
 module ZeroCopyTest {
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySink;
-    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySource;
-    use 0x1::Debug::{Self};
-    use 0x1::Vector;
+    use NamedAddr::Bytes;
+    use NamedAddr::ZeroCopySink;
+    use NamedAddr::ZeroCopySource;
+    use StarcoinFramework::Debug::{Self};
+    use StarcoinFramework::Vector;
 
     struct EthAccount has key, store, drop  {
         state_root: vector<u8>,
@@ -39,7 +39,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<u8>(&data);
         Debug::print<u64>(&offset);
-        assert(u == data, 1001);
+        assert!(u == data, 1001);
     }
 
     #[test]
@@ -53,7 +53,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<u64>(&data);
         Debug::print<u64>(&offset);
-        assert(u == data, 1002);
+        assert!(u == data, 1002);
     }
 
     #[test]
@@ -67,7 +67,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<u128>(&data);
         Debug::print<u64>(&offset);
-        assert(u == data, 1003);
+        assert!(u == data, 1003);
     }
 
     #[test]
@@ -81,7 +81,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<bool>(&data);
         Debug::print<u64>(&offset);
-        assert(u == data, 1004);
+        assert!(u == data, 1004);
     }
 
 
@@ -95,7 +95,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(buf == data, 1005);
+        assert!(buf == data, 1005);
     }
 
     #[test]
@@ -109,7 +109,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(u == data, 1006);
+        assert!(u == data, 1006);
     }
 
     #[test]
@@ -123,7 +123,7 @@ module ZeroCopyTest {
         Debug::print<vector<u8>>(&buf);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(u == data, 1007);
+        assert!(u == data, 1007);
     }
 
 
@@ -167,38 +167,38 @@ module ZeroCopyTest {
         let (data, offset) = ZeroCopySource::next_var_bytes(&buf, offset);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.state_root, 1021);
+        assert!(data == *&eth_account.state_root, 1021);
 
         let (data, offset) = ZeroCopySource::next_u64(&buf, offset);
         Debug::print<u64>(&110333);
         Debug::print<u64>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.height, 1022);
+        assert!(data == *&eth_account.height, 1022);
 
         let (data, offset) = ZeroCopySource::next_var_bytes(&buf, offset);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.address, 1023);
+        assert!(data == *&eth_account.address, 1023);
 
         let (data, offset) = ZeroCopySource::next_u128(&buf, offset);
         Debug::print<u128>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.balance, 1024);
+        assert!(data == *&eth_account.balance, 1024);
 
         let (data, offset) = ZeroCopySource::next_u64(&buf, offset);
         Debug::print<u64>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.nonce, 1025);
+        assert!(data == *&eth_account.nonce, 1025);
 
         let (data, offset) = ZeroCopySource::next_var_bytes(&buf, offset);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.code_hash, 1026);
+        assert!(data == *&eth_account.code_hash, 1026);
 
         let (data, offset) = ZeroCopySource::next_var_bytes(&buf, offset);
         Debug::print<vector<u8>>(&data);
         Debug::print<u64>(&offset);
-        assert(data == *&eth_account.storage_hash, 1027);
+        assert!(data == *&eth_account.storage_hash, 1027);
     }
 
 
