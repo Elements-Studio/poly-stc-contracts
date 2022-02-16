@@ -19,6 +19,7 @@ module CrossChainRouter {
     const ERROR_NO_SUPPORT_LOCK_CHAIN_TYPE: u64 = 105;
     const ERROR_NO_SUPPORT_BIND_ASSET_TYPE: u64 = 106;
     const ERROR_NO_SUPPORT_BIND_CHAIN_TYPE: u64 = 107;
+    const ERROR_NO_TOO_MUCH_FEE: u64 = 108;
 
     /// This function is meant to be invoked by the user,
     /// a certin amount teokens will be locked in the proxy contract the invoker/msg.sender immediately.
@@ -38,6 +39,30 @@ module CrossChainRouter {
             assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
         }
     }
+
+    public fun lock_with_fee(signer: &signer,
+                    from_asset_hash: &vector<u8>,
+                    to_chain_id: u64,
+                    to_address: &vector<u8>,
+                    amount: u128,
+                    fee: u128,
+                    id: u128) {
+        assert(amount > fee, Errors::invalid_argument(ERROR_NO_TOO_MUCH_FEE));
+        let net = amount - fee;                 
+        if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
+            inner_do_lock<STC::STC>(signer, to_chain_id, to_address, net);
+            LockProxy::lock_fee<STC::STC>(signer, to_chain_id, to_address, net, fee, id);
+        } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(from_asset_hash)) {
+            inner_do_lock<XUSDT::XUSDT>(signer, to_chain_id, to_address, net);
+            LockProxy::lock_fee<XUSDT::XUSDT>(signer, to_chain_id, to_address, net, fee, id);
+        } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(from_asset_hash)) {
+            inner_do_lock<XETH::XETH>(signer, to_chain_id, to_address, net);
+            LockProxy::lock_fee<XETH::XETH>(signer, to_chain_id, to_address, net, fee, id);
+        } else {
+            assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
+        }
+    }
+
 
     /// Do lock operation on inner calling
     public fun inner_do_lock<TokenT: store>(signer: &signer,
