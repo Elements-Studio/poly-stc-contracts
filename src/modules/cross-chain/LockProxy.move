@@ -8,6 +8,7 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
+    use 0x1::STC;
 
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use 0x18351d311d32201149a4df2a9fc2db8a::Address;
@@ -285,24 +286,25 @@ module LockProxy {
         )
     }
 
-    public fun lock_fee<TokenT: store>(signer: &signer,
+    public fun lock_stc_fee<TokenT: store>(signer: &signer,
                                                     to_chain_id: u64,
                                                     to_address: &vector<u8>,
                                                     net: u128,
-                                                    fee: u128,
+                                                    stc_fee: u128,
                                                     id: u128) 
     acquires FeeEventStore{
         let genesis_account = CrossChainGlobal::genesis_account();
-        let withdraw_token = Account::withdraw<TokenT>(signer, fee);
-        Account::deposit(genesis_account, withdraw_token);
-                  
+        // ///////////// lock STC fee here ////////////////
+        let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
+        Account::deposit(genesis_account, stc_token);
+        // ////////////////////////////////////////////////
         let cc_fee_event = CrossChainFeeLockEvent{
             from_asset: Token::token_code<TokenT>(),
             sender: Signer::address_of(signer),
             to_chain_id: to_chain_id,
             to_address: *to_address,
             net: net,
-            fee: fee,
+            fee: stc_fee,
             id: id,
         };
         publish_cross_chain_fee_lock_event(cc_fee_event);

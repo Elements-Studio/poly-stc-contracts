@@ -84,14 +84,14 @@ module CrossChainScript {
         CrossChainRouter::lock(&signer, &from_asset_hash, to_chain_id, &to_address, amount);
     }
 
-    public(script) fun lock_with_fee(signer: signer,
+    public(script) fun lock_with_stc_fee(signer: signer,
                             from_asset_hash: vector<u8>,
                             to_chain_id: u64,
                             to_address: vector<u8>,
                             amount: u128,
                             fee: u128,
                             id: u128) {
-        CrossChainRouter::lock_with_fee(&signer, &from_asset_hash, to_chain_id, &to_address, amount, fee, id);
+        CrossChainRouter::lock_with_stc_fee(&signer, &from_asset_hash, to_chain_id, &to_address, amount, fee, id);
     }
 
     /// Check book keeper information
