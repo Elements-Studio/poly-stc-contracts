@@ -269,7 +269,6 @@ module CrossChainManager {
         CrossChainGlobal::destroy_execution_cap(cap);
 
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
 
         let raw_param = Vector::empty<u8>();
 
