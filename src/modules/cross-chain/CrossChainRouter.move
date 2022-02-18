@@ -41,12 +41,12 @@ module CrossChainRouter {
     }
 
     public fun lock_with_stc_fee(signer: &signer,
-                    from_asset_hash: &vector<u8>,
-                    to_chain_id: u64,
-                    to_address: &vector<u8>,
-                    amount: u128,
-                    fee: u128,
-                    id: u128) {
+                                 from_asset_hash: &vector<u8>,
+                                 to_chain_id: u64,
+                                 to_address: &vector<u8>,
+                                 amount: u128,
+                                 fee: u128,
+                                 id: u128) {
         if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
             inner_do_lock<STC::STC>(signer, to_chain_id, to_address, amount);
             LockProxy::lock_stc_fee<STC::STC>(signer, to_chain_id, to_address, amount, fee, id);

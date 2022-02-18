@@ -287,12 +287,12 @@ module LockProxy {
     }
 
     public fun lock_stc_fee<TokenT: store>(signer: &signer,
-                                                    to_chain_id: u64,
-                                                    to_address: &vector<u8>,
-                                                    net: u128,
-                                                    stc_fee: u128,
-                                                    id: u128) 
-    acquires FeeEventStore{
+                                           to_chain_id: u64,
+                                           to_address: &vector<u8>,
+                                           net: u128,
+                                           stc_fee: u128,
+                                           id: u128)
+    acquires FeeEventStore {
         let genesis_account = CrossChainGlobal::genesis_account();
         // ///////////// lock STC fee here ////////////////
         let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
@@ -319,19 +319,19 @@ module LockProxy {
         );
     }
 
-    public fun publish_cross_chain_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore{
+    public fun publish_cross_chain_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore {
         let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.cross_chain_fee_lock_event,
-            event,    
+            event,
         );
     }
 
-    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore{
+    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
         let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.cross_chain_fee_speed_up_event,
-            event,    
+            event,
         );
     }
 
