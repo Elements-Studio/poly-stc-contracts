@@ -12,6 +12,7 @@ module CrossChainGlobal {
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;
 
     struct STARCOIN_CHAIN has key, store {}
+
     struct ETHEREUM_CHAIN has key, store {}
 
     struct ExecutionCapability {
@@ -80,7 +81,7 @@ module CrossChainGlobal {
         }
     }
 
-    public fun get_chain_id<ChainType: store>() : u64 acquires ChainId {
+    public fun get_chain_id<ChainType: store>(): u64 acquires ChainId {
         if (exists<ChainId<ChainType>>(genesis_account())) {
             let chain_id_store = borrow_global<ChainId<ChainType>>(genesis_account());
             chain_id_store.chain_id

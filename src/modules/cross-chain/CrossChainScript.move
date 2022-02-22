@@ -84,6 +84,16 @@ module CrossChainScript {
         CrossChainRouter::lock(&signer, &from_asset_hash, to_chain_id, &to_address, amount);
     }
 
+    public(script) fun lock_with_stc_fee(signer: signer,
+                                         from_asset_hash: vector<u8>,
+                                         to_chain_id: u64,
+                                         to_address: vector<u8>,
+                                         amount: u128,
+                                         fee: u128,
+                                         id: u128) {
+        CrossChainRouter::lock_with_stc_fee(&signer, &from_asset_hash, to_chain_id, &to_address, amount, fee, id);
+    }
+
     /// Check book keeper information
     public(script) fun change_book_keeper(signer: signer,
                                           raw_header: vector<u8>,
@@ -127,6 +137,11 @@ module CrossChainScript {
                                        to_chain_id: u64,
                                        to_asset_hash: vector<u8>) {
         CrossChainRouter::bind_asset_hash(&signer, &from_asset_hash, to_chain_id, &to_asset_hash);
+    }
+
+    /// Only for update
+    public(script) fun init_fee_event_store(signer: signer) {
+        LockProxy::init_fee_event_store(&signer)
     }
 
     /// Get Current Epoch Start Height of Poly chain block

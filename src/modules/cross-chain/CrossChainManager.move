@@ -92,7 +92,7 @@ module CrossChainManager {
 
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
 
-        move_to(signer, EventStore {
+        move_to(signer, EventStore{
             init_genesis_block_event: Event::new_event_handle<InitGenesisBlockEvent>(signer),
             change_book_keeper_event: Event::new_event_handle<ChangeBookKeeperEvent>(signer),
             cross_chain_event: Event::new_event_handle<CrossChainEvent>(signer),
@@ -126,7 +126,7 @@ module CrossChainManager {
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.init_genesis_block_event,
-            InitGenesisBlockEvent {
+            InitGenesisBlockEvent{
                 height: (header_height as u128),
                 raw_header: *raw_header,
             },
@@ -196,12 +196,12 @@ module CrossChainManager {
         assert(!Vector::is_empty<u8>(&header_next_bookkeeper), Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_EMPTY));
 
         // Verify signature of rawHeader comes from pubKeyList
-         let pub_key_bytes = CrossChainData::get_cur_epoch_con_pubkey_bytes();
-         let poly_chain_bks = CrossChainLibrary::deserialize_keepers(&pub_key_bytes);
-         let n = Vector::length<vector<u8>>(&poly_chain_bks);
-         assert(CrossChainLibrary::verify_sig(
-             raw_header, sig_list, &poly_chain_bks, ((n - (n - 1) / 3) as u64)),
-             Errors::invalid_state(ERR_FAILED_VERIFY_SIGNATURE));
+        let pub_key_bytes = CrossChainData::get_cur_epoch_con_pubkey_bytes();
+        let poly_chain_bks = CrossChainLibrary::deserialize_keepers(&pub_key_bytes);
+        let n = Vector::length<vector<u8>>(&poly_chain_bks);
+        assert(CrossChainLibrary::verify_sig(
+            raw_header, sig_list, &poly_chain_bks, ((n - (n - 1) / 3) as u64)),
+            Errors::invalid_state(ERR_FAILED_VERIFY_SIGNATURE));
 
         // Convert pubKeyList into ethereum address format and make sure the compound address from the converted ethereum addresses
         // equals passed in header.nextBooker
@@ -217,7 +217,7 @@ module CrossChainManager {
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.change_book_keeper_event,
-            ChangeBookKeeperEvent {
+            ChangeBookKeeperEvent{
                 height: (header_height as u128),
                 raw_header: *raw_header,
             },
@@ -269,7 +269,6 @@ module CrossChainManager {
         CrossChainGlobal::destroy_execution_cap(cap);
 
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
 
         let raw_param = Vector::empty<u8>();
 
@@ -296,7 +295,7 @@ module CrossChainManager {
         // Contract address: ZeroCopySink.WriteVarBytes(abi.encodePacked(sha256(abi.encodePacked(address(this), paramTxHash))))
         let genesis_addr_byte = Address::bytify(CrossChainGlobal::genesis_account());
         let cross_chain_id =
-            Hash::sha3_256(Bytes::concat(&genesis_addr_byte, *&param_tx_hash)); 
+            Hash::sha3_256(Bytes::concat(&genesis_addr_byte, *&param_tx_hash));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&cross_chain_id));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&PROXY_HASH_STARCOIN));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_u64(to_chain_id));
@@ -311,7 +310,7 @@ module CrossChainManager {
 
         Event::emit_event(
             &mut event_store.cross_chain_event,
-            CrossChainEvent {
+            CrossChainEvent{
                 sender: Address::bytify(account),
                 tx_id: param_tx_hash,
                 proxy_or_asset_contract: PROXY_HASH_STARCOIN,
@@ -345,7 +344,6 @@ module CrossChainManager {
         CrossChainGlobal::ExecutionCapability,
         vector<u8>, // tx hash
     ) acquires EventStore {
-
         // Load ehereum cross chain data contract
         let (
             _,
@@ -369,7 +367,6 @@ module CrossChainManager {
 
         let n = Vector::length<vector<u8>>(&poly_chain_bks);
         if (header_height >= cur_epoch_start_height) {
-
             // It's enough to verify rawHeader signature
             assert(CrossChainLibrary::verify_sig(raw_header, header_sig, &poly_chain_bks, ((n - (n - 1) / 3) as u64)),
                 Errors::invalid_state(ERR_FAILED_VERIFY_SIGNATURE));
@@ -401,20 +398,20 @@ module CrossChainManager {
         ) = CrossChainLibrary::deserialize_merkle_value(&to_merkle_value_bs);
 
         // Check if from chain transaction is exists
-//        let check_ret =
-//            check_and_mark_transaction_exists<CrossChainType::Starcoin>(
-//                from_chain_id,
-//                &cross_chain_tx_hash,
-//                merkle_proof_root,
-//                merkle_proof_leaf,
-//                merkle_proof_siblings) ||
-//            check_and_mark_transaction_exists<CrossChainType::Ethereum>(
-//                from_chain_id,
-//                &cross_chain_tx_hash,
-//                merkle_proof_root,
-//                merkle_proof_leaf,
-//                merkle_proof_siblings);
-//        assert(check_ret, Errors::invalid_state(ERR_UNSUPPORT_CHAIN_TYPE));
+        //        let check_ret =
+        //            check_and_mark_transaction_exists<CrossChainType::Starcoin>(
+        //                from_chain_id,
+        //                &cross_chain_tx_hash,
+        //                merkle_proof_root,
+        //                merkle_proof_leaf,
+        //                merkle_proof_siblings) ||
+        //            check_and_mark_transaction_exists<CrossChainType::Ethereum>(
+        //                from_chain_id,
+        //                &cross_chain_tx_hash,
+        //                merkle_proof_root,
+        //                merkle_proof_leaf,
+        //                merkle_proof_siblings);
+        //        assert(check_ret, Errors::invalid_state(ERR_UNSUPPORT_CHAIN_TYPE));
         // Ethereum ChainId is 2, we need to check the transaction is for Ethereum network
         // assert(to_chain_id == 2, Errors::invalid_state(ERR_NOT_AIMING_ETHEREUM_NETWORK));
 
@@ -434,7 +431,7 @@ module CrossChainManager {
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.verify_header_and_execute_tx_event,
-            VerifyHeaderAndExecuteTxEvent {
+            VerifyHeaderAndExecuteTxEvent{
                 from_chain_id,
                 to_contract,
                 cross_chain_tx_hash: *&cross_chain_tx_hash,
@@ -482,6 +479,5 @@ module CrossChainManager {
 
         CrossChainGlobal::tx_hash_has_proof(cap);
     }
-
 }
 }

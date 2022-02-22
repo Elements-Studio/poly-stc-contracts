@@ -8,6 +8,7 @@ module LockProxy {
     use 0x1::Vector;
     use 0x1::Errors;
     use 0x1::Account;
+    use 0x1::STC;
 
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use 0x18351d311d32201149a4df2a9fc2db8a::Address;
@@ -43,6 +44,13 @@ module LockProxy {
         bind_asset_event: Event::EventHandle<BindAssetEvent>,
         unlock_event: Event::EventHandle<UnlockEvent>,
         lock_event: Event::EventHandle<LockEvent>,
+    }
+
+    struct FeeEventStore has key, store {
+        // ///////////////
+        cross_chain_fee_lock_event: Event::EventHandle<CrossChainFeeLockEvent>,
+        // ///////////////
+        cross_chain_fee_speed_up_event: Event::EventHandle<CrossChainFeeSpeedUpEvent>,
     }
 
     // using SafeMath for uint;
@@ -90,6 +98,23 @@ module LockProxy {
         amount: u128,
     }
 
+    struct CrossChainFeeLockEvent has store, drop {
+        from_asset: Token::TokenCode,
+        sender: address,
+        to_chain_id: u64,
+        to_address: vector<u8>,
+        net: u128,
+        fee: u128,
+        id: u128,
+    }
+
+    struct CrossChainFeeSpeedUpEvent has store, drop {
+        from_asset: Token::TokenCode,
+        sender: address,
+        tx_hash: vector<u8>,
+        efee: u128,
+    }
+
     public fun init_event(signer: &signer) {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
@@ -100,6 +125,23 @@ module LockProxy {
             unlock_event: Event::new_event_handle<UnlockEvent>(signer),
             lock_event: Event::new_event_handle<LockEvent>(signer),
         });
+
+        // /////////////// 
+        move_to(signer, FeeEventStore{
+            cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
+            cross_chain_fee_speed_up_event: Event::new_event_handle<CrossChainFeeSpeedUpEvent>(signer),
+        });
+    }
+
+    public fun init_fee_event_store(signer: &signer) {
+        let account = Signer::address_of(signer);
+        CrossChainGlobal::require_genesis_account(account);
+        if (!exists<FeeEventStore>(account)) {
+            move_to(signer, FeeEventStore{
+                cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
+                cross_chain_fee_speed_up_event: Event::new_event_handle<CrossChainFeeSpeedUpEvent>(signer),
+            });
+        }
     }
 
     /// Stake token from admin account, everyone can stake into treasury
@@ -244,11 +286,51 @@ module LockProxy {
         )
     }
 
+    public fun lock_stc_fee<TokenT: store>(signer: &signer,
+                                           to_chain_id: u64,
+                                           to_address: &vector<u8>,
+                                           net: u128,
+                                           stc_fee: u128,
+                                           id: u128)
+    acquires FeeEventStore {
+        let genesis_account = CrossChainGlobal::genesis_account();
+        // ///////////// lock STC fee here ////////////////
+        let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
+        Account::deposit(genesis_account, stc_token);
+        // ////////////////////////////////////////////////
+        let cc_fee_event = CrossChainFeeLockEvent{
+            from_asset: Token::token_code<TokenT>(),
+            sender: Signer::address_of(signer),
+            to_chain_id: to_chain_id,
+            to_address: *to_address,
+            net: net,
+            fee: stc_fee,
+            id: id,
+        };
+        publish_cross_chain_fee_lock_event(cc_fee_event);
+    }
+
     /// Lock event publish from script
     public fun publish_lock_event(event: LockEvent) acquires LockEventStore {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.lock_event,
+            event,
+        );
+    }
+
+    public fun publish_cross_chain_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore {
+        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
+        Event::emit_event(
+            &mut event_store.cross_chain_fee_lock_event,
+            event,
+        );
+    }
+
+    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
+        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
+        Event::emit_event(
+            &mut event_store.cross_chain_fee_speed_up_event,
             event,
         );
     }
