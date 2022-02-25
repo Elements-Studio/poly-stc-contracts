@@ -7,7 +7,9 @@ module CrossChainData {
     use 0x1::Errors;
 
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofs;
+    use 0x18351d311d32201149a4df2a9fc2db8a::TreeHasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
 
     const ERR_INITIALIZED_REPEATE: u64 = 101;
     const ERR_PROOF_HASH_INVALID: u64 = 102;
@@ -58,7 +60,7 @@ module CrossChainData {
         assert(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
             Errors::invalid_state(ERR_INITIALIZED_REPEATE));
         move_to(signer, SparseMerkleTreeRoot{
-            hash: *&MerkleProofNonExists::get_place_holder_hash()
+            hash: *&TreeHasher::placeholder()
         });
     }
 
@@ -118,8 +120,12 @@ module CrossChainData {
         proof_siblings: &vector<vector<u8>>)
     acquires SparseMerkleTreeRoot {
         let smt_root = borrow_global_mut<SparseMerkleTreeRoot>(CrossChainGlobal::genesis_account());
-        smt_root.hash = MerkleProofNonExists::update_leaf(input_hash, proof_leaf, proof_siblings);
+        smt_root.hash = SMTProofs::compute_root_hash_new_leaf_included(input_hash,
+            &CrossChainSMTProofs::leaf_default_value_hash(),
+            proof_leaf,
+            proof_siblings);
     }
+
 
     /// Check if from chain tx fromChainTx has been processed before
     public fun check_chain_tx_not_exists(
@@ -130,7 +136,7 @@ module CrossChainData {
     ): bool acquires SparseMerkleTreeRoot {
         let smt_root = borrow_global_mut<SparseMerkleTreeRoot>(CrossChainGlobal::genesis_account());
         assert(*&smt_root.hash == *proof_root, Errors::invalid_state(ERR_PROOF_ROOT_HASH_INVALID));
-        MerkleProofNonExists::proof_not_exists_in_root(&smt_root.hash, input_hash, proof_leaf, proof_siblings)
+        SMTProofs::verify_non_membership_proof_by_leaf_path(&smt_root.hash, proof_leaf, proof_siblings, input_hash)
     }
 }
 }

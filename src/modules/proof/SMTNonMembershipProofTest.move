@@ -1,14 +1,18 @@
 address 0x18351d311d32201149a4df2a9fc2db8a {
-module MerkleProofNonExistsTest {
+module SMTNonMembershipProofTest {
     use 0x1::Vector;
     use 0x1::Debug;
     use 0x1::BitOperators;
     use 0x1::Hash;
 
     use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofElementBits;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofs;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofUtils;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofDataHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
+    use 0x18351d311d32201149a4df2a9fc2db8a::TreeHasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
+
 
     struct MerkleInternalNode has store, drop {
         left_child: vector<u8>,
@@ -20,7 +24,7 @@ module MerkleProofNonExistsTest {
         let hash = x"1000000000000000000000000000000000000000000000000000000000000000";
         Debug::print(&Hash::sha3_256(*&hash));
 
-        let bit_vec = MerkleProofElementBits::iter_bits(&hash);
+        let bit_vec = SMTProofUtils::path_bits_to_bool_vector_from_msb(&hash);
         Debug::print(&bit_vec);
         assert(Vector::length<bool>(&bit_vec) == 256, 1101);
 
@@ -64,7 +68,7 @@ module MerkleProofNonExistsTest {
         let bit_hash = Vector::empty();
         let i = 0;
         while (i < 256) {
-            Vector::push_back(&mut bit_hash, MerkleProofElementBits::get_bit(&origin_hash, i));
+            Vector::push_back(&mut bit_hash, SMTUtils::get_bit_at_from_msb(&origin_hash, i));
             i = i + 1;
         };
         Debug::print(&bit_hash);
@@ -83,7 +87,7 @@ module MerkleProofNonExistsTest {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let expect = x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488";
 
-        let crypto_hash = MerkleProofNonExists::crypto_leaf_node_hash(&data);
+        let crypto_hash =  TreeHasher::digest_leaf_data(&data);
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
@@ -96,7 +100,7 @@ module MerkleProofNonExistsTest {
         let right = x"42bfc776a76b35ca641ee761a5f4bc6ebf2d4e2441c517f8a8e085dec3ca443c";
         let expect = x"060aec78413605e993f9338255b661ac794a68729ffa50022aca72b01586a306";
 
-        let crypto_hash = MerkleProofNonExists::crypto_internal_node_hash(&left, &right);
+        let (crypto_hash, _) = TreeHasher::digest_node(&left, &right);
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
@@ -106,11 +110,11 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_common_prefix_bits_len() {
-        let bits1 = MerkleProofElementBits::iter_bits(&x"0000000000000000000000000000000000000000000000000000000000000000");
-        let bits2 = MerkleProofElementBits::iter_bits(&x"1000000000000000000000000000000000000000000000000000000000000000");
+        let bits1 = SMTProofUtils::path_bits_to_bool_vector_from_msb(&x"0000000000000000000000000000000000000000000000000000000000000000");
+        let bits2 = SMTProofUtils::path_bits_to_bool_vector_from_msb(&x"1000000000000000000000000000000000000000000000000000000000000000");
         Debug::print(&bits1);
         Debug::print(&bits2);
-        let len = MerkleProofElementBits::common_prefix_bits_len<bool>(&bits1, &bits2);
+        let len = SMTUtils::count_vector_common_prefix<bool>(&bits1, &bits2);
         Debug::print(&len);
         assert(len == 3, 1109);
     }
@@ -118,8 +122,8 @@ module MerkleProofNonExistsTest {
     #[test]
     public fun test_fixed_split_leaf_node_data() {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
-        let (prefix, leaf_node_path, leaf_node_value) = MerkleProofNonExists::split_leaf_node_data(&data);
-        assert(prefix == x"00", 1110);
+        let (leaf_node_path, leaf_node_value) = TreeHasher::parse_leaf(&data);
+        //assert(prefix == x"00", 1110);
 
         Debug::print(&leaf_node_path);
         Debug::print(&x"76d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c01");
@@ -131,7 +135,7 @@ module MerkleProofNonExistsTest {
     }
 
     public fun gen_proof_path_hash(tx_hash: &vector<u8>): vector<u8> {
-        MerkleProofHelper::gen_proof_path(218, tx_hash)
+        SMTProofDataHelper::generate_leaf_path(218, tx_hash)
     }
 
     #[test]
@@ -251,11 +255,11 @@ module MerkleProofNonExistsTest {
                          expect_root_hash: &vector<u8>,
                          leaf_data: &vector<u8>,
                          siblings: &vector<vector<u8>>) {
-        let checked = MerkleProofNonExists::proof_not_exists_in_root(
+        let checked = SMTProofs::verify_non_membership_proof_by_leaf_path(
             expect_root_hash,
-            element_path,
             leaf_data,
-            siblings);
+            siblings,
+            element_path);
         assert(checked, 1112);
     }
 
@@ -263,8 +267,9 @@ module MerkleProofNonExistsTest {
                          expect_root_hash: &vector<u8>,
                          leaf_data: &vector<u8>,
                          siblings: &vector<vector<u8>>) {
-        let new_root_hash = MerkleProofNonExists::update_leaf(
+        let new_root_hash = SMTProofs::compute_root_hash_new_leaf_included(
             element_path,
+            &CrossChainSMTProofs::leaf_default_value_hash(),
             leaf_data,
             siblings);
         Debug::print(&new_root_hash);

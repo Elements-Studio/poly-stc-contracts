@@ -7,7 +7,7 @@ module CrossChainRouter {
 
     use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
     use 0x18351d311d32201149a4df2a9fc2db8a::XETH;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofDataHelper;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
@@ -95,7 +95,7 @@ module CrossChainRouter {
                                             merkle_proof_root: &vector<u8>,
                                             merkle_proof_leaf: &vector<u8>,
                                             input_merkle_proof_siblings: &vector<u8>) {
-        let merkle_proof_siblings = MerkleProofHelper::extract_sibling(input_merkle_proof_siblings);
+        let merkle_proof_siblings = SMTProofDataHelper::split_nodes_data(input_merkle_proof_siblings);
 
         // Verify header and parse method and args from proof vector
         let (
