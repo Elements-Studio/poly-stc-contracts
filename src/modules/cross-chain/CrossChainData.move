@@ -8,7 +8,7 @@ module CrossChainData {
 
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofs;
-    use 0x18351d311d32201149a4df2a9fc2db8a::TreeHasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
 
     const ERR_INITIALIZED_REPEATE: u64 = 101;
@@ -60,7 +60,7 @@ module CrossChainData {
         assert(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
             Errors::invalid_state(ERR_INITIALIZED_REPEATE));
         move_to(signer, SparseMerkleTreeRoot{
-            hash: *&TreeHasher::placeholder()
+            hash: *&SMTreeHasher::placeholder()
         });
     }
 

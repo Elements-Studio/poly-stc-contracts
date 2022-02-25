@@ -1,7 +1,7 @@
 address 0x18351d311d32201149a4df2a9fc2db8a {
 
-/// Merkle proof for non exists,
-/// reference Starcoin project which locate file named: "./commons/forkable-jellyfish-merkle/src/proof.rs"
+/// Sparse Merkle Tree proof for non-membership,
+/// reference Starcoin project's source file located at: "commons/forkable-jellyfish-merkle/src/proof.rs"
 ///
 /// Computes the hash of internal node according to [`JellyfishTree`](crate::JellyfishTree)
 /// data structure in the logical view. `start` and `nibble_height` determine a subtree whose
@@ -57,7 +57,7 @@ module SMTProofs {
 
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::TreeHasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
 
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
 
@@ -77,11 +77,11 @@ module SMTProofs {
                                            side_nodes: &vector<vector<u8>>,
                                            leaf_path: &vector<u8>): bool {
         let non_membership_leaf_hash = if (Vector::length<u8>(non_membership_leaf_data) > 0) {
-            let (non_membership_leaf_path, _) = TreeHasher::parse_leaf(non_membership_leaf_data);
+            let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert(*leaf_path != non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
-            TreeHasher::digest_leaf_data(non_membership_leaf_data)
+            SMTreeHasher::digest_leaf_data(non_membership_leaf_data)
         } else {
-            TreeHasher::placeholder()
+            SMTreeHasher::placeholder()
         };
         compute_root_hash(leaf_path, &non_membership_leaf_hash, side_nodes) == *root_hash
     }
@@ -95,7 +95,7 @@ module SMTProofs {
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
 
         let (node_hash, new_side_nodes) = if (Vector::length(non_membership_leaf_data) > 0) {
-            let (non_membership_leaf_path, _) = TreeHasher::parse_leaf(non_membership_leaf_data);
+            let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert(*leaf_path != *&non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
 
             let new_leaf_path_bits = SMTProofUtils::path_bits_to_bool_vector_from_msb(leaf_path);
@@ -103,14 +103,14 @@ module SMTProofs {
             let common_prefix_count = SMTUtils::count_vector_common_prefix<bool>(
                     &old_leaf_path_bits,
                     &new_leaf_path_bits);
-            let old_leaf_hash = TreeHasher::digest_leaf_data(non_membership_leaf_data);
-            let (new_leaf_hash, _) = TreeHasher::digest_leaf(leaf_path, leaf_value);
+            let old_leaf_hash = SMTreeHasher::digest_leaf_data(non_membership_leaf_data);
+            let (new_leaf_hash, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
 
             let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
-                let (s, _) = TreeHasher::digest_node(&old_leaf_hash, &new_leaf_hash);
+                let (s, _) = SMTreeHasher::digest_node(&old_leaf_hash, &new_leaf_hash);
                 s
             } else {
-                let (s, _) = TreeHasher::digest_node(&new_leaf_hash, &old_leaf_hash);
+                let (s, _) = SMTreeHasher::digest_node(&new_leaf_hash, &old_leaf_hash);
                 s
             };
 
@@ -120,13 +120,13 @@ module SMTProofs {
                 // Put placeholders
                 let idx = 0;
                 while (idx < place_holder_len) {
-                    Vector::push_back(&mut new_side_nodes, TreeHasher::placeholder());
+                    Vector::push_back(&mut new_side_nodes, SMTreeHasher::placeholder());
                     idx = idx + 1;
                 };
             };
             (current_hash, new_side_nodes)
         } else {
-            let (s, _) = TreeHasher::digest_leaf(leaf_path, leaf_value);
+            let (s, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
             (s, Vector::empty<vector<u8>>())
         };
 
@@ -166,9 +166,9 @@ module SMTProofs {
             let bit = *Vector::borrow<bool>(&side_node_leaf_path_bits, i);
             let sibling_hash = Vector::borrow<vector<u8>>(side_nodes, i);
             if (bit) { // right
-                (result_hash, _) = TreeHasher::digest_node(sibling_hash, &result_hash);
+                (result_hash, _) = SMTreeHasher::digest_node(sibling_hash, &result_hash);
             } else { // left
-                (result_hash, _) = TreeHasher::digest_node(&result_hash, sibling_hash);
+                (result_hash, _) = SMTreeHasher::digest_node(&result_hash, sibling_hash);
             };
             i = i + 1;
         };

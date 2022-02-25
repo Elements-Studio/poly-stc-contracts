@@ -5,7 +5,7 @@ module MerkleProofStructuredHash {
     use 0x1::Vector;
     use 0x1::BCS;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::TreeHasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
 
     const STARCOIN_HASH_PREFIX: vector<u8> = b"STARCOIN::";
 
@@ -19,11 +19,11 @@ module MerkleProofStructuredHash {
 
     public fun create_literal_hash(word: &vector<u8>) : vector<u8> {
         let word_length = Vector::length(word);
-        assert(word_length <= TreeHasher::path_size(), ERROR_INVALID_HASH_LENGTH);
-        if (word_length < TreeHasher::path_size()) {
+        assert(word_length <= SMTreeHasher::path_size(), ERROR_INVALID_HASH_LENGTH);
+        if (word_length < SMTreeHasher::path_size()) {
             let result = Vector::empty();
             let idx = 0;
-            while (idx < TreeHasher::path_size()) {
+            while (idx < SMTreeHasher::path_size()) {
                 if (idx < word_length) {
                     Vector::push_back(&mut result, *Vector::borrow(word, idx));
                 } else {

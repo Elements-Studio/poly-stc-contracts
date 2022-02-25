@@ -26,8 +26,7 @@ module SMTUtils {
         };
         count
     }
-
-
+    
     public fun count_vector_common_prefix<ElementT: copy + drop>(vec1: &vector<ElementT>,
                                                                  vec2: &vector<ElementT>): u64 {
         let vec_len = Vector::length<ElementT>(vec1);

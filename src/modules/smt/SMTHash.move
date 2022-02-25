@@ -1,5 +1,6 @@
 address 0x18351d311d32201149a4df2a9fc2db8a {
-module Hasher {
+/// Hash util for SMT.
+module SMTHash {
     use 0x1::Hash;
     const SIZE_ZERO_BYTES: vector<u8> = x"0000000000000000000000000000000000000000000000000000000000000000";
 

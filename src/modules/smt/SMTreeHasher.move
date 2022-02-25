@@ -1,9 +1,9 @@
 address 0x18351d311d32201149a4df2a9fc2db8a {
-module TreeHasher {
+module SMTreeHasher {
 
     use 0x1::Vector;
     use 0x1::Errors;
-    use 0x18351d311d32201149a4df2a9fc2db8a::Hasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTHash;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
 
     /// sparse merkle tree leaf(node) prefix.
@@ -68,7 +68,7 @@ module TreeHasher {
         let value = LEAF_PREFIX;
         value = SMTUtils::concat_u8_vectors(&value, *path);
         value = SMTUtils::concat_u8_vectors(&value, *leaf_value);
-        (Hasher::sum(&value), value)
+        (SMTHash::sum(&value), value)
     }
 
     /// Digest leaf data. The parameter `data` includes leaf key and value.
@@ -76,18 +76,18 @@ module TreeHasher {
         let data_len = Vector::length(data);
         let prefix_len = Vector::length(&LEAF_PREFIX);
         assert(data_len >= prefix_len + path_size(), Errors::invalid_state(ERROR_INVALID_LEAF_DATA_LENGTH));
-        Hasher::sum(data)
+        SMTHash::sum(data)
     }
 
     public fun digest_node(left_data: &vector<u8>, right_data: &vector<u8>): (vector<u8>, vector<u8>) {
-        let node_left_right_data_length = Hasher::size();
+        let node_left_right_data_length = SMTHash::size();
         assert(Vector::length(left_data) == node_left_right_data_length, Errors::invalid_state(ERROR_INVALID_NODE_DATA_LENGTH));
         assert(Vector::length(right_data) == node_left_right_data_length, Errors::invalid_state(ERROR_INVALID_NODE_DATA_LENGTH));
 
         let value = NODE_PREFIX;
         value = SMTUtils::concat_u8_vectors(&value, *left_data);
         value = SMTUtils::concat_u8_vectors(&value, *right_data);
-        (Hasher::sum(&value), value)
+        (SMTHash::sum(&value), value)
     }
 
     public fun path(key: &vector<u8>): vector<u8> {
@@ -95,19 +95,19 @@ module TreeHasher {
     }
 
     public fun digest(data: &vector<u8>): vector<u8> {
-        Hasher::sum(data)
+        SMTHash::sum(data)
     }
 
     public fun path_size(): u64 {
-        Hasher::size()
+        SMTHash::size()
     }
 
     public fun path_size_in_bits(): u64 {
-        Hasher::size()*8
+        SMTHash::size()*8
     }
 
     public fun placeholder(): vector<u8> {
-        Hasher::size_zero_bytes()
+        SMTHash::size_zero_bytes()
     }
 
 }

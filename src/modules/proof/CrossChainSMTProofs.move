@@ -8,7 +8,7 @@ module CrossChainSMTProofs {
     }
 
 //    public fun diget_leaf_with_default_value_hash(path: &vector<u8>): vector<u8> {
-//        let (s, _) = TreeHasher::digest_leaf(path, &SPARSE_MERKLE_TREE_LEAF_DEFAULT_VALUE_HASH);
+//        let (s, _) = SMTreeHasher::digest_leaf(path, &SPARSE_MERKLE_TREE_LEAF_DEFAULT_VALUE_HASH);
 //        s
 //    }
 

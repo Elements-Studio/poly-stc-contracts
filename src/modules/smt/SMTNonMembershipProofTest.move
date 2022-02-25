@@ -10,7 +10,7 @@ module SMTNonMembershipProofTest {
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofUtils;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofDataHelper;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::TreeHasher;
+    use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
 
 
@@ -87,7 +87,7 @@ module SMTNonMembershipProofTest {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let expect = x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488";
 
-        let crypto_hash =  TreeHasher::digest_leaf_data(&data);
+        let crypto_hash =  SMTreeHasher::digest_leaf_data(&data);
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
@@ -100,7 +100,7 @@ module SMTNonMembershipProofTest {
         let right = x"42bfc776a76b35ca641ee761a5f4bc6ebf2d4e2441c517f8a8e085dec3ca443c";
         let expect = x"060aec78413605e993f9338255b661ac794a68729ffa50022aca72b01586a306";
 
-        let (crypto_hash, _) = TreeHasher::digest_node(&left, &right);
+        let (crypto_hash, _) = SMTreeHasher::digest_node(&left, &right);
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
@@ -122,7 +122,7 @@ module SMTNonMembershipProofTest {
     #[test]
     public fun test_fixed_split_leaf_node_data() {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
-        let (leaf_node_path, leaf_node_value) = TreeHasher::parse_leaf(&data);
+        let (leaf_node_path, leaf_node_value) = SMTreeHasher::parse_leaf(&data);
         //assert(prefix == x"00", 1110);
 
         Debug::print(&leaf_node_path);
