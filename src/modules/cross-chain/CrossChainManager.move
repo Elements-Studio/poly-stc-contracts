@@ -14,7 +14,7 @@ module CrossChainManager {
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
     use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySink;
     use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofDataHelper;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
 
     const PROXY_HASH_STARCOIN: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::CrossChainScript";
 
@@ -462,7 +462,7 @@ module CrossChainManager {
                                                  merkle_proof_siblings: &vector<vector<u8>>,
                                                  cap: &mut CrossChainGlobal::ExecutionCapability
     ) {
-        let proof_path_hash = SMTProofDataHelper::generate_leaf_path(chain_id, tx_hash);
+        let proof_path_hash = CrossChainSMTProofs::generate_leaf_path(chain_id, tx_hash);
 
         assert(
             CrossChainData::check_chain_tx_not_exists(

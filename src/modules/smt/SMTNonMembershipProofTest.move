@@ -8,7 +8,6 @@ module SMTNonMembershipProofTest {
     use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofs;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofDataHelper;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
@@ -135,7 +134,7 @@ module SMTNonMembershipProofTest {
     }
 
     public fun gen_proof_path_hash(tx_hash: &vector<u8>): vector<u8> {
-        SMTProofDataHelper::generate_leaf_path(218, tx_hash)
+        CrossChainSMTProofs::generate_leaf_path(218, tx_hash)
     }
 
     #[test]
