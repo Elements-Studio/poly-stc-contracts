@@ -71,7 +71,7 @@ module SMTProofs {
     }
 
     /// Verify non-membership proof by leaf path.
-    /// Return true if verification passed.
+    /// Return true if leaf path(key) is not in the tree.
     public fun verify_non_membership_proof_by_leaf_path(root_hash: &vector<u8>,
                                            non_membership_leaf_data: &vector<u8>,
                                            side_nodes: &vector<vector<u8>>,
@@ -94,7 +94,7 @@ module SMTProofs {
 
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
 
-        let (node_hash, new_side_nodes) = if (Vector::length(non_membership_leaf_data) > 0) {
+        let (leaf_node_hash, new_side_nodes) = if (Vector::length(non_membership_leaf_data) > 0) {
             let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert(*leaf_path != *&non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
 
@@ -105,17 +105,16 @@ module SMTProofs {
                     &new_leaf_path_bits);
             let old_leaf_hash = SMTreeHasher::digest_leaf_data(non_membership_leaf_data);
             let (new_leaf_hash, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
-
-            let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
-                let (s, _) = SMTreeHasher::digest_node(&old_leaf_hash, &new_leaf_hash);
-                s
-            } else {
-                let (s, _) = SMTreeHasher::digest_node(&new_leaf_hash, &old_leaf_hash);
-                s
-            };
-
             let new_side_nodes = Vector::empty<vector<u8>>();
-            if (common_prefix_count > side_nodes_len) {
+            //            let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
+            //                let (s, _) = SMTreeHasher::digest_node(&old_leaf_hash, &new_leaf_hash);
+            //                s
+            //            } else {
+            //                let (s, _) = SMTreeHasher::digest_node(&new_leaf_hash, &old_leaf_hash);
+            //                s
+            //            };
+            Vector::push_back(&mut new_side_nodes, old_leaf_hash);
+           if (common_prefix_count > side_nodes_len) {
                 let place_holder_len = (common_prefix_count - side_nodes_len);
                 // Put placeholders
                 let idx = 0;
@@ -124,7 +123,8 @@ module SMTProofs {
                     idx = idx + 1;
                 };
             };
-            (current_hash, new_side_nodes)
+            //            (current_hash, new_side_nodes)
+            (new_leaf_hash, new_side_nodes)
         } else {
             let (s, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
             (s, Vector::empty<vector<u8>>())
@@ -138,18 +138,18 @@ module SMTProofs {
         };
 
         // Compute root hash
-        compute_root_hash(leaf_path, &node_hash, &new_side_nodes)
+        compute_root_hash(leaf_path, &leaf_node_hash, &new_side_nodes)
     }
 
     /// Compute root hash.
     /// The parameter `node_hash` is leaf or internal node hash.
-    fun compute_root_hash(leaf_path: &vector<u8>,
+    fun compute_root_hash(path: &vector<u8>,
                           node_hash: &vector<u8>,
                           side_nodes: &vector<vector<u8>>): vector<u8> {
 
         Debug::print(side_nodes);
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
-        let leaf_path_bits = SMTProofUtils::path_bits_to_bool_vector_from_msb(leaf_path);
+        let leaf_path_bits = SMTProofUtils::path_bits_to_bool_vector_from_msb(path);
         let leaf_path_bits_len = Vector::length<bool>(&leaf_path_bits);
 
         // Reverse all bits
