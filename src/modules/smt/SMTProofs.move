@@ -56,19 +56,11 @@ module SMTProofs {
     use 0x1::Debug;
 
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofUtils;
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
 
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
+    const BIT_RIGHT: bool = true;
 
-//    struct SparseMerkleInternalNode has store, drop {
-//        left_child: vector<u8>,
-//        right_child: vector<u8>,
-//    }
-
-    struct SparseMerkleLeafNode has store, drop {
-        key: vector<u8>,
-    }
 
     /// Verify non-membership proof by leaf path.
     /// Return true if leaf path(key) is not in the tree.
@@ -114,7 +106,7 @@ module SMTProofs {
                                                    non_membership_leaf_data: &vector<u8>,
                                                    side_nodes: &vector<vector<u8>>): vector<u8> {
         let (new_side_nodes, leaf_node_hash) = create_membership_side_nodes(leaf_path, leaf_value, non_membership_leaf_data, side_nodes);
-        // Compute root hash
+
         compute_root_hash(leaf_path, &leaf_node_hash, &new_side_nodes)
     }
 
@@ -140,23 +132,12 @@ module SMTProofs {
             let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert(*leaf_path != *&non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
 
-            let new_leaf_path_bits = SMTProofUtils::path_bits_to_bool_vector_from_msb(leaf_path);
-            let old_leaf_path_bits = SMTProofUtils::path_bits_to_bool_vector_from_msb(&non_membership_leaf_path);
-            let common_prefix_count = SMTUtils::count_vector_common_prefix<bool>(
-                    &old_leaf_path_bits,
-                    &new_leaf_path_bits);
+            let common_prefix_count = SMTUtils::count_common_prefix(leaf_path, &non_membership_leaf_path);
             let old_leaf_hash = SMTreeHasher::digest_leaf_data(non_membership_leaf_data);
-
             let new_side_nodes = Vector::empty<vector<u8>>();
-            //            let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
-            //                let (s, _) = SMTreeHasher::digest_node(&old_leaf_hash, &new_leaf_hash);
-            //                s
-            //            } else {
-            //                let (s, _) = SMTreeHasher::digest_node(&new_leaf_hash, &old_leaf_hash);
-            //                s
-            //            };
+
             Vector::push_back(&mut new_side_nodes, old_leaf_hash);
-           if (common_prefix_count > side_nodes_len) {
+            if (common_prefix_count > side_nodes_len) {
                 let place_holder_len = (common_prefix_count - side_nodes_len);
                 // Put placeholders
                 let idx = 0;
@@ -165,10 +146,8 @@ module SMTProofs {
                     idx = idx + 1;
                 };
             };
-            //            (current_hash, new_side_nodes)
             new_side_nodes
         } else {
-            //let (s, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
             Vector::empty<vector<u8>>()
         };
 
@@ -189,32 +168,30 @@ module SMTProofs {
 
         Debug::print(side_nodes);
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
-        let leaf_path_bits = SMTProofUtils::path_bits_to_bool_vector_from_msb(path);
-        let leaf_path_bits_len = Vector::length<bool>(&leaf_path_bits);
-
-        // Reverse all bits
-        Vector::reverse(&mut leaf_path_bits);
-
-        let side_node_leaf_path_bits = SMTUtils::sub_vector<bool>(
-            &leaf_path_bits,
-            leaf_path_bits_len - side_nodes_len,
-            leaf_path_bits_len);
 
         let i = 0;
-        let result_hash = *node_hash;
+        let current_hash = *node_hash;
         while (i < side_nodes_len) {
-            let bit = *Vector::borrow<bool>(&side_node_leaf_path_bits, i);
+            let bit = SMTUtils::get_bit_at_from_msb(path, side_nodes_len - i - 1);
             let sibling_hash = Vector::borrow<vector<u8>>(side_nodes, i);
-            if (bit) { // right
-                (result_hash, _) = SMTreeHasher::digest_node(sibling_hash, &result_hash);
+            if (bit == BIT_RIGHT) {
+                (current_hash, _) = SMTreeHasher::digest_node(sibling_hash, &current_hash);
             } else { // left
-                (result_hash, _) = SMTreeHasher::digest_node(&result_hash, sibling_hash);
+                (current_hash, _) = SMTreeHasher::digest_node(&current_hash, sibling_hash);
             };
             i = i + 1;
         };
-        result_hash
+        current_hash
     }
 
+    //    struct SparseMerkleInternalNode has store, drop {
+    //        left_child: vector<u8>,
+    //        right_child: vector<u8>,
+    //    }
+
+    //    struct SparseMerkleLeafNode has store, drop {
+    //        key: vector<u8>,
+    //    }
 
 }
 }

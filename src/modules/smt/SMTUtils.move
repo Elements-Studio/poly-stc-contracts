@@ -5,12 +5,19 @@ module SMTUtils {
     use 0x1::Errors;
 
     const ERROR_VECTORS_NOT_SAME_LENGTH: u64 = 103;
+    const BIT_RIGHT: bool = true;
+    const BIT_LEFT: bool = false;
+
 
     /// Get the bit at an offset from the most significant bit.
     public fun get_bit_at_from_msb(data: &vector<u8>, position: u64): bool {
         let byte = (*Vector::borrow<u8>(data, position / 8) as u64);
         let bit = BitOperators::rshift(byte, ((7 - (position % 8)) as u8));
-        BitOperators::and(bit, 1) != 0
+        if (BitOperators::and(bit, 1) != 0) {
+            BIT_RIGHT
+        } else {
+            BIT_LEFT
+        }
     }
 
     public fun count_common_prefix(data1: &vector<u8>, data2: &vector<u8>): u64 {

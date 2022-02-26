@@ -386,15 +386,26 @@ module SMTNonMembershipProofTest {
         Vector::push_back(&mut side_nodes, x"0000000000000000000000000000000000000000000000000000000000000000");
         Vector::push_back(&mut side_nodes, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
 
+        let non_membership_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
+        // Verify non-membership proof
+        let v_non_member = SMTProofs::verify_non_membership_proof_by_leaf_path(
+            &non_membership_root_hash,
+            &non_membership_leaf_data,
+            &side_nodes,
+            &leaf_path);
+        assert(v_non_member, 1166);
+
+        // Create membership proof from non-membership proof info.
         let expected_membership_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
         Debug::print<vector<u8>>(&expected_membership_root_hash);
-
         let (new_root_hash, new_side_nodes) = SMTProofs::create_membership_proof(&leaf_path, &leaf_value, &non_membership_leaf_data, &side_nodes);
+        assert(expected_membership_root_hash == new_root_hash, 1166);
+
+        // Verify membership proof
         let v = SMTProofs::verify_membership_proof(&new_root_hash, &new_side_nodes, &leaf_path, &leaf_value);
         Debug::print<vector<u8>>(&new_root_hash);
 
-        assert(expected_membership_root_hash == new_root_hash, 66666);
-        assert(v, 66666);
+        assert(v, 1166);
     }
 
 }
