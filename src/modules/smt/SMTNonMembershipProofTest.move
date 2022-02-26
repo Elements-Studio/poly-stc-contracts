@@ -397,14 +397,13 @@ module SMTNonMembershipProofTest {
 
         // Create membership proof from non-membership proof info.
         let expected_membership_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
-        Debug::print<vector<u8>>(&expected_membership_root_hash);
+        //Debug::print<vector<u8>>(&expected_membership_root_hash);
         let (new_root_hash, new_side_nodes) = SMTProofs::create_membership_proof(&leaf_path, &leaf_value, &non_membership_leaf_data, &side_nodes);
-        assert(expected_membership_root_hash == new_root_hash, 1166);
+        //Debug::print<vector<u8>>(&new_root_hash);
+        assert(expected_membership_root_hash == *&new_root_hash, 1166);
 
         // Verify membership proof
         let v = SMTProofs::verify_membership_proof(&new_root_hash, &new_side_nodes, &leaf_path, &leaf_value);
-        Debug::print<vector<u8>>(&new_root_hash);
-
         assert(v, 1166);
     }
 
