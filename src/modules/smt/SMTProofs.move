@@ -73,9 +73,9 @@ module SMTProofs {
     /// Verify non-membership proof by leaf path.
     /// Return true if leaf path(key) is not in the tree.
     public fun verify_non_membership_proof_by_leaf_path(root_hash: &vector<u8>,
-                                           non_membership_leaf_data: &vector<u8>,
-                                           side_nodes: &vector<vector<u8>>,
-                                           leaf_path: &vector<u8>): bool {
+                                                        non_membership_leaf_data: &vector<u8>,
+                                                        side_nodes: &vector<vector<u8>>,
+                                                        leaf_path: &vector<u8>): bool {
         let non_membership_leaf_hash = if (Vector::length<u8>(non_membership_leaf_data) > 0) {
             let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert(*leaf_path != non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
@@ -86,15 +86,57 @@ module SMTProofs {
         compute_root_hash(leaf_path, &non_membership_leaf_hash, side_nodes) == *root_hash
     }
 
+    public fun verify_membership_proof_by_key_value(root_hash: &vector<u8>,
+                                                    side_nodes: &vector<vector<u8>>,
+                                                    key: &vector<u8>,
+                                                    value: &vector<u8>,
+                                                    is_raw_value: bool): bool {
+        let leaf_path = SMTreeHasher::digest(key);
+        let leaf_value_hash = if (is_raw_value) {
+            &SMTreeHasher::digest(value)
+        } else {
+            value
+        };
+        verify_membership_proof(root_hash, side_nodes, &leaf_path, leaf_value_hash)
+    }
+
+    public fun verify_membership_proof(root_hash: &vector<u8>,
+                                       side_nodes: &vector<vector<u8>>,
+                                       leaf_path: &vector<u8>,
+                                       leaf_value: &vector<u8>): bool {
+        let (leaf_hash, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
+        compute_root_hash(leaf_path, &leaf_hash, side_nodes) == *root_hash
+    }
+
     /// Compute root hash after a new leaf included.
     public fun compute_root_hash_new_leaf_included(leaf_path: &vector<u8>,
-                           leaf_value: &vector<u8>,
-                           non_membership_leaf_data: &vector<u8>,
-                           side_nodes: &vector<vector<u8>>): vector<u8> {
+                                                   leaf_value: &vector<u8>,
+                                                   non_membership_leaf_data: &vector<u8>,
+                                                   side_nodes: &vector<vector<u8>>): vector<u8> {
+        let (new_side_nodes, leaf_node_hash) = create_membership_side_nodes(leaf_path, leaf_value, non_membership_leaf_data, side_nodes);
+        // Compute root hash
+        compute_root_hash(leaf_path, &leaf_node_hash, &new_side_nodes)
+    }
 
+    /// Create membership proof from non-membership proof.
+    /// Return root hash, side nodes.
+    public fun create_membership_proof(leaf_path: &vector<u8>,
+                                       leaf_value: &vector<u8>,
+                                       non_membership_leaf_data: &vector<u8>,
+                                       side_nodes: &vector<vector<u8>>): (vector<u8>, vector<vector<u8>>) {
+        let (new_side_nodes, leaf_node_hash) = create_membership_side_nodes(leaf_path, leaf_value, non_membership_leaf_data, side_nodes);
+        let new_root_hash = compute_root_hash(leaf_path, &leaf_node_hash, &new_side_nodes);
+        (new_root_hash, new_side_nodes)
+    }
+
+    /// Create membership proof side nodes from non-membership proof.
+    fun create_membership_side_nodes(leaf_path: &vector<u8>,
+                                     leaf_value: &vector<u8>,
+                                     non_membership_leaf_data: &vector<u8>,
+                                     side_nodes: &vector<vector<u8>>): (vector<vector<u8>>, vector<u8>) {
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
-
-        let (leaf_node_hash, new_side_nodes) = if (Vector::length(non_membership_leaf_data) > 0) {
+        let (new_leaf_hash, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
+        let new_side_nodes = if (Vector::length(non_membership_leaf_data) > 0) {
             let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert(*leaf_path != *&non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
 
@@ -104,7 +146,7 @@ module SMTProofs {
                     &old_leaf_path_bits,
                     &new_leaf_path_bits);
             let old_leaf_hash = SMTreeHasher::digest_leaf_data(non_membership_leaf_data);
-            let (new_leaf_hash, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
+
             let new_side_nodes = Vector::empty<vector<u8>>();
             //            let current_hash = if (*Vector::borrow<bool>(&new_leaf_path_bits, common_prefix_count)) {
             //                let (s, _) = SMTreeHasher::digest_node(&old_leaf_hash, &new_leaf_hash);
@@ -124,10 +166,10 @@ module SMTProofs {
                 };
             };
             //            (current_hash, new_side_nodes)
-            (new_leaf_hash, new_side_nodes)
+            new_side_nodes
         } else {
-            let (s, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
-            (s, Vector::empty<vector<u8>>())
+            //let (s, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value);
+            Vector::empty<vector<u8>>()
         };
 
         // Push old siblings into the new siblings array
@@ -136,9 +178,7 @@ module SMTProofs {
             Vector::push_back(&mut new_side_nodes, *Vector::borrow(side_nodes, idx));
             idx = idx + 1;
         };
-
-        // Compute root hash
-        compute_root_hash(leaf_path, &leaf_node_hash, &new_side_nodes)
+        (new_side_nodes, new_leaf_hash)
     }
 
     /// Compute root hash.

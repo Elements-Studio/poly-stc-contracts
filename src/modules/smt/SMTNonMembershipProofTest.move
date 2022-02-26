@@ -374,5 +374,28 @@ module SMTNonMembershipProofTest {
         test_update_leaf(&element_path, &expect_root_hash, &leaf_data, &siblings);
     }
 
+    #[test]
+    fun test_create_membership_proof_and_verify_line_9() {
+        let leaf_path = gen_proof_path_hash(&x"746573744b657938");
+        let leaf_value = CrossChainSMTProofs::leaf_default_value_hash();
+
+        let non_membership_leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+        let side_nodes = Vector::empty<vector<u8>>();
+        Vector::push_back(&mut side_nodes, x"67fca48cb86777e28bdb0d29cea95266d83338b9248ac3ebe7ca04b7c054c1d3");
+        Vector::push_back(&mut side_nodes, x"f7cab8f8c82042e3831a4bc4be6313e76a5e613e8551ef2b693de568bb2384c9");
+        Vector::push_back(&mut side_nodes, x"0000000000000000000000000000000000000000000000000000000000000000");
+        Vector::push_back(&mut side_nodes, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
+
+        let expected_membership_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
+        Debug::print<vector<u8>>(&expected_membership_root_hash);
+
+        let (new_root_hash, new_side_nodes) = SMTProofs::create_membership_proof(&leaf_path, &leaf_value, &non_membership_leaf_data, &side_nodes);
+        let v = SMTProofs::verify_membership_proof(&new_root_hash, &new_side_nodes, &leaf_path, &leaf_value);
+        Debug::print<vector<u8>>(&new_root_hash);
+
+        assert(expected_membership_root_hash == new_root_hash, 66666);
+        assert(v, 66666);
+    }
+
 }
 }

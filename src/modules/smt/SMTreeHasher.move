@@ -71,6 +71,13 @@ module SMTreeHasher {
         (SMTHash::sum(&value), value)
     }
 
+    public fun create_leaf_data(path: &vector<u8>, leaf_value: &vector<u8>): vector<u8> {
+        let value = LEAF_PREFIX;
+        value = SMTUtils::concat_u8_vectors(&value, *path);
+        value = SMTUtils::concat_u8_vectors(&value, *leaf_value);
+        value
+    }
+
     /// Digest leaf data. The parameter `data` includes leaf key and value.
     public fun digest_leaf_data(data: &vector<u8>): vector<u8> {
         let data_len = Vector::length(data);
