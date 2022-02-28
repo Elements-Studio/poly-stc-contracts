@@ -8,7 +8,7 @@ module SMTProofUtils {
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
 
     const ERROR_INVALID_PATH_BYTES_LENGTH: u64 = 101;
-    const ERROR_INVALID_PATH_BITS_LENGTH: u64 = 101;
+    const ERROR_INVALID_PATH_BITS_LENGTH: u64 = 102;
 
 
     public fun path_bits_to_bool_vector_from_msb(path: &vector<u8>): vector<bool> {
