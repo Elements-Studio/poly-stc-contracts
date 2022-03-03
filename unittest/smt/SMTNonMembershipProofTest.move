@@ -12,6 +12,7 @@ module SMTNonMembershipProofTest {
     use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
 
+    const TEST_CHAIN_ID: u64 = 218;
 
     struct MerkleInternalNode has store, drop {
         left_child: vector<u8>,
@@ -134,7 +135,7 @@ module SMTNonMembershipProofTest {
     }
 
     public fun gen_proof_path_hash(tx_hash: &vector<u8>): vector<u8> {
-        CrossChainSMTProofs::generate_leaf_path(218, tx_hash)
+        CrossChainSMTProofs::generate_leaf_path(TEST_CHAIN_ID, tx_hash)
     }
 
     #[test]
@@ -376,7 +377,10 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_create_membership_proof_and_verify_line_9() {
-        let leaf_path = gen_proof_path_hash(&x"746573744b657938");
+        let tx_hash = x"746573744b657938";
+        let key = CrossChainSMTProofs::generate_key(TEST_CHAIN_ID, &tx_hash);
+        let leaf_path = gen_proof_path_hash(&tx_hash);
+        assert(SMTreeHasher::digest(&key) == *&leaf_path, 1161);
         let leaf_value = CrossChainSMTProofs::leaf_default_value_hash();
 
         let non_membership_leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
@@ -388,19 +392,19 @@ module SMTNonMembershipProofTest {
 
         let non_membership_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
         // Verify non-membership proof
-        let v_non_member = SMTProofs::verify_non_membership_proof_by_leaf_path(
+        let v_non_member = SMTProofs::verify_non_membership_proof_by_key(
             &non_membership_root_hash,
             &non_membership_leaf_data,
             &side_nodes,
-            &leaf_path);
-        assert(v_non_member, 1166);
+            &key);
+        assert(v_non_member, 1162);
 
         // Create membership proof from non-membership proof info.
         let expected_membership_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
         //Debug::print<vector<u8>>(&expected_membership_root_hash);
         let (new_root_hash, new_side_nodes) = SMTProofs::create_membership_proof(&leaf_path, &leaf_value, &non_membership_leaf_data, &side_nodes);
         //Debug::print<vector<u8>>(&new_root_hash);
-        assert(expected_membership_root_hash == *&new_root_hash, 1166);
+        assert(expected_membership_root_hash == *&new_root_hash, 1165);
 
         // Verify membership proof
         let v = SMTProofs::verify_membership_proof(&new_root_hash, &new_side_nodes, &leaf_path, &leaf_value);

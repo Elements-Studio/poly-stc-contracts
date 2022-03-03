@@ -14,10 +14,15 @@ module CrossChainSMTProofs {
 
     /// Generate leaf path from chain id and transaction hash
     public fun generate_leaf_path(chain_id: u64, tx_hash: &vector<u8>): vector<u8> {
+        let key = generate_key(chain_id, tx_hash);
+        Hash::sha3_256(key)
+    }
+
+    public fun generate_key(chain_id: u64, tx_hash: &vector<u8>): vector<u8> {
         let buff = Vector::empty<u8>();
         buff = SMTUtils::concat_u8_vectors(&buff, ZeroCopySink::write_u64(chain_id));
         buff = SMTUtils::concat_u8_vectors(&buff, ZeroCopySink::write_var_bytes(tx_hash));
-        Hash::sha3_256(buff)
+        buff
     }
 
     //    public fun diget_leaf_with_default_value_hash(path: &vector<u8>): vector<u8> {

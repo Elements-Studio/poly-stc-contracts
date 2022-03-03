@@ -61,6 +61,13 @@ module SMTProofs {
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
     const BIT_RIGHT: bool = true;
 
+    public fun verify_non_membership_proof_by_key(root_hash: &vector<u8>,
+                                                  non_membership_leaf_data: &vector<u8>,
+                                                  side_nodes: &vector<vector<u8>>,
+                                                  key: &vector<u8>): bool {
+        let leaf_path = SMTreeHasher::digest(key);
+        verify_non_membership_proof_by_leaf_path(root_hash, non_membership_leaf_data, side_nodes, &leaf_path)
+    }
 
     /// Verify non-membership proof by leaf path.
     /// Return true if leaf path(key) is not in the tree.
