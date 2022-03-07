@@ -365,12 +365,18 @@ module LockProxy {
             Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
 
         assert(Vector::length(to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
-        let native_to_address = Address::addressify(*to_address);
+        let payee = Address::addressify(*to_address);
+
+        // ////////////////////////////////////////////////
+        if (!Account::exists_at(payee)) {
+            Account::create_account_with_address<TokenT>(payee);
+        };
+        // ////////////////////////////////////////////////
 
         // Do unlock from lock token treasury
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
         let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-        Account::deposit<TokenT>(native_to_address, deposit_token);
+        Account::deposit<TokenT>(payee, deposit_token);
 
         UnlockEvent{
             to_asset_hash: *to_asset_hash,
