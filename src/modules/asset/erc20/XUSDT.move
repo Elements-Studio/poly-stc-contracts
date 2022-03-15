@@ -9,7 +9,9 @@ module XUSDT {
 
 
     /// precision of XUSDT token.
-    const PRECISION: u8 = 9;
+    /// https://etherscan.io/address/0xdac17f958d2ee523a2206206994597c13d831ec7#code
+    /// see USDT on ethereum Constructor Arguments, _decimals (uint256): 6
+    const PRECISION: u8 = 6;
 
     /// XUSDT initialization.
     public fun init(account: &signer) {
