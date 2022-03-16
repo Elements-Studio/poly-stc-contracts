@@ -107,6 +107,13 @@ module SMTProofs {
         compute_root_hash(leaf_path, &leaf_hash, side_nodes) == *root_hash
     }
 
+    public fun compute_root_hash_by_leaf(leaf_path: &vector<u8>,
+                                         leaf_value_hash: &vector<u8>,
+                                         side_nodes: &vector<vector<u8>>): vector<u8> {
+        let (leaf_hash, _) = SMTreeHasher::digest_leaf(leaf_path, leaf_value_hash);
+        compute_root_hash(leaf_path, &leaf_hash, side_nodes)
+    }
+
     /// Compute root hash after a new leaf included.
     public fun compute_root_hash_new_leaf_included(leaf_path: &vector<u8>,
                                                    leaf_value_hash: &vector<u8>,

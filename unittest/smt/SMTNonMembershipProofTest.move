@@ -411,6 +411,22 @@ module SMTNonMembershipProofTest {
         assert(v, 1166);
     }
 
+    fun test_compute_root_hash_by_leaf_line_9() {
+
+        let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+        let side_nodes = Vector::empty<vector<u8>>();
+        Vector::push_back(&mut side_nodes, x"67fca48cb86777e28bdb0d29cea95266d83338b9248ac3ebe7ca04b7c054c1d3");
+        Vector::push_back(&mut side_nodes, x"f7cab8f8c82042e3831a4bc4be6313e76a5e613e8551ef2b693de568bb2384c9");
+        Vector::push_back(&mut side_nodes, x"0000000000000000000000000000000000000000000000000000000000000000");
+        Vector::push_back(&mut side_nodes, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
+        let expected_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
+
+        let (leaf_path, leaf_value_hash) = SMTreeHasher::parse_leaf(&leaf_data);
+        let root_hash = SMTProofs::compute_root_hash_by_leaf(&leaf_path, &leaf_value_hash, &side_nodes);
+
+        assert(expected_root_hash == root_hash, 1167);
+    }
+
 
     #[test]
     fun test_compute_root_hash_new_leaf_included_17() {
