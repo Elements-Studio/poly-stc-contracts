@@ -1,9 +1,9 @@
-address 0xb6d69dd935edf7f2054acf12eb884df8 {
+address 0x416b32009fe49fcab1d5f2ba0153838f {
 module StarcoinVerifyTest {
     use 0x1::Debug::{Self};
     use 0x1::Vector;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::StarcoinVerifier;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::MerkleProofStructuredHash;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::StarcoinVerifier;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::MerkleProofStructuredHash;
 
     struct StarcoinProof has key, store, drop  {
         state: vector<u8>,

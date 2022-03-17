@@ -1,9 +1,9 @@
-address 0xb6d69dd935edf7f2054acf12eb884df8 {
+address 0x416b32009fe49fcab1d5f2ba0153838f {
 module CrossChainSMTProofs {
     use 0x1::Vector;
     use 0x1::Hash;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTUtils;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::ZeroCopySink;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTUtils;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::ZeroCopySink;
 
 
     const LEAF_DEFAULT_VALUE_HASH: vector<u8> = x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";

@@ -1,12 +1,12 @@
-address 0xb6d69dd935edf7f2054acf12eb884df8 {
+address 0x416b32009fe49fcab1d5f2ba0153838f {
 
 module SMTProofUtils {
 
     use 0x1::Vector;
     use 0x1::Errors;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTUtils;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTreeHasher;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTHash;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTUtils;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTreeHasher;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTHash;
 
     const ERROR_INVALID_PATH_BYTES_LENGTH: u64 = 101;
     const ERROR_INVALID_PATH_BITS_LENGTH: u64 = 102;

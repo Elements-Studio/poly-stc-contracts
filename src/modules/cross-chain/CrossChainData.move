@@ -1,4 +1,4 @@
-address 0xb6d69dd935edf7f2054acf12eb884df8 {
+address 0x416b32009fe49fcab1d5f2ba0153838f {
 
 module CrossChainData {
 
@@ -6,10 +6,10 @@ module CrossChainData {
     use 0x1::Signer;
     use 0x1::Errors;
 
-    use 0xb6d69dd935edf7f2054acf12eb884df8::CrossChainGlobal;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTProofs;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTreeHasher;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::CrossChainSMTProofs;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainGlobal;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTProofs;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTreeHasher;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainSMTProofs;
 
     const ERR_INITIALIZED_REPEATE: u64 = 101;
     const ERR_PROOF_HASH_INVALID: u64 = 102;

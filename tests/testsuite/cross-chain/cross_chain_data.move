@@ -1,4 +1,4 @@
-//! account: admin, 0xb6d69dd935edf7f2054acf12eb884df8, 10000000000 0x1::STC::STC
+//! account: admin, 0x416b32009fe49fcab1d5f2ba0153838f, 10000000000 0x1::STC::STC
 //! account: bob, 0x49156896A605F092ba1862C50a9036c9, 10000000000 0x1::STC::STC
 
 //! new-transaction
@@ -23,7 +23,7 @@ module admin::CrossChainType {
 address admin = {{admin}};
 script {
     use 0x1::Vector;
-    use 0xb6d69dd935edf7f2054acf12eb884df8::CrossChainData;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainData;
 
     fun test_initialize_chain_placeholder(signer: signer) {
         CrossChainData::init_genesis(&signer);
@@ -47,7 +47,7 @@ script {
 //! sender: admin
 address admin = {{admin}};
 script {
-    use 0xb6d69dd935edf7f2054acf12eb884df8::CrossChainGlobal;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainGlobal;
     use admin::CrossChainType;
 
     fun test_cross_chain_id_storage(signer: signer) {
