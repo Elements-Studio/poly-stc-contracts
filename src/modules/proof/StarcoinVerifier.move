@@ -1,6 +1,6 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xb6d69dd935edf7f2054acf12eb884df8 {
     module StarcoinVerifierScripts {
-        use 0x18351d311d32201149a4df2a9fc2db8a::StarcoinVerifier;
+        use 0xb6d69dd935edf7f2054acf12eb884df8::StarcoinVerifier;
         public(script) fun create_merkle(signer: signer, merkle_root: vector<u8>) {
 
             StarcoinVerifier::create(&signer, merkle_root);
@@ -8,8 +8,8 @@ address 0x18351d311d32201149a4df2a9fc2db8a {
     }
     module StarcoinVerifier {
         use 0x1::Vector;
-        use 0x18351d311d32201149a4df2a9fc2db8a::Bit;
-        use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofStructuredHash;
+        use 0xb6d69dd935edf7f2054acf12eb884df8::Bit;
+        use 0xb6d69dd935edf7f2054acf12eb884df8::MerkleProofStructuredHash;
         use 0x1::Hash;
 
         struct StarcoinMerkle has key {

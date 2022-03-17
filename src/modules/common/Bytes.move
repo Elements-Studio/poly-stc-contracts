@@ -1,4 +1,4 @@
-    address 0x18351d311d32201149a4df2a9fc2db8a {
+    address 0xb6d69dd935edf7f2054acf12eb884df8 {
 module Bytes {
     use 0x1::Vector;
     use 0x1::BitOperators;

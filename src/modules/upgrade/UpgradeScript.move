@@ -1,4 +1,4 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xb6d69dd935edf7f2054acf12eb884df8 {
 
 module UpgradeScript {
     use 0x1::PackageTxnManager;
@@ -7,7 +7,7 @@ module UpgradeScript {
     use 0x1::Version;
     use 0x1::Option;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::CrossChainGlobal;
 
     // Update `signer`'s module upgrade strategy to `strategy` with min time
     public(script) fun update_module_upgrade_strategy_with_min_time(

@@ -1,16 +1,16 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xb6d69dd935edf7f2054acf12eb884df8 {
 module SMTNonMembershipProofTest {
     use 0x1::Vector;
     use 0x1::Debug;
     use 0x1::BitOperators;
     use 0x1::Hash;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofs;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTProofUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainSMTProofs;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::Bytes;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTProofs;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTProofUtils;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTUtils;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTreeHasher;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::CrossChainSMTProofs;
 
     const TEST_CHAIN_ID: u64 = 218;
 

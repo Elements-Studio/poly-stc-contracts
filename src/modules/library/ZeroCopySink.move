@@ -1,4 +1,4 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xb6d69dd935edf7f2054acf12eb884df8 {
 /// Wrappers over encoding and serialization operation into bytes from basic types in Move for PolyNetwork cross chain utility.
 /// Encode basic types in Move into bytes easily. It's designed to be used
 /// for PolyNetwork cross chain application, and the encoding rules on Starcoin chain
@@ -10,7 +10,7 @@ address 0x18351d311d32201149a4df2a9fc2db8a {
 /// Please note that risk can be minimized, yet not eliminated.
 
 module ZeroCopySink {
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::Bytes;
     use 0x1::Vector;
     use 0x1::BCS;
 

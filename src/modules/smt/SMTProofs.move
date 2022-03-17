@@ -1,4 +1,4 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xb6d69dd935edf7f2054acf12eb884df8 {
 
 /// Sparse Merkle Tree proof for non-membership,
 /// reference Starcoin project's source file located at: "commons/forkable-jellyfish-merkle/src/proof.rs"
@@ -55,8 +55,8 @@ module SMTProofs {
     use 0x1::Vector;
     use 0x1::Debug;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTUtils;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SMTreeHasher;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTUtils;
+    use 0xb6d69dd935edf7f2054acf12eb884df8::SMTreeHasher;
 
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
     const BIT_RIGHT: bool = true;
