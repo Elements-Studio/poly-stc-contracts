@@ -8,7 +8,7 @@ module SMTHash {
         32
     }
 
-    public fun sum(data: &vector<u8>): vector<u8> {
+    public fun hash(data: &vector<u8>): vector<u8> {
         Hash::sha3_256(*data)
     }
 

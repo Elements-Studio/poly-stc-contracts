@@ -68,7 +68,7 @@ module SMTreeHasher {
         let value = LEAF_PREFIX;
         value = SMTUtils::concat_u8_vectors(&value, *path);
         value = SMTUtils::concat_u8_vectors(&value, *leaf_value);
-        (SMTHash::sum(&value), value)
+        (SMTHash::hash(&value), value)
     }
 
     public fun create_leaf_data(path: &vector<u8>, leaf_value: &vector<u8>): vector<u8> {
@@ -83,7 +83,7 @@ module SMTreeHasher {
         let data_len = Vector::length(data);
         let prefix_len = Vector::length(&LEAF_PREFIX);
         assert(data_len >= prefix_len + path_size(), Errors::invalid_state(ERROR_INVALID_LEAF_DATA_LENGTH));
-        SMTHash::sum(data)
+        SMTHash::hash(data)
     }
 
     public fun digest_node(left_data: &vector<u8>, right_data: &vector<u8>): (vector<u8>, vector<u8>) {
@@ -94,7 +94,7 @@ module SMTreeHasher {
         let value = NODE_PREFIX;
         value = SMTUtils::concat_u8_vectors(&value, *left_data);
         value = SMTUtils::concat_u8_vectors(&value, *right_data);
-        (SMTHash::sum(&value), value)
+        (SMTHash::hash(&value), value)
     }
 
     public fun path(key: &vector<u8>): vector<u8> {
@@ -102,7 +102,7 @@ module SMTreeHasher {
     }
 
     public fun digest(data: &vector<u8>): vector<u8> {
-        SMTHash::sum(data)
+        SMTHash::hash(data)
     }
 
     public fun path_size(): u64 {
