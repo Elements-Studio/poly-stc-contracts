@@ -294,9 +294,11 @@ module LockProxy {
                                            id: u128)
     acquires FeeEventStore {
         let genesis_account = CrossChainGlobal::genesis_account();
+
         // ///////////// lock STC fee here ////////////////
         let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
         Account::deposit(genesis_account, stc_token);
+
         // ////////////////////////////////////////////////
         let cc_fee_event = CrossChainFeeLockEvent{
             from_asset: Token::token_code<TokenT>(),

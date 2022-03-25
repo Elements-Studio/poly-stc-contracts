@@ -4,6 +4,7 @@ module CrossChainGlobal {
 
     use 0x1::Errors;
     use 0x1::Signer;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
 
     friend 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
     friend 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
@@ -28,13 +29,28 @@ module CrossChainGlobal {
         asset_hash: vector<u8>,
     }
 
-    /// Account permission check
+    /// Genesis account permission check
     public fun require_genesis_account(account: address) {
-        assert(account == genesis_account(), Errors::invalid_argument(ERR_INVALID_ACCOUNT));
+        CrossChainConfig::assert_genesis(account)
+    }
+
+    /// Admin account permission check
+    public fun require_admin_account(account: address) {
+        assert(account == CrossChainConfig::admin_account(), Errors::invalid_argument(ERR_INVALID_ACCOUNT));
+    }
+
+    /// Get admin account from config
+    public fun admin_account(): address {
+        CrossChainConfig::admin_account()
+    }
+
+    /// Get fee collection account from config
+    public fun fee_collection_account(): address {
+        CrossChainConfig::fee_collection_account()
     }
 
     public fun genesis_account(): address {
-        @0x18351d311d32201149a4df2a9fc2db8a
+        CrossChainConfig::genesis_address()
     }
 
     public(friend) fun generate_execution_cap(tx_data: &vector<u8>,
