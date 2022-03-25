@@ -26,7 +26,7 @@ script {
     use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
 
     fun test_cross_chain_config_freeze(signer: signer) {
-        CrossChainConfig::set_freeze(signer, true);
+        CrossChainConfig::set_freeze(&signer, true);
     }
 }
 // check: EXECUTED
@@ -34,14 +34,30 @@ script {
 //! new-transaction
 //! sender: alice
 address alice = {{alice}};
+address bob = {{bob}};
 script {
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
+    use 0x1::STC;
+    use 0x1::BCS;
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
 
     fun cant_do_lock(signer: signer) {
+        let to_chain_id = 318;
+        let (
+            proxy_hash,
+            fun_name,
+            tx_data,
+            _,
+            execution_cap
+        ) = LockProxy::lock<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(&signer, to_chain_id, &BCS::to_bytes(&@bob), 10000000);
 
+        // Do crosschain option from cross chain manager
+        CrossChainManager::cross_chain(&signer, to_chain_id, &proxy_hash, &fun_name, &tx_data, execution_cap);
     }
 }
-// check: EXECUTED
+// check: "Keep(ABORTED { code: 26369"
+
 
 
 

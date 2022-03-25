@@ -316,11 +316,11 @@ module LockProxy {
                                            stc_fee: u128,
                                            id: u128)
     acquires FeeEventStore {
-        let genesis_account = CrossChainGlobal::genesis_account();
+        let fee_collection_account = CrossChainGlobal::fee_collection_account();
 
         // ///////////// lock STC fee here ////////////////
         let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
-        Account::deposit(genesis_account, stc_token);
+        Account::deposit(fee_collection_account, stc_token);
 
         // ////////////////////////////////////////////////
         let cc_fee_event = CrossChainFeeLockEvent{
@@ -332,11 +332,11 @@ module LockProxy {
             fee: stc_fee,
             id: id,
         };
-        publish_cross_chain_fee_lock_event(cc_fee_event);
+        emit_fee_lock_event(cc_fee_event);
     }
 
     /// Lock event publish from script
-    public fun publish_lock_event(event: LockEvent) acquires LockEventStore {
+    public fun emit_lock_event(event: LockEvent) acquires LockEventStore {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.lock_event,
@@ -344,7 +344,7 @@ module LockProxy {
         );
     }
 
-    public fun publish_cross_chain_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore {
+    public fun emit_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore {
         let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.cross_chain_fee_lock_event,
@@ -352,13 +352,13 @@ module LockProxy {
         );
     }
 
-    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
-        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
-        Event::emit_event(
-            &mut event_store.cross_chain_fee_speed_up_event,
-            event,
-        );
-    }
+//    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
+//        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
+//        Event::emit_event(
+//            &mut event_store.cross_chain_fee_speed_up_event,
+//            event,
+//        );
+//    }
 
     /* @notice                  This function is meant to be invoked by the ETH crosschain management contract,
     *                           then mint a certin amount of tokens to the designated address since a certain amount
