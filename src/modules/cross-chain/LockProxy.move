@@ -117,7 +117,7 @@ module LockProxy {
 
     public fun init_event(signer: &signer) {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
+        CrossChainGlobal::require_admin_account(account);
 
         move_to(signer, LockEventStore{
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(signer),
@@ -135,7 +135,7 @@ module LockProxy {
 
     public fun init_fee_event_store(signer: &signer) {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
+        CrossChainGlobal::require_admin_account(account);
         if (!exists<FeeEventStore>(account)) {
             move_to(signer, FeeEventStore{
                 cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
@@ -167,7 +167,8 @@ module LockProxy {
                                                  proxy_hash: &vector<u8>)
     acquires LockEventStore, ProxyHashMap {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
+        CrossChainGlobal::require_admin_account(account);
+
         if (!exists<ProxyHashMap<ChainType>>(account)) {
             move_to(signer, ProxyHashMap<ChainType>{
                 to_proxy_hash: *proxy_hash
@@ -194,7 +195,7 @@ module LockProxy {
                                                    to_asset_hash: &vector<u8>)
     acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
+        CrossChainGlobal::require_admin_account(account);
 
         // Asset hash map
         if (!exists<AssetHashMap<TokenT, ToChainType>>(account)) {
@@ -255,6 +256,9 @@ module LockProxy {
         // emit LockEvent(fromAssetHash, _msgSender(), toChainId, toAssetHash, toAddress, amount);
 
         assert(amount > 0, Errors::invalid_argument(ERROR_LOCK_AMOUNT_ZERO));
+
+        // Check global freezing switch has closed
+        CrossChainGlobal::require_not_freezing();
 
         let genesis_account = CrossChainGlobal::genesis_account();
 

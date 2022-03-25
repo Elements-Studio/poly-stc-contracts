@@ -11,6 +11,7 @@ module CrossChainGlobal {
 
     const ERR_INVALID_ACCOUNT: u64 = 101;
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;
+    const ERR_GLOBAL_HAS_FROZEN: u64 = 103;
 
     struct STARCOIN_CHAIN has key, store {}
 
@@ -34,9 +35,15 @@ module CrossChainGlobal {
         CrossChainConfig::assert_genesis(account)
     }
 
+    public fun require_not_freezing() {
+        assert(!CrossChainConfig::freezing(), Errors::invalid_state(ERR_GLOBAL_HAS_FROZEN))
+    }
+
     /// Admin account permission check
     public fun require_admin_account(account: address) {
-        assert(account == CrossChainConfig::admin_account(), Errors::invalid_argument(ERR_INVALID_ACCOUNT));
+        assert(account == CrossChainConfig::admin_account() ||
+               account == CrossChainConfig::genesis_account(),
+            Errors::invalid_argument(ERR_INVALID_ACCOUNT));
     }
 
     /// Get admin account from config
@@ -50,7 +57,7 @@ module CrossChainGlobal {
     }
 
     public fun genesis_account(): address {
-        CrossChainConfig::genesis_address()
+        CrossChainConfig::genesis_account()
     }
 
     public(friend) fun generate_execution_cap(tx_data: &vector<u8>,
@@ -85,7 +92,7 @@ module CrossChainGlobal {
     /// Set chain ID of ChainType
     public fun set_chain_id<ChainType: store>(signer: &signer, chain_id: u64) acquires ChainId {
         let account = Signer::address_of(signer);
-        require_genesis_account(account);
+        require_admin_account(account);
 
         if (exists<ChainId<ChainType>>(genesis_account())) {
             let chain_id_store = borrow_global_mut<ChainId<ChainType>>(genesis_account());
@@ -119,7 +126,7 @@ module CrossChainGlobal {
     /// Set asset hash on Starcoin for token type
     public fun set_asset_hash<TokenT: store>(signer: &signer, asset_hash: &vector<u8>) acquires AssetType {
         let account = Signer::address_of(signer);
-        require_genesis_account(account);
+        require_admin_account(account);
 
         if (exists<AssetType<TokenT>>(genesis_account())) {
             let asset_type = borrow_global_mut<AssetType<TokenT>>(genesis_account());

@@ -26,7 +26,7 @@ module CrossChainConfig {
         let config = Freeze{
             switch,
         };
-        if (Config::config_exist_by_address<Freeze>(genesis_address())) {
+        if (Config::config_exist_by_address<Freeze>(genesis_account())) {
             Config::set<Freeze>(signer, config);
         } else {
             Config::publish_new_config<Freeze>(signer, config);
@@ -34,8 +34,8 @@ module CrossChainConfig {
     }
 
     public fun freezing(): bool {
-        if (Config::config_exist_by_address<Freeze>(genesis_address())) {
-            let conf = Config::get_by_address<Freeze>(genesis_address());
+        if (Config::config_exist_by_address<Freeze>(genesis_account())) {
+            let conf = Config::get_by_address<Freeze>(genesis_account());
             conf.switch
         } else {
             false
@@ -49,7 +49,7 @@ module CrossChainConfig {
         let config = AdminAccount{
             addr,
         };
-        if (Config::config_exist_by_address<AdminAccount>(genesis_address())) {
+        if (Config::config_exist_by_address<AdminAccount>(genesis_account())) {
             Config::set<AdminAccount>(signer, config);
         } else {
             Config::publish_new_config<AdminAccount>(signer, config);
@@ -58,11 +58,11 @@ module CrossChainConfig {
 
     /// Get admin account from config
     public fun admin_account(): address {
-        if (Config::config_exist_by_address<AdminAccount>(genesis_address())) {
-            let conf = Config::get_by_address<AdminAccount>(genesis_address());
+        if (Config::config_exist_by_address<AdminAccount>(genesis_account())) {
+            let conf = Config::get_by_address<AdminAccount>(genesis_account());
             conf.addr
         } else {
-            genesis_address()
+            genesis_account()
         }
     }
 
@@ -73,7 +73,7 @@ module CrossChainConfig {
         let config = FeeCollectionAccount{
             addr,
         };
-        if (Config::config_exist_by_address<FeeCollectionAccount>(genesis_address())) {
+        if (Config::config_exist_by_address<FeeCollectionAccount>(genesis_account())) {
             Config::set<FeeCollectionAccount>(signer, config);
         } else {
             Config::publish_new_config<FeeCollectionAccount>(signer, config);
@@ -82,20 +82,20 @@ module CrossChainConfig {
 
     /// Get fee collection account from config
     public fun fee_collection_account(): address {
-        if (Config::config_exist_by_address<FeeCollectionAccount>(genesis_address())) {
-            let conf = Config::get_by_address<FeeCollectionAccount>(genesis_address());
+        if (Config::config_exist_by_address<FeeCollectionAccount>(genesis_account())) {
+            let conf = Config::get_by_address<FeeCollectionAccount>(genesis_account());
             conf.addr
         } else {
-            genesis_address()
+            genesis_account()
         }
     }
 
-    public fun genesis_address(): address {
+    public fun genesis_account(): address {
         @0x18351d311d32201149a4df2a9fc2db8a
     }
 
     public fun assert_genesis(account: address) {
-        assert(account == genesis_address(), Errors::invalid_state(ERR_NOT_GENESIS_ACCOUNT));
+        assert(account == genesis_account(), Errors::invalid_state(ERR_NOT_GENESIS_ACCOUNT));
     }
 }
 }
