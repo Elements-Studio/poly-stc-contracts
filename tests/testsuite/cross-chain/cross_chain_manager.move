@@ -1,7 +1,6 @@
 //! account: alice, 0x18351d311d32201149a4df2a9fc2db8a, 10000000000 0x1::STC::STC
 //! account: bob, 0x49156896A605F092ba1862C50a9036c9, 10000000000 0x1::STC::STC
 
-
 //! new-transaction
 //! sender: alice
 address alice = {{alice}};
@@ -46,11 +45,10 @@ script {
 
         CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &x"0000000000000000000000000000000000000000");
 
-        LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &x"f71b55ef55cedc91fd007f7a9ba386ec978f3aa8");
-        LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &x"0000000000000000000000000000000000000000");
-
 
         assert(CrossChainGlobal::asset_hash_match<STC::STC>(&x"0000000000000000000000000000000000000000"), 10001);
         assert(CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(CHAINID_STARCOIN), 10002);
@@ -119,5 +117,4 @@ script {
 }
 // check: "Keep(ABORTED { code: 27137"
 // TODO: must set a correct native address
-
 

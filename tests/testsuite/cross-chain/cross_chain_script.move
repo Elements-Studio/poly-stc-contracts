@@ -19,4 +19,29 @@ script {
 }
 // check: EXECUTED
 
+//! new-transaction
+//! sender: alice
+address alice = {{alice}};
+script {
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
+
+    fun test_cross_chain_config_freeze(signer: signer) {
+        CrossChainConfig::set_freeze(signer, true);
+    }
+}
+// check: EXECUTED
+
+//! new-transaction
+//! sender: alice
+address alice = {{alice}};
+script {
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
+
+    fun cant_do_lock(signer: signer) {
+
+    }
+}
+// check: EXECUTED
+
+
 

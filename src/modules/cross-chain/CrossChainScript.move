@@ -36,7 +36,7 @@ module CrossChainScript {
         CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, DEFAULT_CHAINID_ETHEREUM);
 
         // Bind default proxy hash of Starcoin chain
-        LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
 
         // Set asset hashes of Starcoin chain
@@ -45,11 +45,11 @@ module CrossChainScript {
         CrossChainGlobal::set_asset_hash<XUSDT::XUSDT>(&signer, &ASSET_HASH_XUSDT);
 
         // Bind asset hashes to support Starcoin-to-Starcoin Cross-Chain transfer
-        LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_STC);
-        LockProxy::bind_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XETH);
-        LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
 
         let mint_amount = 13611294676837538538534984;
