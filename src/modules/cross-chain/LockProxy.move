@@ -375,6 +375,9 @@ module LockProxy {
                                                        tx_hash: &vector<u8>,
                                                        cap: &CrossChainGlobal::ExecutionCapability):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
+
+        CrossChainGlobal::require_not_freezing();
+
         assert(
             CrossChainGlobal::verify_execution_cap(cap, tx_hash),
             Errors::invalid_state(ERROR_UNLOCK_EXECUTECAP_INVALID)
