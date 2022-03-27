@@ -95,6 +95,8 @@ module CrossChainRouter {
                                             merkle_proof_root: &vector<u8>,
                                             merkle_proof_leaf: &vector<u8>,
                                             input_merkle_proof_siblings: &vector<u8>) {
+        CrossChainGlobal::require_not_freezing();
+
         let merkle_proof_siblings = MerkleProofHelper::extract_sibling(input_merkle_proof_siblings);
 
         // Verify header and parse method and args from proof vector
