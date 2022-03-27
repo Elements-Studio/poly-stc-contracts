@@ -28,17 +28,36 @@ script {
 
         CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &x"0000000000000000000000000000000000000000");
 
-        LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &x"f71b55ef55cedc91fd007f7a9ba386ec978f3aa8");
-        LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, CHAINID_STARCOIN, &x"0000000000000000000000000000000000000000");
-
 
         assert(CrossChainGlobal::asset_hash_match<STC::STC>(&x"0000000000000000000000000000000000000000"), 10001);
         assert(CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(CHAINID_STARCOIN), 10002);
     }
 }
 // check: EXECUTED
+
+//! new-transaction
+//! sender: alice
+script {
+    use 0x1::STC;
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+
+    const CHAINID_STARCOIN: u64 = 8;
+    const CHAINID_ETHEREUM: u64 = 1;
+
+    fun test_reset_hash(signer: signer) {
+        LockProxy::init_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &x"f71b55ef55cedc91fd007f7a9ba386ec978f3aa8");
+        LockProxy::init_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &x"0000000000000000000000000000000000000000");
+    }
+}
+// check: "Keep(ABORTED { code: 27905"
+
 
 //! new-transaction
 //! sender: alice
@@ -106,3 +125,52 @@ script {
 }
 // check: "Keep(ABORTED { code: 27137"
 // TODO: must set a correct native address
+
+
+//! new-transaction
+//! sender: alice
+address alice = {{alice}};
+address bob = {{bob}};
+script {
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
+
+    fun test_set_admin(signer: signer) {
+        CrossChainConfig::set_admin_account(&signer, @bob);
+        assert(@bob == CrossChainConfig::admin_account(), 10010);
+    }
+}
+// check: EXECUTED
+
+//! new-transaction
+//! sender: alice
+address alice = {{alice}};
+address bob = {{bob}};
+script {
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
+
+    fun test_set_admin(signer: signer) {
+        CrossChainConfig::set_admin_account(&signer, @bob);
+        assert(@bob == CrossChainConfig::admin_account(), 10010);
+    }
+}
+// check: EXECUTED
+
+
+//! new-transaction
+//! sender: bob
+script {
+    use 0x1::STC;
+    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
+    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
+
+    const CHAINID_STARCOIN: u64 = 8;
+    const CHAINID_ETHEREUM: u64 = 1;
+
+    fun test_reset_hash(signer: signer) {
+        LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &x"f71b55ef55cedc91fd007f7a9ba386ec978f3aa8");
+        LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, CHAINID_STARCOIN, &x"0000000000000000000000000000000000000000");
+    }
+}
+// check: EXECUTED
