@@ -119,7 +119,7 @@ module LockProxy {
 
     public fun init_event(signer: &signer) {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_admin_account(account);
+        CrossChainGlobal::require_genesis_account(account);
 
         move_to(signer, LockEventStore{
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(signer),
@@ -137,7 +137,7 @@ module LockProxy {
 
     public fun init_fee_event_store(signer: &signer) {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_admin_account(account);
+        CrossChainGlobal::require_genesis_account(account);
         if (!exists<FeeEventStore>(account)) {
             move_to(signer, FeeEventStore{
                 cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
