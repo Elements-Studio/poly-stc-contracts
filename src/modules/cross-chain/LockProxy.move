@@ -24,6 +24,8 @@ module LockProxy {
     const ERROR_UNLOCK_INVALID_ADDRESS: u64 = 106;
     const ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH: u64 = 107;
     const ERROR_TREASURY_AMOUNT_INVALID: u64 = 108;
+    const ERROR_PROXY_HASH_INITIALIZE_STATE: u64 = 109;
+    const ERROR_ASSET_HASH_INITIALIZE_STATE: u64 = 110;
 
     const ADDRESS_LENGTH: u64 = 16;
 
@@ -66,10 +68,10 @@ module LockProxy {
     // mapping(address => mapping(uint64 => bytes)) public assetHashMap;
     // mapping(address => bool) safeTransfer;
 
-    struct SetManagerProxyEvent has store, drop {
-        height: u128,
-        manager: vector<u8>
-    }
+    // struct SetManagerProxyEvent has store, drop {
+    //    height: u128,
+    //    manager: vector<u8>
+    // }
 
     struct BindProxyEvent has store, drop {
         to_chain_id: u64,
@@ -126,7 +128,7 @@ module LockProxy {
             lock_event: Event::new_event_handle<LockEvent>(signer),
         });
 
-        // /////////////// 
+        // ///////////////
         move_to(signer, FeeEventStore{
             cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
             cross_chain_fee_speed_up_event: Event::new_event_handle<CrossChainFeeSpeedUpEvent>(signer),
@@ -161,61 +163,79 @@ module LockProxy {
         };
     }
 
+    /// Initialize proxy hash resource for `ChainType`
+    public fun init_proxy_hash<ChainType: store>(signer: &signer,
+                                                 chain_id: u64, // only for emit event, Must be identical to ChainType
+                                                 proxy_hash: &vector<u8>) acquires LockEventStore {
+        let account = Signer::address_of(signer);
+        CrossChainGlobal::require_genesis_account(account);
+
+        assert(!exists<ProxyHashMap<ChainType>>(CrossChainGlobal::genesis_account()),
+            Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+
+        move_to(signer, ProxyHashMap<ChainType>{
+            to_proxy_hash: *proxy_hash,
+        });
+
+        inner_emit_proxy_hash_event(chain_id, proxy_hash);
+    }
+
     /// Bind proxy hash, which called by genesis account
     public fun bind_proxy_hash<ChainType: store>(signer: &signer,
                                                  chain_id: u64, // only for emit event, Must be identical to ChainType
                                                  proxy_hash: &vector<u8>)
     acquires LockEventStore, ProxyHashMap {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
-        if (!exists<ProxyHashMap<ChainType>>(account)) {
-            move_to(signer, ProxyHashMap<ChainType>{
-                to_proxy_hash: *proxy_hash
-            });
-        } else {
-            let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(account);
-            proxy_hash_map.to_proxy_hash = *proxy_hash;
-        };
+        CrossChainGlobal::require_admin_account(account);
 
-        let event_store = borrow_global_mut<LockEventStore>(account);
-        Event::emit_event(
-            &mut event_store.bind_proxy_event,
-            BindProxyEvent{
-                to_chain_id: chain_id,
-                target_proxy_hash: *proxy_hash,
-            },
-        );
+        let genesis_account = CrossChainGlobal::genesis_account();
+        assert(exists<ProxyHashMap<ChainType>>(genesis_account),
+            Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+
+        let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
+        proxy_hash_map.to_proxy_hash = *proxy_hash;
+
+        inner_emit_proxy_hash_event(chain_id, proxy_hash);
     }
 
     /// Bind asset hash, which called by genesis account
+    public fun init_asset_hash<TokenT: store,
+                               ToChainType: store>(signer: &signer,
+                                                   to_chain_id: u64, // only to emit event, MUST identical to ToChainType
+                                                   to_asset_hash: &vector<u8>)
+    acquires LockEventStore, LockTreasury {
+        let account = Signer::address_of(signer);
+        CrossChainGlobal::require_genesis_account(account);
+
+        // Asset hash map
+        assert(!exists<AssetHashMap<TokenT, ToChainType>>(CrossChainGlobal::genesis_account()),
+            Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
+
+        move_to(signer, AssetHashMap<TokenT, ToChainType>{
+            to_asset_hash: *to_asset_hash,
+        });
+        inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
+    }
+
+    /// Bind asset hash, which called by amind & genesis account
     public fun bind_asset_hash<TokenT: store,
                                ToChainType: store>(signer: &signer,
                                                    to_chain_id: u64, // only to emit event, MUST identical to ToChainType
                                                    to_asset_hash: &vector<u8>)
     acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_genesis_account(account);
+        CrossChainGlobal::require_admin_account(account);
+
+        let genesis_account = CrossChainGlobal::genesis_account();
+
+        assert(exists<AssetHashMap<TokenT, ToChainType>>(genesis_account),
+            Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
 
         // Asset hash map
-        if (!exists<AssetHashMap<TokenT, ToChainType>>(account)) {
-            move_to(signer, AssetHashMap<TokenT, ToChainType>{
-                to_asset_hash: *to_asset_hash,
-            });
-        } else {
-            let store = borrow_global_mut<AssetHashMap<TokenT, ToChainType>>(account);
-            store.to_asset_hash = *to_asset_hash;
-        };
+        let store = borrow_global_mut<AssetHashMap<TokenT, ToChainType>>(genesis_account);
+        store.to_asset_hash = *to_asset_hash;
 
-        let event_store = borrow_global_mut<LockEventStore>(account);
-        Event::emit_event(
-            &mut event_store.bind_asset_event,
-            BindAssetEvent{
-                to_chain_id,
-                from_asset_hash: Token::token_code<TokenT>(),
-                target_proxy_hash: *to_asset_hash,
-                initial_amount: get_balance_for<TokenT>(),
-            },
-        );
+        inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
     }
 
     /* @notice                  This function is meant to be invoked by the user,
@@ -256,6 +276,9 @@ module LockProxy {
 
         assert(amount > 0, Errors::invalid_argument(ERROR_LOCK_AMOUNT_ZERO));
 
+        // Check global freezing switch has closed
+        CrossChainGlobal::require_not_freezing();
+
         let genesis_account = CrossChainGlobal::genesis_account();
 
         // Stake to treasury
@@ -293,10 +316,12 @@ module LockProxy {
                                            stc_fee: u128,
                                            id: u128)
     acquires FeeEventStore {
-        let genesis_account = CrossChainGlobal::genesis_account();
+        let fee_collection_account = CrossChainGlobal::fee_collection_account();
+
         // ///////////// lock STC fee here ////////////////
         let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
-        Account::deposit(genesis_account, stc_token);
+        Account::deposit(fee_collection_account, stc_token);
+
         // ////////////////////////////////////////////////
         let cc_fee_event = CrossChainFeeLockEvent{
             from_asset: Token::token_code<TokenT>(),
@@ -307,11 +332,11 @@ module LockProxy {
             fee: stc_fee,
             id: id,
         };
-        publish_cross_chain_fee_lock_event(cc_fee_event);
+        emit_fee_lock_event(cc_fee_event);
     }
 
     /// Lock event publish from script
-    public fun publish_lock_event(event: LockEvent) acquires LockEventStore {
+    public fun emit_lock_event(event: LockEvent) acquires LockEventStore {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.lock_event,
@@ -319,7 +344,7 @@ module LockProxy {
         );
     }
 
-    public fun publish_cross_chain_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore {
+    public fun emit_fee_lock_event(event: CrossChainFeeLockEvent) acquires FeeEventStore {
         let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.cross_chain_fee_lock_event,
@@ -327,13 +352,13 @@ module LockProxy {
         );
     }
 
-    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
-        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
-        Event::emit_event(
-            &mut event_store.cross_chain_fee_speed_up_event,
-            event,
-        );
-    }
+//    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
+//        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
+//        Event::emit_event(
+//            &mut event_store.cross_chain_fee_speed_up_event,
+//            event,
+//        );
+//    }
 
     /* @notice                  This function is meant to be invoked by the ETH crosschain management contract,
     *                           then mint a certin amount of tokens to the designated address since a certain amount
@@ -350,6 +375,9 @@ module LockProxy {
                                                        tx_hash: &vector<u8>,
                                                        cap: &CrossChainGlobal::ExecutionCapability):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
+
+        CrossChainGlobal::require_not_freezing();
+
         assert(
             CrossChainGlobal::verify_execution_cap(cap, tx_hash),
             Errors::invalid_state(ERROR_UNLOCK_EXECUTECAP_INVALID)
@@ -359,8 +387,8 @@ module LockProxy {
 
         // Check from contract address
         assert(Vector::length(from_contract_addr) > 0, Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
-        let asset_hash_map = borrow_global<ProxyHashMap<ChainType>>(genesis_account);
 
+        let asset_hash_map = borrow_global<ProxyHashMap<ChainType>>(genesis_account);
         assert(*&asset_hash_map.to_proxy_hash == *from_contract_addr,
             Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
 
@@ -394,6 +422,32 @@ module LockProxy {
             event,
         );
         true
+    }
+
+    /// Emit an proxy hash event with `BindProxyEvent` object
+    fun inner_emit_proxy_hash_event(to_chain_id: u64, target_proxy_hash: &vector<u8>) acquires LockEventStore {
+        let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
+        Event::emit_event(
+            &mut event_store.bind_proxy_event,
+            BindProxyEvent{
+                to_chain_id,
+                target_proxy_hash: *target_proxy_hash,
+            },
+        );
+    }
+
+    /// Emit an proxy hash event with `BindAssetEvent` object
+    fun inner_emit_asset_hash_event<TokenT: store>(to_chain_id: u64, target_proxy_hash: &vector<u8>) acquires LockEventStore, LockTreasury {
+        let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
+        Event::emit_event(
+            &mut event_store.bind_asset_event,
+            BindAssetEvent{
+                to_chain_id,
+                from_asset_hash: Token::token_code<TokenT>(),
+                target_proxy_hash: *target_proxy_hash,
+                initial_amount: get_balance_for<TokenT>(),
+            },
+        );
     }
 
     /// Get balance for token

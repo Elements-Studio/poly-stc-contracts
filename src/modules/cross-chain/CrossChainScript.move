@@ -8,6 +8,7 @@ module CrossChainScript {
     use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainData;
     use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainManager;
     use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainRouter;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainConfig;
     use 0x416b32009fe49fcab1d5f2ba0153838f::LockProxy;
     use 0x416b32009fe49fcab1d5f2ba0153838f::XETH;
     use 0x416b32009fe49fcab1d5f2ba0153838f::XUSDT;
@@ -35,7 +36,7 @@ module CrossChainScript {
         CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, DEFAULT_CHAINID_ETHEREUM);
 
         // Bind default proxy hash of Starcoin chain
-        LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
 
         // Set asset hashes of Starcoin chain
@@ -44,11 +45,11 @@ module CrossChainScript {
         CrossChainGlobal::set_asset_hash<XUSDT::XUSDT>(&signer, &ASSET_HASH_XUSDT);
 
         // Bind asset hashes to support Starcoin-to-Starcoin Cross-Chain transfer
-        LockProxy::bind_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_STC);
-        LockProxy::bind_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XETH);
-        LockProxy::bind_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
+        LockProxy::init_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
 
         let mint_amount = 13611294676837538538534984;
@@ -152,6 +153,21 @@ module CrossChainScript {
     /// Get Consensus book Keepers Public Key Bytes
     public fun get_cur_epoch_con_pubkey_bytes(): vector<u8> {
         CrossChainData::get_cur_epoch_con_pubkey_bytes()
+    }
+
+    /// Set admin account by genesis account
+    public(script) fun set_admin_account(signer: signer, admin: address) {
+        CrossChainConfig::set_admin_account(&signer, admin);
+    }
+
+    /// Set fee collection account by genesis account
+    public(script) fun set_fee_collection_account(signer: signer, admin: address) {
+        CrossChainConfig::set_fee_collection_account(&signer, admin);
+    }
+
+    /// Set admin account by genesis account
+    public(script) fun set_freeze(signer: signer, switch: bool) {
+        CrossChainConfig::set_freeze(&signer, switch);
     }
 }
 }

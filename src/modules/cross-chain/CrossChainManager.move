@@ -173,7 +173,7 @@ module CrossChainManager {
         // emit ChangeBookKeeperEvent(header.height, rawHeader);
         // return true;
 
-        CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
+        CrossChainGlobal::require_admin_account(Signer::address_of(signer));
 
         let (
             _,
@@ -263,6 +263,9 @@ module CrossChainManager {
         // // Fire the cross chain event denoting there is a cross chain request from Ethereum network to other public chains through Poly chain network
         // emit CrossChainEvent(tx.origin, paramTxHash, msg.sender, toChainId, toContract, rawParam);
         // return true;
+
+        // Check global freezing switch has closed
+        CrossChainGlobal::require_not_freezing();
 
         // Capability handle
         CrossChainGlobal::verify_execution_cap(&cap, tx_data);

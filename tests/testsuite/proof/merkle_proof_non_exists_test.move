@@ -75,6 +75,7 @@ script {
     use 0x1::Debug;
 
     use 0x416b32009fe49fcab1d5f2ba0153838f::SMTProofs;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainSMTProofs;
 
     /// index=5 txn="Test key 4",
     fun test_root_update_leaf_check() {

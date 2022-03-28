@@ -72,14 +72,14 @@ module CrossChainRouter {
             // Do crosschain option from cross chain manager
             CrossChainManager::cross_chain(signer, to_chain_id, &proxy_hash, &fun_name, &tx_data, execution_cap);
             // Publish lock event
-            LockProxy::publish_lock_event(event);
+            LockProxy::emit_lock_event(event);
         } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
             let (proxy_hash, fun_name, tx_data, event, execution_cap) =
                 LockProxy::lock<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, to_address, amount);
             // Do crosschain option from cross chain manager
             CrossChainManager::cross_chain(signer, to_chain_id, &proxy_hash, &fun_name, &tx_data, execution_cap);
             // Publish lock event
-            LockProxy::publish_lock_event(event);
+            LockProxy::emit_lock_event(event);
         } else {
             assert(false, Errors::invalid_state(ERROR_NO_SUPPORT_LOCK_CHAIN_TYPE));
         };
@@ -95,8 +95,8 @@ module CrossChainRouter {
                                             merkle_proof_root: &vector<u8>,
                                             merkle_proof_leaf: &vector<u8>,
                                             input_merkle_proof_siblings: &vector<u8>) {
+        CrossChainGlobal::require_not_freezing();
         let merkle_proof_siblings = SMTProofUtils::split_side_nodes_data(input_merkle_proof_siblings);
-
         // Verify header and parse method and args from proof vector
         let (
             method,

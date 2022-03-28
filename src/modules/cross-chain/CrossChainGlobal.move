@@ -4,12 +4,14 @@ module CrossChainGlobal {
 
     use 0x1::Errors;
     use 0x1::Signer;
+    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainConfig;
 
     friend 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainManager;
     friend 0x416b32009fe49fcab1d5f2ba0153838f::LockProxy;
 
     const ERR_INVALID_ACCOUNT: u64 = 101;
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;
+    const ERR_GLOBAL_HAS_FROZEN: u64 = 103;
 
     struct STARCOIN_CHAIN has key, store {}
 
@@ -28,13 +30,34 @@ module CrossChainGlobal {
         asset_hash: vector<u8>,
     }
 
-    /// Account permission check
+    /// Genesis account permission check
     public fun require_genesis_account(account: address) {
-        assert(account == genesis_account(), Errors::invalid_argument(ERR_INVALID_ACCOUNT));
+        CrossChainConfig::assert_genesis(account)
+    }
+
+    public fun require_not_freezing() {
+        assert(!CrossChainConfig::freezing(), Errors::invalid_state(ERR_GLOBAL_HAS_FROZEN))
+    }
+
+    /// Admin account permission check
+    public fun require_admin_account(account: address) {
+        assert(account == CrossChainConfig::admin_account() ||
+               account == CrossChainConfig::genesis_account(),
+            Errors::invalid_argument(ERR_INVALID_ACCOUNT));
+    }
+
+    /// Get admin account from config
+    public fun admin_account(): address {
+        CrossChainConfig::admin_account()
+    }
+
+    /// Get fee collection account from config
+    public fun fee_collection_account(): address {
+        CrossChainConfig::fee_collection_account()
     }
 
     public fun genesis_account(): address {
-        @0x416b32009fe49fcab1d5f2ba0153838f
+        CrossChainConfig::genesis_account()
     }
 
     public(friend) fun generate_execution_cap(tx_data: &vector<u8>,
@@ -69,7 +92,7 @@ module CrossChainGlobal {
     /// Set chain ID of ChainType
     public fun set_chain_id<ChainType: store>(signer: &signer, chain_id: u64) acquires ChainId {
         let account = Signer::address_of(signer);
-        require_genesis_account(account);
+        require_admin_account(account);
 
         if (exists<ChainId<ChainType>>(genesis_account())) {
             let chain_id_store = borrow_global_mut<ChainId<ChainType>>(genesis_account());
@@ -103,7 +126,7 @@ module CrossChainGlobal {
     /// Set asset hash on Starcoin for token type
     public fun set_asset_hash<TokenT: store>(signer: &signer, asset_hash: &vector<u8>) acquires AssetType {
         let account = Signer::address_of(signer);
-        require_genesis_account(account);
+        require_admin_account(account);
 
         if (exists<AssetType<TokenT>>(genesis_account())) {
             let asset_type = borrow_global_mut<AssetType<TokenT>>(genesis_account());
