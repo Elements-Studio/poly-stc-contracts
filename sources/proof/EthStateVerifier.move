@@ -80,6 +80,7 @@ module EthStateVerifier {
 
     #[test_only]
     use StarcoinFramework::Debug;
+    #[test_only]
     use Bridge::EthStateVerifier;
 
     const INVALID_PROOF: u64 = 400;

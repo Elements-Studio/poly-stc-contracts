@@ -14,6 +14,7 @@ address Bridge {
 
         #[test_only]
         use StarcoinFramework::Debug;
+        #[test_only]
         use Bridge::StarcoinVerifier;
 
         struct StarcoinMerkle has key {

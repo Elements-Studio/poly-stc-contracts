@@ -14,6 +14,7 @@ module CrossChainLibrary {
     
     #[test_only]
     use StarcoinFramework::Debug;
+    #[test_only]
     use Bridge::CrossChainLibrary;
 
 //    struct Header has key, store, drop, copy {

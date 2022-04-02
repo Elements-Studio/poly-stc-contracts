@@ -2,10 +2,11 @@ address Bridge {
 module Bytes {
     use StarcoinFramework::Vector;
     use StarcoinFramework::BitOperators;
-
     #[test_only]
     use StarcoinFramework::Debug;
+    #[test_only]
     use StarcoinFramework::BCS;
+    #[test_only]
     use Bridge::Bytes;
 
     /// left shift n bits.
@@ -190,7 +191,7 @@ module Bytes {
     }
 
     #[test]
-    public fun test_bcs_cmp() {
+    fun test_bcs_cmp() {
         let hex1:vector<u8> = x"80"; //
         let hex2:vector<u8> = x"0305c9"; //
         let hex3:vector<u8> = x"0305c9"; //
@@ -232,7 +233,7 @@ module Bytes {
     }
 
     #[test]
-    public fun test_bcs_address() {
+    fun test_bcs_address() {
         //let addr = x"344CFC3B8635F72F14200AAF2168D9F75DF86FD3000000000000000000000000";
         let addr1 = x"344CFC3B8635F72F14200AAF2168D9F7";
         let converted_addr = BCS::to_address(addr1);
@@ -245,7 +246,7 @@ module Bytes {
     // ''.join(str(e) for e in [('%02X' % x) for x in [247, 27, 85, 239, 85, 206, 220, 145, 253, 0, 127, 122, 155, 163, 134, 236, 151, 143, 58, 168]])
     // ```
     #[test]
-    public fun test_bcs_equals1() {
+    fun test_bcs_equals1() {
         //let addr = x"344CFC3B8635F72F14200AAF2168D9F75DF86FD3000000000000000000000000";
         let bcs1 = x"F71B55EF55CEDC91FD007F7A9BA386EC978F3AA8";
         Debug::print(&bcs1);

@@ -60,6 +60,7 @@ module MerkleProofNonExists {
     use Bridge::MerkleProofElementBits;
     #[test_only]
     use StarcoinFramework::BitOperators;
+    #[test_only]
     use Bridge::MerkleProofHelper;
 
 
@@ -506,7 +507,7 @@ module MerkleProofNonExists {
     }
 
 
-    
+    #[test_only]
     fun test_non_exiests(element_path: &vector<u8>,
                          expect_root_hash: &vector<u8>,
                          leaf_data: &vector<u8>,
@@ -519,7 +520,7 @@ module MerkleProofNonExists {
         assert!(checked, 1112);
     }
 
-    
+    #[test_only]
     fun test_update_leaf(element_path: &vector<u8>,
                          expect_root_hash: &vector<u8>,
                          leaf_data: &vector<u8>,

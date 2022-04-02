@@ -17,7 +17,9 @@ module ZeroCopySource {
 
     #[test_only]
     use StarcoinFramework::Debug;
+    #[test_only]
     use Bridge::ZeroCopySource;
+    #[test_only]
     use Bridge::ZeroCopySink;
 
     const HEX_0XFD:vector<u8> = x"FD";
@@ -360,7 +362,7 @@ module ZeroCopySource {
         buf
     }
 
-    
+    #[test_only]
     fun init_eth_account():(vector<u8>,u64,vector<u8>,u128,u64,vector<u8>,vector<u8>) {
             (x"fd725b0325c2bda54cf7e33e3b9f6bc9b7927beb7ba6a2ef5feef7d20b394168",
             11146077,
