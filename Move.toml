@@ -1,0 +1,9 @@
+[package]
+name = "poly-stc-contracts"
+version = "0.0.4"
+
+[addresses]
+Bridge = "0x18351d311d32201149a4df2a9fc2db8a"
+
+[dependencies]
+StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "01c84198819310620f2417413c3c800df8292ae5" }
