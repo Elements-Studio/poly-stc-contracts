@@ -16,11 +16,11 @@ module CrossChainScript {
     const DEFAULT_CHAINID_STARCOIN: u64 = 318;
     const DEFAULT_CHAINID_ETHEREUM: u64 = 2;
 
-    const PROXY_HASH_STARCOIN: vector<u8> = b"Bridge::CrossChainScript";
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::CrossChainScript";
 
     const ASSET_HASH_STC: vector<u8> = b"0x00000000000000000000000000000001::STC::STC";
-    const ASSET_HASH_XETH: vector<u8> = b"Bridge::XETH::XETH";
-    const ASSET_HASH_XUSDT: vector<u8> = b"Bridge::XUSDT::XUSDT";
+    const ASSET_HASH_XETH: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::XETH::XETH";
+    const ASSET_HASH_XUSDT: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::XUSDT::XUSDT";
 
     /// Initialize genesis from contract owner
     public(script) fun init_genesis(signer: signer,

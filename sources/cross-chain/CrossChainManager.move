@@ -16,7 +16,7 @@ module CrossChainManager {
     use Bridge::Bytes;
     use Bridge::MerkleProofHelper;
 
-    const PROXY_HASH_STARCOIN: vector<u8> = b"Bridge::CrossChainScript";
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::CrossChainScript";
 
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;
