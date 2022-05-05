@@ -92,15 +92,20 @@ module CrossChainManager {
 
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
 
+        // ENABLE_REPEATED_INIT!
+        if (!exists<EventStore>(Signer::address_of(signer))){
         move_to(signer, EventStore{
             init_genesis_block_event: Event::new_event_handle<InitGenesisBlockEvent>(signer),
             change_book_keeper_event: Event::new_event_handle<ChangeBookKeeperEvent>(signer),
             cross_chain_event: Event::new_event_handle<CrossChainEvent>(signer),
             verify_header_and_execute_tx_event: Event::new_event_handle<VerifyHeaderAndExecuteTxEvent>(signer),
         });
+        };
 
         let pub_key_bytes = CrossChainData::get_cur_epoch_con_pubkey_bytes();
-        assert(Vector::is_empty<u8>(&pub_key_bytes), Errors::invalid_state(ERR_CONTRACT_INITIALIZE_REPEATE));
+        // ENABLE_REPEATED_INIT!       
+        _ = pub_key_bytes; 
+        // assert(Vector::is_empty<u8>(&pub_key_bytes), Errors::invalid_state(ERR_CONTRACT_INITIALIZE_REPEATE));
 
         let (
             _,
@@ -116,7 +121,10 @@ module CrossChainManager {
             header_next_bookkeeper
         ) = CrossChainLibrary::deserialize_header(raw_header);
         let (next_book_keeper, keepers) = CrossChainLibrary::verify_pubkey(pub_key_list);
-        assert(header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
+        // ENABLE_REPEATED_INIT!   
+        _ = next_book_keeper;     
+        _ = header_next_bookkeeper;
+        //assert(header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
 
         CrossChainData::put_cur_epoch_start_height(header_height);
 

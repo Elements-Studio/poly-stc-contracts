@@ -52,14 +52,19 @@ module CrossChainScript {
         LockProxy::init_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
 
-        let mint_amount = 13611294676837538538534984;
-        XETH::init(&signer);
-        XETH::mint(&signer, mint_amount);
-        LockProxy::move_to_treasury<XETH::XETH>(&signer, mint_amount);
+        // ENABLE_REPEATED_INIT!
+        //let xeth_mint_amount = 13611294676837538538534984; //   13,611,294,676,837,538,538,534,984
+        let xeth_mint_amount = 1000000000000000000000000000; //1,000,000,000,000,000,000,000,000,000
+        //XETH::init(&signer);         // ENABLE_REPEATED_INIT!
+        XETH::mint(&signer, xeth_mint_amount);
+        LockProxy::move_to_treasury<XETH::XETH>(&signer, xeth_mint_amount);
 
-        XUSDT::init(&signer);
-        XUSDT::mint(&signer, mint_amount);
-        LockProxy::move_to_treasury<XUSDT::XUSDT>(&signer, mint_amount);
+        // ENABLE_REPEATED_INIT!        
+        // let xusdt_mint_amount = 13611294676837538538534984; //13,611,294,676,837,538,538,534,984
+        // XUSDT::init(&signer);
+        // XUSDT::mint(&signer, xusdt_mint_amount);
+        // LockProxy::move_to_treasury<XUSDT::XUSDT>(&signer, xusdt_mint_amount);
+        
     }
 
     public fun inner_init_genesis(signer: &signer,
