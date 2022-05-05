@@ -195,8 +195,15 @@ module LockProxy {
         CrossChainGlobal::require_admin_account(account);
 
         let genesis_account = CrossChainGlobal::genesis_account();
-        assert(exists<ProxyHashMap<ChainType>>(genesis_account),
-            Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+        // //////// FIX BUG! ////////////
+        // assert(exists<ProxyHashMap<ChainType>>(genesis_account),
+        //     Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+        if (!exists<ProxyHashMap<ChainType>>(genesis_account)) {
+            move_to(signer, ProxyHashMap<ChainType>{
+                to_proxy_hash: *proxy_hash,
+            });
+        };
+        // //////////////////////////////
 
         let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
         proxy_hash_map.to_proxy_hash = *proxy_hash;
@@ -236,8 +243,16 @@ module LockProxy {
 
         let genesis_account = CrossChainGlobal::genesis_account();
 
-        assert(exists<AssetHashMap<TokenT, ToChainType>>(genesis_account),
-            Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
+        // FIX BUG!
+        // assert(exists<AssetHashMap<TokenT, ToChainType>>(genesis_account),
+        //     Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
+        if (!exists<AssetHashMap<TokenT, ToChainType>>(genesis_account)) {
+            move_to(signer, AssetHashMap<TokenT, ToChainType>{
+                to_asset_hash: *to_asset_hash,
+            });
+            inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
+        };
+        // ////////////////////////
 
         // Asset hash map
         let store = borrow_global_mut<AssetHashMap<TokenT, ToChainType>>(genesis_account);
