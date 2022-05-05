@@ -1,5 +1,5 @@
 
-address 0x416b32009fe49fcab1d5f2ba0153838f {
+address 0xe52552637c5897a2d499fbf08216f73e {
 module XUSDT {
     use 0x1::Token;
     use 0x1::Account;
@@ -26,8 +26,8 @@ module XUSDT {
 }
 
 module XUSDTScripts {
-    use 0x416b32009fe49fcab1d5f2ba0153838f::XUSDT;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::LockProxy;
+    use 0xe52552637c5897a2d499fbf08216f73e::XUSDT;
+    use 0xe52552637c5897a2d499fbf08216f73e::LockProxy;
 
     public(script) fun init(account: signer) {
         XUSDT::init(&account);

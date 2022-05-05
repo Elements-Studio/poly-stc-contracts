@@ -1,26 +1,26 @@
-address 0x416b32009fe49fcab1d5f2ba0153838f {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module CrossChainScript {
 
     use 0x1::STC;
 
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainGlobal;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainData;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainManager;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainRouter;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainConfig;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::LockProxy;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::XETH;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::XUSDT;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainGlobal;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainData;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainManager;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainRouter;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainConfig;
+    use 0xe52552637c5897a2d499fbf08216f73e::LockProxy;
+    use 0xe52552637c5897a2d499fbf08216f73e::XETH;
+    use 0xe52552637c5897a2d499fbf08216f73e::XUSDT;
 
-    const DEFAULT_CHAINID_STARCOIN: u64 = 318;
+    const DEFAULT_CHAINID_STARCOIN: u64 = 31;
     const DEFAULT_CHAINID_ETHEREUM: u64 = 2;
 
-    const PROXY_HASH_STARCOIN: vector<u8> = b"0x416b32009fe49fcab1d5f2ba0153838f::CrossChainScript";
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
 
     const ASSET_HASH_STC: vector<u8> = b"0x00000000000000000000000000000001::STC::STC";
-    const ASSET_HASH_XETH: vector<u8> = b"0x416b32009fe49fcab1d5f2ba0153838f::XETH::XETH";
-    const ASSET_HASH_XUSDT: vector<u8> = b"0x416b32009fe49fcab1d5f2ba0153838f::XUSDT::XUSDT";
+    const ASSET_HASH_XETH: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::XETH::XETH";
+    const ASSET_HASH_XUSDT: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::XUSDT::XUSDT";
 
     /// Initialize genesis from contract owner
     public(script) fun init_genesis(signer: signer,

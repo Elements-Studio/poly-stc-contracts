@@ -5,7 +5,7 @@
 address alice = {{alice}};
 script {
     use 0x1::Vector;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
 
     fun test_root_hash_check() {
         let root_hash = x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488";
@@ -22,7 +22,7 @@ script {
 address alice = {{alice}};
 script {
     use 0x1::Vector;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
 
     fun test_root_hash_check() {
         let element_key = x"b736de0143487e6d2f87a525edb9ef795a9db5be7b031979726a197af1e4c239";
@@ -44,8 +44,8 @@ script {
     use 0x1::Vector;
     use 0x1::Debug;
 
-    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTProofs;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainSMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainSMTProofs;
 
 
     fun test_root_update_leaf_check() {
@@ -74,8 +74,8 @@ script {
     use 0x1::Vector;
     use 0x1::Debug;
 
-    use 0x416b32009fe49fcab1d5f2ba0153838f::SMTProofs;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainSMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainSMTProofs;
 
     /// index=5 txn="Test key 4",
     fun test_root_update_leaf_check() {

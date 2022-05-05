@@ -1,9 +1,9 @@
-address 0x416b32009fe49fcab1d5f2ba0153838f {
+address 0xe52552637c5897a2d499fbf08216f73e {
 module ProofVerifyTest {
-    use 0x416b32009fe49fcab1d5f2ba0153838f::Bytes;
+    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
     use 0x1::Debug::{Self};
     use 0x1::Vector;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::EthStateVerifier;
+    use 0xe52552637c5897a2d499fbf08216f73e::EthStateVerifier;
 
     struct EthAccount has key, store, drop  {
         state_root: vector<u8>,

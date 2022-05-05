@@ -1,11 +1,11 @@
-address 0x416b32009fe49fcab1d5f2ba0153838f {
+address 0xe52552637c5897a2d499fbf08216f73e {
 module CommonHelper {
     use 0x1::Token;
     use 0x1::Account;
     use 0x1::Signer;
 //    use 0x1::BitOperators;
 //    use 0x1::Vector;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::TokenMock;
+    use 0xe52552637c5897a2d499fbf08216f73e::TokenMock;
 
 
     const PRECISION_9: u8 = 9;

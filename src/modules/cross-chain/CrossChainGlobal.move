@@ -1,13 +1,13 @@
-address 0x416b32009fe49fcab1d5f2ba0153838f {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module CrossChainGlobal {
 
     use 0x1::Errors;
     use 0x1::Signer;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainConfig;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainConfig;
 
-    friend 0x416b32009fe49fcab1d5f2ba0153838f::CrossChainManager;
-    friend 0x416b32009fe49fcab1d5f2ba0153838f::LockProxy;
+    friend 0xe52552637c5897a2d499fbf08216f73e::CrossChainManager;
+    friend 0xe52552637c5897a2d499fbf08216f73e::LockProxy;
 
     const ERR_INVALID_ACCOUNT: u64 = 101;
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;

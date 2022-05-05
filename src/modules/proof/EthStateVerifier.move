@@ -1,8 +1,8 @@
-address 0x416b32009fe49fcab1d5f2ba0153838f {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module RLP {
     use 0x1::Vector;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::Bytes;
+    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
     const INVALID_RLP_DATA: u64 = 100;
     const DATA_TOO_SHORT: u64 = 101;
 
@@ -72,10 +72,10 @@ module RLP {
 
 }
 module EthStateVerifier {
-    use 0x416b32009fe49fcab1d5f2ba0153838f::RLP;
+    use 0xe52552637c5897a2d499fbf08216f73e::RLP;
     use 0x1::Vector;
     use 0x1::Hash;
-    use 0x416b32009fe49fcab1d5f2ba0153838f::Bytes;
+    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
 
     const INVALID_PROOF: u64 = 400;
 
