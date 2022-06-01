@@ -59,6 +59,7 @@ module SMTProofs {
     use 0xe52552637c5897a2d499fbf08216f73e::SMTreeHasher;
 
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
+    const ERROR_COUNT_COMMON_PREFIX: u64 = 102;
     const BIT_RIGHT: bool = true;
 
     public fun verify_non_membership_proof_by_key(root_hash: &vector<u8>,
@@ -77,7 +78,8 @@ module SMTProofs {
                                                         leaf_path: &vector<u8>): bool {
         let non_membership_leaf_hash = if (Vector::length<u8>(non_membership_leaf_data) > 0) {
             let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
-            assert(*leaf_path != non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
+            assert(*leaf_path != *&non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
+            assert((SMTUtils::count_common_prefix(leaf_path, &non_membership_leaf_path) >= Vector::length(side_nodes)), ERROR_COUNT_COMMON_PREFIX);            
             SMTreeHasher::digest_leaf_data(non_membership_leaf_data)
         } else {
             SMTreeHasher::placeholder()
