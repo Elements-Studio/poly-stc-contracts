@@ -134,13 +134,13 @@ module SMTNonMembershipProofTest {
         assert(leaf_node_value == x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7", 1107);
     }
 
-    public fun gen_proof_path_hash(tx_hash: &vector<u8>): vector<u8> {
+    public fun get_proof_leaf_path_by_cross_chain_tx_hash(tx_hash: &vector<u8>): vector<u8> {
         CrossChainSMTProofs::generate_leaf_path(TEST_CHAIN_ID, tx_hash)
     }
 
     #[test]
     public fun test_non_exiests_line_1() {
-        let element_path = gen_proof_path_hash(&x"666f6f");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"666f6f");
         let expect_root_hash = x"0000000000000000000000000000000000000000000000000000000000000000";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -149,7 +149,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_2() {
-        let element_path = gen_proof_path_hash(&x"746573744b6571");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b6571");
         let expect_root_hash = x"86ceff92ad19b4454f03cf9d7eab04ea3fbeae5722db50ecd282ee627d9187f3";
         let leaf_data = x"00b218dd388cf26f40cc29d7f10df15c85b32b58554ff10d5bc749e744c17d8c682767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -158,7 +158,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_3() {
-        let element_path = gen_proof_path_hash(&x"746573744b657932");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657932");
         let expect_root_hash = x"0fb4ee35913fb9a3ee693a6690240163f9de66dc498b0e21acfdaa6314d1fec7";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -170,7 +170,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_4() {
-        let element_path = gen_proof_path_hash(&x"746573744b657933");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657933");
         let expect_root_hash = x"f454cefe2f7ece4f34eaa98e407bc0d194bf93f2f8bc43a1b545179502268333";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -180,7 +180,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_5() {
-        let element_path = gen_proof_path_hash(&x"746573744b657934");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657934");
         let expect_root_hash = x"e79eb517102e78f68b8b9a8d2585aef4a09e03c522f2b6a086c6341d324ca66f";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -192,7 +192,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_6() {
-        let element_path = gen_proof_path_hash(&x"746573744b657935");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657935");
         let expect_root_hash = x"0e3d08e9150f21294dccac6d896c62beb480752f07cbe774d3351d0fd4fcb82f";
         let leaf_data = x"006320474efd45e15d289a09129f5c44a149bbd7619390e4c05810a3c2c6ba92ca2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -202,7 +202,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_7() {
-        let element_path = gen_proof_path_hash(&x"746573744b657936");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657936");
         let expect_root_hash = x"c89574b1f7c772b744255434f15d392d0851c421bfb881b2c963d33255015ce6";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -213,7 +213,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_8() {
-        let element_path = gen_proof_path_hash(&x"746573744b657937");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657937");
         let expect_root_hash = x"f1716245c79ccfb351e4f17a6e5268b2cbf9ab8ee87fd6a143b58f83b1a2167e";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -225,7 +225,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_9() {
-        let element_path = gen_proof_path_hash(&x"746573744b657938");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657938");
         let expect_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -238,7 +238,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     public fun test_non_exiests_line_10() {
-        let element_path = gen_proof_path_hash(&x"746573744b657939");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657939");
         let expect_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
         let leaf_data = x"00b218dd388cf26f40cc29d7f10df15c85b32b58554ff10d5bc749e744c17d8c682767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -279,7 +279,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_1() {
-        let element_path = gen_proof_path_hash(&x"666f6f");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"666f6f");
         let expect_root_hash = x"86ceff92ad19b4454f03cf9d7eab04ea3fbeae5722db50ecd282ee627d9187f3";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -288,7 +288,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_2() {
-        let element_path = gen_proof_path_hash(&x"746573744b6579");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b6579");
         let expect_root_hash = x"0fb4ee35913fb9a3ee693a6690240163f9de66dc498b0e21acfdaa6314d1fec7";
         let leaf_data = x"00b218dd388cf26f40cc29d7f10df15c85b32b58554ff10d5bc749e744c17d8c682767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -297,7 +297,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_3() {
-        let element_path = gen_proof_path_hash(&x"746573744b657932");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657932");
         let expect_root_hash = x"f454cefe2f7ece4f34eaa98e407bc0d194bf93f2f8bc43a1b545179502268333";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -309,7 +309,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_4() {
-        let element_path = gen_proof_path_hash(&x"746573744b657933");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657933");
         let expect_root_hash = x"e79eb517102e78f68b8b9a8d2585aef4a09e03c522f2b6a086c6341d324ca66f";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -319,7 +319,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_5() {
-        let element_path = gen_proof_path_hash(&x"746573744b657934");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657934");
         let expect_root_hash = x"0e3d08e9150f21294dccac6d896c62beb480752f07cbe774d3351d0fd4fcb82f";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -331,7 +331,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_6() {
-        let element_path = gen_proof_path_hash(&x"746573744b657935");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657935");
         let expect_root_hash = x"c89574b1f7c772b744255434f15d392d0851c421bfb881b2c963d33255015ce6";
         let leaf_data = x"006320474efd45e15d289a09129f5c44a149bbd7619390e4c05810a3c2c6ba92ca2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -341,7 +341,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_7() {
-        let element_path = gen_proof_path_hash(&x"746573744b657936");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657936");
         let expect_root_hash = x"f1716245c79ccfb351e4f17a6e5268b2cbf9ab8ee87fd6a143b58f83b1a2167e";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -352,7 +352,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_8() {
-        let element_path = gen_proof_path_hash(&x"746573744b657937");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657937");
         let expect_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -364,7 +364,7 @@ module SMTNonMembershipProofTest {
 
     #[test]
     fun test_root_update_leaf_line_9() {
-        let element_path = gen_proof_path_hash(&x"746573744b657938");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657938");
         let expect_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -379,7 +379,7 @@ module SMTNonMembershipProofTest {
     fun test_create_membership_proof_and_verify_line_9() {
         let tx_hash = x"746573744b657938";
         let key = CrossChainSMTProofs::generate_key(TEST_CHAIN_ID, &tx_hash);
-        let leaf_path = gen_proof_path_hash(&tx_hash);
+        let leaf_path = get_proof_leaf_path_by_cross_chain_tx_hash(&tx_hash);
         assert(SMTreeHasher::digest(&key) == *&leaf_path, 1161);
         let leaf_value_hash = CrossChainSMTProofs::leaf_default_value_hash();
 
