@@ -64,7 +64,10 @@ module CrossChainScript {
         // XUSDT::init(&signer);
         // XUSDT::mint(&signer, xusdt_mint_amount);
         // LockProxy::move_to_treasury<XUSDT::XUSDT>(&signer, xusdt_mint_amount);
-        
+
+        // ///////////////////////////
+        // bug fix!
+        LockProxy::init_stc_treasury(&signer);
     }
 
     public fun inner_init_genesis(signer: &signer,
@@ -173,6 +176,11 @@ module CrossChainScript {
     /// Set admin account by genesis account
     public(script) fun set_freeze(signer: signer, switch: bool) {
         CrossChainConfig::set_freeze(&signer, switch);
+    }
+
+    /// Move STC to Lock-Treasury from genisis account(signer)'s balance
+    public(script) fun move_stc_balance_to_lock_treasury(signer: signer, amount: u128) {
+        LockProxy::move_to_treasury<STC::STC>(&signer, amount);
     }
 }
 }

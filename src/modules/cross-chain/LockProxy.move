@@ -26,6 +26,8 @@ module LockProxy {
     const ERROR_TREASURY_AMOUNT_INVALID: u64 = 108;
     const ERROR_PROXY_HASH_INITIALIZE_STATE: u64 = 109;
     const ERROR_ASSET_HASH_INITIALIZE_STATE: u64 = 110;
+    const ERROR_LOCK_TREASURY_NOT_EXISTS: u64 = 111;
+    const ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT: u64 = 112;
 
     const ADDRESS_LENGTH: u64 = 16;
 
@@ -158,6 +160,7 @@ module LockProxy {
 
         let withdraw_token = Account::withdraw<TokenT>(signer, amount);
         if (!exists<LockTreasury<TokenT>>(genesis_account)) {
+            assert(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
             move_to(signer, LockTreasury<TokenT>{
                 token: withdraw_token,
             });
@@ -165,6 +168,17 @@ module LockProxy {
             let treasury = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
             Token::deposit(&mut treasury.token, withdraw_token);
         };
+    }
+
+    public fun init_stc_treasury(signer: &signer) {
+        let genesis_account = CrossChainGlobal::genesis_account();
+        if (!exists<LockTreasury<STC::STC>>(genesis_account)) {
+            let withdraw_token = Account::withdraw<STC::STC>(signer, 1);
+            assert(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
+            move_to(signer, LockTreasury<STC::STC>{
+                token: withdraw_token,
+            });
+        }
     }
 
     /// Initialize proxy hash resource for `ChainType`
@@ -375,13 +389,13 @@ module LockProxy {
         );
     }
 
-//    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
-//        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
-//        Event::emit_event(
-//            &mut event_store.cross_chain_fee_speed_up_event,
-//            event,
-//        );
-//    }
+    //    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
+    //        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
+    //        Event::emit_event(
+    //            &mut event_store.cross_chain_fee_speed_up_event,
+    //            event,
+    //        );
+    //    }
 
     /* @notice                  This function is meant to be invoked by the ETH crosschain management contract,
     *                           then mint a certin amount of tokens to the designated address since a certain amount
@@ -398,7 +412,6 @@ module LockProxy {
                                                        tx_hash: &vector<u8>,
                                                        cap: &CrossChainGlobal::ExecutionCapability):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
-
         CrossChainGlobal::require_not_freezing();
 
         assert(
@@ -425,6 +438,7 @@ module LockProxy {
         // ////////////////////////////////////////////////
 
         // Do unlock from lock token treasury
+        assert(exists<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account()), ERROR_LOCK_TREASURY_NOT_EXISTS);
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
         let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
         Account::deposit<TokenT>(payee, deposit_token);
