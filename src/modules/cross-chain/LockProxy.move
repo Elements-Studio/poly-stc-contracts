@@ -148,7 +148,8 @@ module LockProxy {
         }
     }
 
-    /// Stake token from admin account, everyone can stake into treasury
+    /// Move token from signer account to lock-treasury.
+    /// If lock-treasury is NOT existed, only genesis account can do this job(init lock-treasury).
     public fun move_to_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
         assert(amount > 0, Errors::invalid_state(ERROR_TREASURY_AMOUNT_INVALID));
 
@@ -169,6 +170,7 @@ module LockProxy {
     public fun init_stc_treasury(signer: &signer) {
         let genesis_account = CrossChainGlobal::genesis_account();
         if (!exists<LockTreasury<STC::STC>>(genesis_account)) {
+            // move 1 nanoSTC to lock-treasury to init it.
             let withdraw_token = Account::withdraw<STC::STC>(signer, 1);
             assert(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
             move_to(signer, LockTreasury<STC::STC>{
@@ -176,6 +178,14 @@ module LockProxy {
             });
         }
     }
+
+    //    public fun withdraw_from_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
+    //        let account = Signer::address_of(signer);
+    //        assert(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
+    //        let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
+    //        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
+    //        Account::deposit<TokenT>(account, deposit_token);
+    //    }
 
     /// Initialize proxy hash resource for `ChainType`
     public fun init_proxy_hash<ChainType: store>(signer: &signer,

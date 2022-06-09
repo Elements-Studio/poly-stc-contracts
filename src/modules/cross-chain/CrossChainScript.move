@@ -180,5 +180,9 @@ module CrossChainScript {
     public(script) fun move_stc_balance_to_lock_treasury(signer: signer, amount: u128) {
         LockProxy::move_to_treasury<STC::STC>(&signer, amount);
     }
+
+    //    public(script) fun withdraw_from_lock_treasury<TokenT: store>(signer: signer, amount: u128) {
+    //        LockProxy::withdraw_from_treasury<TokenT>(&signer, amount);
+    //    }
 }
 }
