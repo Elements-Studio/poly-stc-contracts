@@ -46,27 +46,22 @@ module CrossChainData {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
-        // ENABLE_REPEATED_INIT!
         // repeate check
-        // assert(!exists<Consensus>(account), Errors::invalid_state(ERR_INITIALIZED_REPEATE));
-        if (!exists<Consensus>(account)) {
+        assert(!exists<Consensus>(account), Errors::invalid_state(ERR_INITIALIZED_REPEATE));
+
         move_to(signer, Consensus{
             con_keepers_pk_bytes: Vector::empty<u8>(),
             cur_epoch_start_height: 0,
             eth_to_poly_tx_hash_index: 0,
             eth_to_poly_tx_hash: Vector::empty<vector<u8>>()
         });
-        };
-        // ENABLE_REPEATED_INIT!
+
         // Repeate check
-        // assert(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
-        //     Errors::invalid_state(ERR_INITIALIZED_REPEATE));
-        if (!exists<SparseMerkleTreeRoot>(Signer::address_of(signer))) {
+        assert(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
+            Errors::invalid_state(ERR_INITIALIZED_REPEATE));
         move_to(signer, SparseMerkleTreeRoot{
             hash: *&SMTreeHasher::placeholder()
         });
-        };
-
     }
 
     public fun put_cur_epoch_con_pubkey_bytes(bytes: vector<u8>) acquires Consensus {

@@ -122,23 +122,19 @@ module LockProxy {
     public fun init_event(signer: &signer) {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
-        // ENABLE_REPEATED_INIT!
-        if (!exists<LockEventStore>(Signer::address_of(signer))) {
+
         move_to(signer, LockEventStore{
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(signer),
             bind_asset_event: Event::new_event_handle<BindAssetEvent>(signer),
             unlock_event: Event::new_event_handle<UnlockEvent>(signer),
             lock_event: Event::new_event_handle<LockEvent>(signer),
         });
-        };
-        // ENABLE_REPEATED_INIT!
-        if (!exists<FeeEventStore>(Signer::address_of(signer))) {
+
         // ///////////////
         move_to(signer, FeeEventStore{
             cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
             cross_chain_fee_speed_up_event: Event::new_event_handle<CrossChainFeeSpeedUpEvent>(signer),
         });
-        };
     }
 
     public fun init_fee_event_store(signer: &signer) {
@@ -188,14 +184,12 @@ module LockProxy {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
-        // ENABLE_REPEATED_INIT!
-        // assert(!exists<ProxyHashMap<ChainType>>(CrossChainGlobal::genesis_account()),
-        //     Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
-        if (!exists<ProxyHashMap<ChainType>>(Signer::address_of(signer))) {
+        assert(!exists<ProxyHashMap<ChainType>>(CrossChainGlobal::genesis_account()),
+            Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+
         move_to(signer, ProxyHashMap<ChainType>{
             to_proxy_hash: *proxy_hash,
         });
-        };
 
         inner_emit_proxy_hash_event(chain_id, proxy_hash);
     }
@@ -234,16 +228,14 @@ module LockProxy {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
-        // ENABLE_REPEATED_INIT!
-        // // Asset hash map
-        // assert(!exists<AssetHashMap<TokenT, ToChainType>>(CrossChainGlobal::genesis_account()),
-        //     Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
-        if (!exists<AssetHashMap<TokenT, ToChainType>>(Signer::address_of(signer))) {
+        // Asset hash map
+        assert(!exists<AssetHashMap<TokenT, ToChainType>>(CrossChainGlobal::genesis_account()),
+            Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
+
         move_to(signer, AssetHashMap<TokenT, ToChainType>{
             to_asset_hash: *to_asset_hash,
         });
         inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
-        };
     }
 
     /// Bind asset hash, which called by amind & genesis account
