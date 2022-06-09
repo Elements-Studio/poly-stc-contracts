@@ -28,6 +28,7 @@ module LockProxy {
     const ERROR_ASSET_HASH_INITIALIZE_STATE: u64 = 110;
     const ERROR_LOCK_TREASURY_NOT_EXISTS: u64 = 111;
     const ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT: u64 = 112;
+    const ERROR_ONLY_FOR_INIT_BUG_FIX: u64 = 113;
 
     const ADDRESS_LENGTH: u64 = 16;
 
@@ -179,13 +180,17 @@ module LockProxy {
         }
     }
 
-    //    public fun withdraw_from_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
-    //        let account = Signer::address_of(signer);
-    //        assert(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
-    //        let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
-    //        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-    //        Account::deposit<TokenT>(account, deposit_token);
-    //    }
+    public fun withdraw_from_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
+        // ///////////////////////////////////////////
+        let genesis_account = CrossChainGlobal::genesis_account();
+        assert(genesis_account != Signer::address_of(signer), ERROR_ONLY_FOR_INIT_BUG_FIX);
+        // ///////////////////////////////////////////
+        let account = Signer::address_of(signer);
+        assert(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
+        let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
+        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
+        Account::deposit<TokenT>(account, deposit_token);
+    }
 
     /// Initialize proxy hash resource for `ChainType`
     public fun init_proxy_hash<ChainType: store>(signer: &signer,
