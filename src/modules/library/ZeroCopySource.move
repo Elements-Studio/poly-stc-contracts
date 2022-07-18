@@ -1,5 +1,5 @@
 
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 /// Wrappers over decoding and deserialization operation from bytes into basic types in Move for PolyNetwork cross chain utility.
 /// Decode into basic types in Move from bytes easily. It's designed to be used
 /// for PolyNetwork cross chain application, and the decoding rules on Starcoin chain
@@ -11,7 +11,7 @@ address 0x18351d311d32201149a4df2a9fc2db8a {
 /// Please note that risk can be minimized
 
 module ZeroCopySource {
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
+    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
     use 0x1::Vector;
     use 0x1::Errors;
 

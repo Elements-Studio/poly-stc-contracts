@@ -1,4 +1,4 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module LockProxy {
 
@@ -10,11 +10,11 @@ module LockProxy {
     use 0x1::Account;
     use 0x1::STC;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
-    use 0x18351d311d32201149a4df2a9fc2db8a::Address;
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySink;
-    use 0x18351d311d32201149a4df2a9fc2db8a::ZeroCopySource;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainGlobal;
+    use 0xe52552637c5897a2d499fbf08216f73e::Address;
+    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
+    use 0xe52552637c5897a2d499fbf08216f73e::ZeroCopySink;
+    use 0xe52552637c5897a2d499fbf08216f73e::ZeroCopySource;
 
     const ERROR_LOCK_AMOUNT_ZERO: u64 = 101;
     const ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH: u64 = 102;
@@ -26,6 +26,9 @@ module LockProxy {
     const ERROR_TREASURY_AMOUNT_INVALID: u64 = 108;
     const ERROR_PROXY_HASH_INITIALIZE_STATE: u64 = 109;
     const ERROR_ASSET_HASH_INITIALIZE_STATE: u64 = 110;
+    const ERROR_LOCK_TREASURY_NOT_EXISTS: u64 = 111;
+    const ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT: u64 = 112;
+    const ERROR_ONLY_FOR_INIT_BUG_FIX: u64 = 113;
 
     const ADDRESS_LENGTH: u64 = 16;
 
@@ -119,7 +122,7 @@ module LockProxy {
 
     public fun init_event(signer: &signer) {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_admin_account(account);
+        CrossChainGlobal::require_genesis_account(account);
 
         move_to(signer, LockEventStore{
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(signer),
@@ -137,7 +140,7 @@ module LockProxy {
 
     public fun init_fee_event_store(signer: &signer) {
         let account = Signer::address_of(signer);
-        CrossChainGlobal::require_admin_account(account);
+        CrossChainGlobal::require_genesis_account(account);
         if (!exists<FeeEventStore>(account)) {
             move_to(signer, FeeEventStore{
                 cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
@@ -146,7 +149,8 @@ module LockProxy {
         }
     }
 
-    /// Stake token from admin account, everyone can stake into treasury
+    /// Move token from signer account to lock-treasury.
+    /// If lock-treasury is NOT existed, only genesis account can do this job(init lock-treasury).
     public fun move_to_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
         assert(amount > 0, Errors::invalid_state(ERROR_TREASURY_AMOUNT_INVALID));
 
@@ -154,6 +158,7 @@ module LockProxy {
 
         let withdraw_token = Account::withdraw<TokenT>(signer, amount);
         if (!exists<LockTreasury<TokenT>>(genesis_account)) {
+            assert(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
             move_to(signer, LockTreasury<TokenT>{
                 token: withdraw_token,
             });
@@ -161,6 +166,30 @@ module LockProxy {
             let treasury = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
             Token::deposit(&mut treasury.token, withdraw_token);
         };
+    }
+
+    public fun init_stc_treasury(signer: &signer) {
+        let genesis_account = CrossChainGlobal::genesis_account();
+        if (!exists<LockTreasury<STC::STC>>(genesis_account)) {
+            // move 1 nanoSTC to lock-treasury to init it.
+            let withdraw_token = Account::withdraw<STC::STC>(signer, 1);
+            assert(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
+            move_to(signer, LockTreasury<STC::STC>{
+                token: withdraw_token,
+            });
+        }
+    }
+
+    public fun withdraw_from_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
+        // ///////////////////////////////////////////
+        let genesis_account = CrossChainGlobal::genesis_account();
+        assert(genesis_account != Signer::address_of(signer), ERROR_ONLY_FOR_INIT_BUG_FIX);
+        // ///////////////////////////////////////////
+        let account = Signer::address_of(signer);
+        assert(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
+        let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
+        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
+        Account::deposit<TokenT>(account, deposit_token);
     }
 
     /// Initialize proxy hash resource for `ChainType`
@@ -189,8 +218,15 @@ module LockProxy {
         CrossChainGlobal::require_admin_account(account);
 
         let genesis_account = CrossChainGlobal::genesis_account();
-        assert(exists<ProxyHashMap<ChainType>>(genesis_account),
-            Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+        // //////// FIX BUG! ////////////
+        // assert(exists<ProxyHashMap<ChainType>>(genesis_account),
+        //     Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
+        if (!exists<ProxyHashMap<ChainType>>(genesis_account)) {
+            move_to(signer, ProxyHashMap<ChainType>{
+                to_proxy_hash: *proxy_hash,
+            });
+        };
+        // //////////////////////////////
 
         let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
         proxy_hash_map.to_proxy_hash = *proxy_hash;
@@ -228,8 +264,16 @@ module LockProxy {
 
         let genesis_account = CrossChainGlobal::genesis_account();
 
-        assert(exists<AssetHashMap<TokenT, ToChainType>>(genesis_account),
-            Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
+        // FIX BUG!
+        // assert(exists<AssetHashMap<TokenT, ToChainType>>(genesis_account),
+        //     Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
+        if (!exists<AssetHashMap<TokenT, ToChainType>>(genesis_account)) {
+            move_to(signer, AssetHashMap<TokenT, ToChainType>{
+                to_asset_hash: *to_asset_hash,
+            });
+            inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
+        };
+        // ////////////////////////
 
         // Asset hash map
         let store = borrow_global_mut<AssetHashMap<TokenT, ToChainType>>(genesis_account);
@@ -352,13 +396,13 @@ module LockProxy {
         );
     }
 
-//    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
-//        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
-//        Event::emit_event(
-//            &mut event_store.cross_chain_fee_speed_up_event,
-//            event,
-//        );
-//    }
+    //    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
+    //        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
+    //        Event::emit_event(
+    //            &mut event_store.cross_chain_fee_speed_up_event,
+    //            event,
+    //        );
+    //    }
 
     /* @notice                  This function is meant to be invoked by the ETH crosschain management contract,
     *                           then mint a certin amount of tokens to the designated address since a certain amount
@@ -375,7 +419,6 @@ module LockProxy {
                                                        tx_hash: &vector<u8>,
                                                        cap: &CrossChainGlobal::ExecutionCapability):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
-
         CrossChainGlobal::require_not_freezing();
 
         assert(
@@ -393,12 +436,19 @@ module LockProxy {
             Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
 
         assert(Vector::length(to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
-        let native_to_address = Address::addressify(*to_address);
+        let payee = Address::addressify(*to_address);
+
+        // ////////////////////////////////////////////////
+        if (!Account::exists_at(payee)) {
+            Account::create_account_with_address<TokenT>(payee);
+        };
+        // ////////////////////////////////////////////////
 
         // Do unlock from lock token treasury
+        assert(exists<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account()), ERROR_LOCK_TREASURY_NOT_EXISTS);
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
         let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-        Account::deposit<TokenT>(native_to_address, deposit_token);
+        Account::deposit<TokenT>(payee, deposit_token);
 
         UnlockEvent{
             to_asset_hash: *to_asset_hash,

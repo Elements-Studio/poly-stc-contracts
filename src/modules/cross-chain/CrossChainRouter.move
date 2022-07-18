@@ -1,16 +1,16 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module CrossChainRouter {
 
     use 0x1::STC;
     use 0x1::Errors;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
-    use 0x18351d311d32201149a4df2a9fc2db8a::XETH;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
-    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
+    use 0xe52552637c5897a2d499fbf08216f73e::XUSDT;
+    use 0xe52552637c5897a2d499fbf08216f73e::XETH;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofUtils;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainManager;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainGlobal;
+    use 0xe52552637c5897a2d499fbf08216f73e::LockProxy;
 
     const ERROR_NO_SUPPORT_UNLOCK_ASSET_TYPE: u64 = 101;
     const ERROR_NO_SUPPORT_UNLOCK_CHAIN_TYPE: u64 = 102;
@@ -96,9 +96,7 @@ module CrossChainRouter {
                                             merkle_proof_leaf: &vector<u8>,
                                             input_merkle_proof_siblings: &vector<u8>) {
         CrossChainGlobal::require_not_freezing();
-
-        let merkle_proof_siblings = MerkleProofHelper::extract_sibling(input_merkle_proof_siblings);
-
+        let merkle_proof_siblings = SMTProofUtils::split_side_nodes_data(input_merkle_proof_siblings);
         // Verify header and parse method and args from proof vector
         let (
             method,

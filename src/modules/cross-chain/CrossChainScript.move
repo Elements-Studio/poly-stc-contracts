@@ -1,26 +1,26 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module CrossChainScript {
 
     use 0x1::STC;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainGlobal;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainData;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainManager;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainRouter;
-    use 0x18351d311d32201149a4df2a9fc2db8a::CrossChainConfig;
-    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
-    use 0x18351d311d32201149a4df2a9fc2db8a::XETH;
-    use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainGlobal;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainData;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainManager;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainRouter;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainConfig;
+    use 0xe52552637c5897a2d499fbf08216f73e::LockProxy;
+    use 0xe52552637c5897a2d499fbf08216f73e::XETH;
+    use 0xe52552637c5897a2d499fbf08216f73e::XUSDT;
 
-    const DEFAULT_CHAINID_STARCOIN: u64 = 318;
+    const DEFAULT_CHAINID_STARCOIN: u64 = 31;
     const DEFAULT_CHAINID_ETHEREUM: u64 = 2;
 
-    const PROXY_HASH_STARCOIN: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::CrossChainScript";
+    const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
 
     const ASSET_HASH_STC: vector<u8> = b"0x00000000000000000000000000000001::STC::STC";
-    const ASSET_HASH_XETH: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::XETH::XETH";
-    const ASSET_HASH_XUSDT: vector<u8> = b"0x18351d311d32201149a4df2a9fc2db8a::XUSDT::XUSDT";
+    const ASSET_HASH_XETH: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::XETH::XETH";
+    const ASSET_HASH_XUSDT: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::XUSDT::XUSDT";
 
     /// Initialize genesis from contract owner
     public(script) fun init_genesis(signer: signer,
@@ -52,14 +52,20 @@ module CrossChainScript {
         LockProxy::init_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
             &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
 
-        let mint_amount = 13611294676837538538534984;
+        // let xeth_mint_amount = 13611294676837538538534984; //   13,611,294,676,837,538,538,534,984
+        let xeth_mint_amount = 1000000000000000000000000000;  //1,000,000,000,000,000,000,000,000,000
         XETH::init(&signer);
-        XETH::mint(&signer, mint_amount);
-        LockProxy::move_to_treasury<XETH::XETH>(&signer, mint_amount);
+        XETH::mint(&signer, xeth_mint_amount);
+        LockProxy::move_to_treasury<XETH::XETH>(&signer, xeth_mint_amount);
 
+        let xusdt_mint_amount = 13611294676837538538534984;   //   13,611,294,676,837,538,538,534,984
         XUSDT::init(&signer);
-        XUSDT::mint(&signer, mint_amount);
-        LockProxy::move_to_treasury<XUSDT::XUSDT>(&signer, mint_amount);
+        XUSDT::mint(&signer, xusdt_mint_amount);
+        LockProxy::move_to_treasury<XUSDT::XUSDT>(&signer, xusdt_mint_amount);
+
+        // ///////////////////////////
+        // bug fix!
+        LockProxy::init_stc_treasury(&signer);
     }
 
     public fun inner_init_genesis(signer: &signer,
@@ -168,6 +174,15 @@ module CrossChainScript {
     /// Set admin account by genesis account
     public(script) fun set_freeze(signer: signer, switch: bool) {
         CrossChainConfig::set_freeze(&signer, switch);
+    }
+
+    /// Move STC to Lock-Treasury from genisis account(signer)'s balance
+    public(script) fun move_stc_balance_to_lock_treasury(signer: signer, amount: u128) {
+        LockProxy::move_to_treasury<STC::STC>(&signer, amount);
+    }
+
+    public(script) fun withdraw_from_lock_treasury<TokenT: store>(signer: signer, amount: u128) {
+        LockProxy::withdraw_from_treasury<TokenT>(&signer, amount);
     }
 }
 }

@@ -1,11 +1,11 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module MerkleProofStructuredHash {
     use 0x1::Hash;
     use 0x1::Vector;
     use 0x1::BCS;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofElementBits;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTreeHasher;
 
     const STARCOIN_HASH_PREFIX: vector<u8> = b"STARCOIN::";
 
@@ -19,11 +19,11 @@ module MerkleProofStructuredHash {
 
     public fun create_literal_hash(word: &vector<u8>) : vector<u8> {
         let word_length = Vector::length(word);
-        assert(word_length <= MerkleProofElementBits::hash_length(), ERROR_INVALID_HASH_LENGTH);
-        if (word_length < MerkleProofElementBits::hash_length()) {
+        assert(word_length <= SMTreeHasher::path_size(), ERROR_INVALID_HASH_LENGTH);
+        if (word_length < SMTreeHasher::path_size()) {
             let result = Vector::empty();
             let idx = 0;
-            while (idx < MerkleProofElementBits::hash_length()) {
+            while (idx < SMTreeHasher::path_size()) {
                 if (idx < word_length) {
                     Vector::push_back(&mut result, *Vector::borrow(word, idx));
                 } else {

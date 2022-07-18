@@ -1,14 +1,18 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
-module MerkleProofNonExistsTest {
+address 0xe52552637c5897a2d499fbf08216f73e {
+module SMTNonMembershipProofTest {
     use 0x1::Vector;
     use 0x1::Debug;
     use 0x1::BitOperators;
     use 0x1::Hash;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofElementBits;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofHelper;
+    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofUtils;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTUtils;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTreeHasher;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainSMTProofs;
+
+    const TEST_CHAIN_ID: u64 = 218;
 
     struct MerkleInternalNode has store, drop {
         left_child: vector<u8>,
@@ -20,7 +24,7 @@ module MerkleProofNonExistsTest {
         let hash = x"1000000000000000000000000000000000000000000000000000000000000000";
         Debug::print(&Hash::sha3_256(*&hash));
 
-        let bit_vec = MerkleProofElementBits::iter_bits(&hash);
+        let bit_vec = SMTProofUtils::path_bits_to_bool_vector_from_msb(&hash);
         Debug::print(&bit_vec);
         assert(Vector::length<bool>(&bit_vec) == 256, 1101);
 
@@ -64,7 +68,7 @@ module MerkleProofNonExistsTest {
         let bit_hash = Vector::empty();
         let i = 0;
         while (i < 256) {
-            Vector::push_back(&mut bit_hash, MerkleProofElementBits::get_bit(&origin_hash, i));
+            Vector::push_back(&mut bit_hash, SMTUtils::get_bit_at_from_msb(&origin_hash, i));
             i = i + 1;
         };
         Debug::print(&bit_hash);
@@ -83,7 +87,7 @@ module MerkleProofNonExistsTest {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let expect = x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488";
 
-        let crypto_hash = MerkleProofNonExists::crypto_leaf_node_hash(&data);
+        let crypto_hash =  SMTreeHasher::digest_leaf_data(&data);
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
@@ -96,7 +100,7 @@ module MerkleProofNonExistsTest {
         let right = x"42bfc776a76b35ca641ee761a5f4bc6ebf2d4e2441c517f8a8e085dec3ca443c";
         let expect = x"060aec78413605e993f9338255b661ac794a68729ffa50022aca72b01586a306";
 
-        let crypto_hash = MerkleProofNonExists::crypto_internal_node_hash(&left, &right);
+        let (crypto_hash, _) = SMTreeHasher::digest_node(&left, &right);
 
         Debug::print(&crypto_hash);
         Debug::print(&expect);
@@ -106,11 +110,11 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_common_prefix_bits_len() {
-        let bits1 = MerkleProofElementBits::iter_bits(&x"0000000000000000000000000000000000000000000000000000000000000000");
-        let bits2 = MerkleProofElementBits::iter_bits(&x"1000000000000000000000000000000000000000000000000000000000000000");
+        let bits1 = SMTProofUtils::path_bits_to_bool_vector_from_msb(&x"0000000000000000000000000000000000000000000000000000000000000000");
+        let bits2 = SMTProofUtils::path_bits_to_bool_vector_from_msb(&x"1000000000000000000000000000000000000000000000000000000000000000");
         Debug::print(&bits1);
         Debug::print(&bits2);
-        let len = MerkleProofElementBits::common_prefix_bits_len<bool>(&bits1, &bits2);
+        let len = SMTUtils::count_vector_common_prefix<bool>(&bits1, &bits2);
         Debug::print(&len);
         assert(len == 3, 1109);
     }
@@ -118,8 +122,8 @@ module MerkleProofNonExistsTest {
     #[test]
     public fun test_fixed_split_leaf_node_data() {
         let data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
-        let (prefix, leaf_node_path, leaf_node_value) = MerkleProofNonExists::split_leaf_node_data(&data);
-        assert(prefix == x"00", 1110);
+        let (leaf_node_path, leaf_node_value) = SMTreeHasher::parse_leaf(&data);
+        //assert(prefix == x"00", 1110);
 
         Debug::print(&leaf_node_path);
         Debug::print(&x"76d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c01");
@@ -130,13 +134,13 @@ module MerkleProofNonExistsTest {
         assert(leaf_node_value == x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7", 1107);
     }
 
-    public fun gen_proof_path_hash(tx_hash: &vector<u8>): vector<u8> {
-        MerkleProofHelper::gen_proof_path(218, tx_hash)
+    public fun get_proof_leaf_path_by_cross_chain_tx_hash(tx_hash: &vector<u8>): vector<u8> {
+        CrossChainSMTProofs::generate_leaf_path(TEST_CHAIN_ID, tx_hash)
     }
 
     #[test]
     public fun test_non_exiests_line_1() {
-        let element_path = gen_proof_path_hash(&x"666f6f");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"666f6f");
         let expect_root_hash = x"0000000000000000000000000000000000000000000000000000000000000000";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -145,7 +149,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_2() {
-        let element_path = gen_proof_path_hash(&x"746573744b6571");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b6571");
         let expect_root_hash = x"86ceff92ad19b4454f03cf9d7eab04ea3fbeae5722db50ecd282ee627d9187f3";
         let leaf_data = x"00b218dd388cf26f40cc29d7f10df15c85b32b58554ff10d5bc749e744c17d8c682767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -154,7 +158,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_3() {
-        let element_path = gen_proof_path_hash(&x"746573744b657932");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657932");
         let expect_root_hash = x"0fb4ee35913fb9a3ee693a6690240163f9de66dc498b0e21acfdaa6314d1fec7";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -166,7 +170,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_4() {
-        let element_path = gen_proof_path_hash(&x"746573744b657933");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657933");
         let expect_root_hash = x"f454cefe2f7ece4f34eaa98e407bc0d194bf93f2f8bc43a1b545179502268333";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -176,7 +180,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_5() {
-        let element_path = gen_proof_path_hash(&x"746573744b657934");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657934");
         let expect_root_hash = x"e79eb517102e78f68b8b9a8d2585aef4a09e03c522f2b6a086c6341d324ca66f";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -188,7 +192,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_6() {
-        let element_path = gen_proof_path_hash(&x"746573744b657935");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657935");
         let expect_root_hash = x"0e3d08e9150f21294dccac6d896c62beb480752f07cbe774d3351d0fd4fcb82f";
         let leaf_data = x"006320474efd45e15d289a09129f5c44a149bbd7619390e4c05810a3c2c6ba92ca2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -198,7 +202,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_7() {
-        let element_path = gen_proof_path_hash(&x"746573744b657936");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657936");
         let expect_root_hash = x"c89574b1f7c772b744255434f15d392d0851c421bfb881b2c963d33255015ce6";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -209,7 +213,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_8() {
-        let element_path = gen_proof_path_hash(&x"746573744b657937");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657937");
         let expect_root_hash = x"f1716245c79ccfb351e4f17a6e5268b2cbf9ab8ee87fd6a143b58f83b1a2167e";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -221,7 +225,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_9() {
-        let element_path = gen_proof_path_hash(&x"746573744b657938");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657938");
         let expect_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -234,7 +238,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     public fun test_non_exiests_line_10() {
-        let element_path = gen_proof_path_hash(&x"746573744b657939");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657939");
         let expect_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
         let leaf_data = x"00b218dd388cf26f40cc29d7f10df15c85b32b58554ff10d5bc749e744c17d8c682767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -251,11 +255,11 @@ module MerkleProofNonExistsTest {
                          expect_root_hash: &vector<u8>,
                          leaf_data: &vector<u8>,
                          siblings: &vector<vector<u8>>) {
-        let checked = MerkleProofNonExists::proof_not_exists_in_root(
+        let checked = SMTProofs::verify_non_membership_proof_by_leaf_path(
             expect_root_hash,
-            element_path,
             leaf_data,
-            siblings);
+            siblings,
+            element_path);
         assert(checked, 1112);
     }
 
@@ -263,8 +267,9 @@ module MerkleProofNonExistsTest {
                          expect_root_hash: &vector<u8>,
                          leaf_data: &vector<u8>,
                          siblings: &vector<vector<u8>>) {
-        let new_root_hash = MerkleProofNonExists::update_leaf(
+        let new_root_hash = SMTProofs::compute_root_hash_new_leaf_included(
             element_path,
+            &CrossChainSMTProofs::leaf_default_value_hash(),
             leaf_data,
             siblings);
         Debug::print(&new_root_hash);
@@ -274,7 +279,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_1() {
-        let element_path = gen_proof_path_hash(&x"666f6f");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"666f6f");
         let expect_root_hash = x"86ceff92ad19b4454f03cf9d7eab04ea3fbeae5722db50ecd282ee627d9187f3";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -283,7 +288,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_2() {
-        let element_path = gen_proof_path_hash(&x"746573744b6579");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b6579");
         let expect_root_hash = x"0fb4ee35913fb9a3ee693a6690240163f9de66dc498b0e21acfdaa6314d1fec7";
         let leaf_data = x"00b218dd388cf26f40cc29d7f10df15c85b32b58554ff10d5bc749e744c17d8c682767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -292,7 +297,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_3() {
-        let element_path = gen_proof_path_hash(&x"746573744b657932");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657932");
         let expect_root_hash = x"f454cefe2f7ece4f34eaa98e407bc0d194bf93f2f8bc43a1b545179502268333";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -304,7 +309,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_4() {
-        let element_path = gen_proof_path_hash(&x"746573744b657933");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657933");
         let expect_root_hash = x"e79eb517102e78f68b8b9a8d2585aef4a09e03c522f2b6a086c6341d324ca66f";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -314,7 +319,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_5() {
-        let element_path = gen_proof_path_hash(&x"746573744b657934");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657934");
         let expect_root_hash = x"0e3d08e9150f21294dccac6d896c62beb480752f07cbe774d3351d0fd4fcb82f";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -326,7 +331,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_6() {
-        let element_path = gen_proof_path_hash(&x"746573744b657935");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657935");
         let expect_root_hash = x"c89574b1f7c772b744255434f15d392d0851c421bfb881b2c963d33255015ce6";
         let leaf_data = x"006320474efd45e15d289a09129f5c44a149bbd7619390e4c05810a3c2c6ba92ca2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -336,7 +341,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_7() {
-        let element_path = gen_proof_path_hash(&x"746573744b657936");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657936");
         let expect_root_hash = x"f1716245c79ccfb351e4f17a6e5268b2cbf9ab8ee87fd6a143b58f83b1a2167e";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -347,7 +352,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_8() {
-        let element_path = gen_proof_path_hash(&x"746573744b657937");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657937");
         let expect_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
         let leaf_data = x"";
         let siblings = Vector::empty<vector<u8>>();
@@ -359,7 +364,7 @@ module MerkleProofNonExistsTest {
 
     #[test]
     fun test_root_update_leaf_line_9() {
-        let element_path = gen_proof_path_hash(&x"746573744b657938");
+        let element_path = get_proof_leaf_path_by_cross_chain_tx_hash(&x"746573744b657938");
         let expect_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
         let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
         let siblings = Vector::empty<vector<u8>>();
@@ -368,6 +373,73 @@ module MerkleProofNonExistsTest {
         Vector::push_back(&mut siblings, x"0000000000000000000000000000000000000000000000000000000000000000");
         Vector::push_back(&mut siblings, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
         test_update_leaf(&element_path, &expect_root_hash, &leaf_data, &siblings);
+    }
+
+    #[test]
+    fun test_create_membership_proof_and_verify_line_9() {
+        let tx_hash = x"746573744b657938";
+        let key = CrossChainSMTProofs::generate_key(TEST_CHAIN_ID, &tx_hash);
+        let leaf_path = get_proof_leaf_path_by_cross_chain_tx_hash(&tx_hash);
+        assert(SMTreeHasher::digest(&key) == *&leaf_path, 1161);
+        let leaf_value_hash = CrossChainSMTProofs::leaf_default_value_hash();
+
+        let non_membership_leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+        let side_nodes = Vector::empty<vector<u8>>();
+        Vector::push_back(&mut side_nodes, x"67fca48cb86777e28bdb0d29cea95266d83338b9248ac3ebe7ca04b7c054c1d3");
+        Vector::push_back(&mut side_nodes, x"f7cab8f8c82042e3831a4bc4be6313e76a5e613e8551ef2b693de568bb2384c9");
+        Vector::push_back(&mut side_nodes, x"0000000000000000000000000000000000000000000000000000000000000000");
+        Vector::push_back(&mut side_nodes, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
+
+        let non_membership_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
+        // Verify non-membership proof
+        let v_non_member = SMTProofs::verify_non_membership_proof_by_key(
+            &non_membership_root_hash,
+            &non_membership_leaf_data,
+            &side_nodes,
+            &key);
+        assert(v_non_member, 1162);
+
+        // Create membership proof from non-membership proof info.
+        let expected_membership_root_hash = x"e12e95cee66ba3866b02ac8da4fe70252954773bdc6a9ba9df479d848668e360";
+        //Debug::print<vector<u8>>(&expected_membership_root_hash);
+        let (new_root_hash, new_side_nodes) = SMTProofs::create_membership_proof(&leaf_path, &leaf_value_hash, &non_membership_leaf_data, &side_nodes);
+        //Debug::print<vector<u8>>(&new_root_hash);
+        assert(expected_membership_root_hash == *&new_root_hash, 1165);
+
+        // Verify membership proof
+        let v = SMTProofs::verify_membership_proof(&new_root_hash, &new_side_nodes, &leaf_path, &leaf_value_hash);
+        assert(v, 1166);
+    }
+
+    fun test_compute_root_hash_by_leaf_line_9() {
+
+        let leaf_data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+        let side_nodes = Vector::empty<vector<u8>>();
+        Vector::push_back(&mut side_nodes, x"67fca48cb86777e28bdb0d29cea95266d83338b9248ac3ebe7ca04b7c054c1d3");
+        Vector::push_back(&mut side_nodes, x"f7cab8f8c82042e3831a4bc4be6313e76a5e613e8551ef2b693de568bb2384c9");
+        Vector::push_back(&mut side_nodes, x"0000000000000000000000000000000000000000000000000000000000000000");
+        Vector::push_back(&mut side_nodes, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
+        let expected_root_hash = x"20db0fe063bcbc8bd73e3a785ec3b274227f9e03ee4511c2cd759bf81b5a4f2f";
+
+        let (leaf_path, leaf_value_hash) = SMTreeHasher::parse_leaf(&leaf_data);
+        let root_hash = SMTProofs::compute_root_hash_by_leaf(&leaf_path, &leaf_value_hash, &side_nodes);
+
+        assert(expected_root_hash == root_hash, 1167);
+    }
+
+
+    #[test]
+    fun test_compute_root_hash_new_leaf_included_17() {
+        let leaf_path = x"f9d7b13ae9d011a4b012e352beeed4233b398d52b917ebc1ef01221ff3cdcfe6";
+        let leaf_value_hash = CrossChainSMTProofs::leaf_default_value_hash();
+        let non_membership_leaf_data = x"00fc5211253bbe9d6e01ce802efe89a7f5521ef8a783d32d8a8affbeecefdfceac2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+        let side_nodes = Vector::empty<vector<u8>>();
+        Vector::push_back(&mut side_nodes, x"aea4db371d829dc5fa56a30eedba283c80f38f4417a7e0f0213b3051328da981");
+        Vector::push_back(&mut side_nodes, x"9cf2d9de2a06197afb781f44ff7ac9a63d5941e7fa69b3e11aed71aacd992a76");
+        Vector::push_back(&mut side_nodes, x"7b6a156cc468301e48256c262bb9a0f6dbbcd0bfbe0fc60686c4f4ad13224216");
+        let new_root_hash = SMTProofs::compute_root_hash_new_leaf_included(&leaf_path, &leaf_value_hash, &non_membership_leaf_data, &side_nodes);
+        Debug::print<vector<u8>>(&new_root_hash);
+        assert(x"e7f7d1b12f99f3275fee521aaebdf1b1cc07dc7f97f111e84cf91a649ed0c3d2" == new_root_hash, 1171);
     }
 
 }

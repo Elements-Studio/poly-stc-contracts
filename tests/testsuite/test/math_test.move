@@ -6,7 +6,7 @@ address alice = {{alice}};
 script {
     use 0x1::Math;
     use 0x1::Debug;
-    use 0x18351d311d32201149a4df2a9fc2db8a::SafeMath;
+    use 0xe52552637c5897a2d499fbf08216f73e::SafeMath;
 
     // case : x*y/z overflow
     fun math_overflow(_: signer) {
@@ -33,7 +33,7 @@ address alice = {{alice}};
 script {
     use 0x1::BCS;
     use 0x1::Debug;
-//    use 0x18351d311d32201149a4df2a9fc2db8a::Bytes;
+//    use 0xe52552637c5897a2d499fbf08216f73e::Bytes;
     use 0x1::Vector;
 
     // case : x*y/z overflow

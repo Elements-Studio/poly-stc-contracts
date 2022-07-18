@@ -1,5 +1,5 @@
 
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 module XUSDT {
     use 0x1::Token;
     use 0x1::Account;
@@ -9,7 +9,9 @@ module XUSDT {
 
 
     /// precision of XUSDT token.
-    const PRECISION: u8 = 9;
+    /// https://etherscan.io/address/0xdac17f958d2ee523a2206206994597c13d831ec7#code
+    /// see USDT on ethereum Constructor Arguments, _decimals (uint256): 6
+    const PRECISION: u8 = 6;
 
     /// XUSDT initialization.
     public fun init(account: &signer) {
@@ -24,8 +26,8 @@ module XUSDT {
 }
 
 module XUSDTScripts {
-    use 0x18351d311d32201149a4df2a9fc2db8a::XUSDT;
-    use 0x18351d311d32201149a4df2a9fc2db8a::LockProxy;
+    use 0xe52552637c5897a2d499fbf08216f73e::XUSDT;
+    use 0xe52552637c5897a2d499fbf08216f73e::LockProxy;
 
     public(script) fun init(account: signer) {
         XUSDT::init(&account);

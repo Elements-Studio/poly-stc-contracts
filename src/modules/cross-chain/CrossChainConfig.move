@@ -1,4 +1,4 @@
-address 0x18351d311d32201149a4df2a9fc2db8a {
+address 0xe52552637c5897a2d499fbf08216f73e {
 
 module CrossChainConfig {
     use 0x1::Config;
@@ -91,7 +91,7 @@ module CrossChainConfig {
     }
 
     public fun genesis_account(): address {
-        @0x18351d311d32201149a4df2a9fc2db8a
+        @0xe52552637c5897a2d499fbf08216f73e
     }
 
     public fun assert_genesis(account: address) {

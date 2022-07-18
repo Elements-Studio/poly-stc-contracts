@@ -5,13 +5,13 @@
 address alice = {{alice}};
 script {
     use 0x1::Vector;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
 
     fun test_root_hash_check() {
         let root_hash = x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488";
         let none_existing_key = x"c0359bc303b37a066ce3a91aa14628accb3eb5dd6ed2c49c93f7bc60d29c797e";
         let leaf_data = x"0076d3bc41c9f588f7fcd0d5bf4718f8f84b1c41b20882703100b9eb9413807c012767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
-        assert(MerkleProofNonExists::proof_not_exists_in_root(&root_hash, &none_existing_key, &leaf_data, &Vector::empty<vector<u8>>()), 1001);
+        assert(SMTProofs::verify_non_membership_proof_by_leaf_path(&root_hash, &leaf_data, &Vector::empty<vector<u8>>(), &none_existing_key), 1001);
     }
 }
 // check: EXECUTED
@@ -22,7 +22,7 @@ script {
 address alice = {{alice}};
 script {
     use 0x1::Vector;
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
 
     fun test_root_hash_check() {
         let element_key = x"b736de0143487e6d2f87a525edb9ef795a9db5be7b031979726a197af1e4c239";
@@ -31,7 +31,7 @@ script {
         let siblings = Vector::empty<vector<u8>>();
         Vector::push_back(&mut siblings, x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488");
 
-        assert(MerkleProofNonExists::proof_not_exists_in_root(&root_hash, &element_key, &leaf_data, &siblings), 1002);
+        assert(SMTProofs::verify_non_membership_proof_by_leaf_path(&root_hash, &leaf_data, &siblings, &element_key), 1002);
     }
 }
 // check: EXECUTED
@@ -44,7 +44,9 @@ script {
     use 0x1::Vector;
     use 0x1::Debug;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainSMTProofs;
+
 
     fun test_root_update_leaf_check() {
         // Update to leaf
@@ -54,7 +56,10 @@ script {
         let siblings = Vector::empty<vector<u8>>();
         Vector::push_back(&mut siblings, x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488");
 
-        let new_root_hash = MerkleProofNonExists::update_leaf(&element_key, &leaf_data, &siblings);
+        let new_root_hash = SMTProofs::compute_root_hash_new_leaf_included(&element_key,
+            &CrossChainSMTProofs::leaf_default_value_hash(),
+            &leaf_data,
+            &siblings);
         Debug::print(&expect_root_hash);
         Debug::print(&new_root_hash);
         assert(*&new_root_hash == expect_root_hash, 1003);
@@ -69,7 +74,8 @@ script {
     use 0x1::Vector;
     use 0x1::Debug;
 
-    use 0x18351d311d32201149a4df2a9fc2db8a::MerkleProofNonExists;
+    use 0xe52552637c5897a2d499fbf08216f73e::SMTProofs;
+    use 0xe52552637c5897a2d499fbf08216f73e::CrossChainSMTProofs;
 
     /// index=5 txn="Test key 4",
     fun test_root_update_leaf_check() {
@@ -82,7 +88,10 @@ script {
         Vector::push_back(&mut siblings, x"a18880b51b4475f45c663c66e9baff5bfdf01f9e552c9cfd84cfeb2494ea0bbd");
         Vector::push_back(&mut siblings, x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488");
 
-        let new_root_hash = MerkleProofNonExists::update_leaf(&element_key, &leaf_data, &siblings);
+        let new_root_hash = SMTProofs::compute_root_hash_new_leaf_included(&element_key,
+            &CrossChainSMTProofs::leaf_default_value_hash(),
+            &leaf_data,
+            &siblings);
         Debug::print(&expect_root_hash);
         Debug::print(&new_root_hash);
         assert(*&new_root_hash == expect_root_hash, 1004);
