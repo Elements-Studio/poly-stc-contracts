@@ -199,8 +199,6 @@ module Bridge::EthStateVerifier {
 #[teset_only]
 module Bridge::ProofVerifyTest {
     use StarcoinFramework::Vector;
-    use StarcoinFramework::Debug;
-    use Bridge::EthStateVerifier;
     use Bridge::Bytes;
 
     struct EthAccount has key, store, drop  {
