@@ -72,23 +72,6 @@ script {
 }
 // check: EXECUTED
 
-// TODO : error
-//# run --signers bob
-script {
-    use Bridge::CrossChainGlobal;
-    use Bridge::CrossChainRouter;
-
-    fun test_cross_to_self(signer: signer) {
-        CrossChainRouter::lock(
-            &signer,
-            &x"0000000000000000000000000000000000000000",
-            CrossChainGlobal::get_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(),
-            &x"49156896A605F092ba1862C50a9036c9",
-            (1000000000000000000 as u128));
-    }
-}
-// check: EXECUTED
-
 //# run --signers Bridge
 script {
     use StarcoinFramework::Vector;
