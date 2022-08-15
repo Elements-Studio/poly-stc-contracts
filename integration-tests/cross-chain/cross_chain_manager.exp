@@ -1,0 +1,53 @@
+processed 8 tasks
+
+task 4 'run'. lines 23-56:
+{
+  "gas_used": 22084442,
+  "status": {
+    "Keep": "Executed"
+  }
+}
+
+task 5 'run'. lines 58-69:
+{
+  "gas_used": 33144,
+  "status": {
+    "Keep": {
+      "MoveAbort": [
+        {
+          "Module": {
+            "address": "0xe52552637c5897a2d499fbf08216f73e",
+            "name": "CrossChainData"
+          }
+        },
+        25857
+      ]
+    }
+  }
+}
+
+task 6 'run'. lines 71-82:
+{
+  "gas_used": 28328078,
+  "status": {
+    "Keep": "Executed"
+  }
+}
+
+task 7 'run'. lines 84-112:
+{
+  "gas_used": 22107057,
+  "status": {
+    "Keep": {
+      "MoveAbort": [
+        {
+          "Module": {
+            "address": "0xe52552637c5897a2d499fbf08216f73e",
+            "name": "CrossChainManager"
+          }
+        },
+        27137
+      ]
+    }
+  }
+}
