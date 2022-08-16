@@ -196,11 +196,13 @@ module Bridge::EthStateVerifier {
     }
 }
 
-#[teset_only]
+#[test_only]
 module Bridge::ProofVerifyTest {
     use StarcoinFramework::Vector;
+    #[test_only]use StarcoinFramework::Debug;
     use Bridge::Bytes;
-
+    #[test_only]use Bridge::EthStateVerifier;
+    
     struct EthAccount has key, store, drop  {
         state_root: vector<u8>,
         height: u64,
