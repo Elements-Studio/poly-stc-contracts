@@ -1,14 +1,16 @@
 module Bridge::CrossChainData {
 
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Signer;
-    use StarcoinFramework::Errors;
-
     use Bridge::CrossChainGlobal;
-    use Bridge::SMTProofs;
-    use Bridge::SMTreeHasher;
     use Bridge::CrossChainSMTProofs;
+    use Bridge::SMTProofs;
     use Bridge::SMTUtils;
+    use Bridge::SMTreeHasher;
+    use StarcoinFramework::Errors;
+    use StarcoinFramework::Signer;
+    use StarcoinFramework::Vector;
+
+    const LEAF_DATA_VALUE_HASH_START_INDEX: u64 = 33;
+    const LEAF_DATA_LEN: u64 = 65;
 
     const ERR_INITIALIZED_REPEATE: u64 = 101;
     const ERR_PROOF_HASH_INVALID: u64 = 102;
@@ -49,7 +51,7 @@ module Bridge::CrossChainData {
         // repeate check
         assert!(!exists<Consensus>(account), Errors::invalid_state(ERR_INITIALIZED_REPEATE));
 
-        move_to(signer, Consensus{
+        move_to(signer, Consensus {
             con_keepers_pk_bytes: Vector::empty<u8>(),
             cur_epoch_start_height: 0,
             eth_to_poly_tx_hash_index: 0,
@@ -59,7 +61,7 @@ module Bridge::CrossChainData {
         // Repeate check
         assert!(!exists<SparseMerkleTreeRoot>(Signer::address_of(signer)),
             Errors::invalid_state(ERR_INITIALIZED_REPEATE));
-        move_to(signer, SparseMerkleTreeRoot{
+        move_to(signer, SparseMerkleTreeRoot {
             hash: *&SMTreeHasher::placeholder()
         });
     }
@@ -126,7 +128,6 @@ module Bridge::CrossChainData {
             proof_siblings);
     }
 
-
     // Check if from chain tx fromChainTx has been processed before
     public fun check_chain_tx_not_exists(
         input_hash: &vector<u8>,
@@ -136,7 +137,8 @@ module Bridge::CrossChainData {
     ): bool acquires SparseMerkleTreeRoot {
         let smt_root = borrow_global_mut<SparseMerkleTreeRoot>(CrossChainGlobal::genesis_account());
         assert!(*&smt_root.hash == *proof_root, Errors::invalid_state(ERR_PROOF_ROOT_HASH_INVALID));
-        assert!(*proof_leaf == x"" || SMTUtils::sub_u8_vector(proof_leaf, 32,65) == CrossChainSMTProofs::leaf_default_value_hash(),
+        assert!(*proof_leaf == x""
+                || SMTUtils::sub_u8_vector(proof_leaf, LEAF_DATA_VALUE_HASH_START_INDEX, LEAF_DATA_LEN) == CrossChainSMTProofs::leaf_default_value_hash(),
             Errors::invalid_argument(ERR_NON_MEMBERSHIP_LEAF_DATA_INVALID));
         SMTProofs::verify_non_membership_proof_by_leaf_path(&smt_root.hash, proof_leaf, proof_siblings, input_hash)
     }
@@ -152,7 +154,8 @@ module Bridge::CrossChainData {
 //        Vector::push_back(&mut siblings, x"0000000000000000000000000000000000000000000000000000000000000000");
 //        Vector::push_back(&mut siblings, x"5f8eead34f151a5f2d28b4c382004748648b78e2acbee0c3943d67af41791bd1");
 //        _ = siblings;
-//        assert!(*&proof_leaf == x"" || SMTUtils::sub_u8_vector(&proof_leaf, 33,65) == CrossChainSMTProofs::leaf_default_value_hash(),
+//        assert!(*&proof_leaf == x""
+//                || SMTUtils::sub_u8_vector(&proof_leaf, LEAF_DATA_VALUE_HASH_START_INDEX, LEAF_DATA_LEN) == CrossChainSMTProofs::leaf_default_value_hash(),
 //            Errors::invalid_argument(ERR_NON_MEMBERSHIP_LEAF_DATA_INVALID));
 //    }
 }
