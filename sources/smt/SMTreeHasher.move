@@ -1,9 +1,9 @@
 module Bridge::SMTreeHasher {
 
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Errors;
     use Bridge::SMTHash;
     use Bridge::SMTUtils;
+    use StarcoinFramework::Errors;
+    use StarcoinFramework::Vector;
 
     // sparse merkle tree leaf(node) prefix.
     const LEAF_PREFIX: vector<u8> = x"00";
@@ -45,10 +45,27 @@ module Bridge::SMTreeHasher {
         (leaf_node_path, leaf_node_value)
     }
 
+    //    #[test]
+    //    #[expected_failure]
+    //    public fun test_parse_leaf_1() {
+    //        let data = x"0189bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+    //        let (leaf_node_path, leaf_node_value) = parse_leaf(&data);
+    //        assert!(leaf_node_path == x"89bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef81", 101);
+    //        assert!(leaf_node_value == x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7", 101);
+    //    }
+    //
+    //    #[test]
+    //    public fun test_parse_leaf_2() {
+    //        let data = x"0089bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef812767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";
+    //        let (leaf_node_path, leaf_node_value) = parse_leaf(&data);
+    //        assert!(leaf_node_path == x"89bd5770d361dfa0c06a8c1cf4d89ef194456ab5cf8fc55a9f6744aff0bfef81", 101);
+    //        assert!(leaf_node_value == x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7", 101);
+    //    }
+
     public fun parse_node(data: &vector<u8>): (vector<u8>, vector<u8>) {
         let data_len = Vector::length(data);
         let prefix_len = Vector::length(&NODE_PREFIX);
-        assert!(data_len == prefix_len + path_size()*2, Errors::invalid_argument(ERROR_INVALID_NODE_DATA));
+        assert!(data_len == prefix_len + path_size() * 2, Errors::invalid_argument(ERROR_INVALID_NODE_DATA));
         assert!(SMTUtils::sub_u8_vector(data, 0, prefix_len) == NODE_PREFIX, Errors::invalid_argument(ERROR_INVALID_NODE_DATA));
 
         let start = 0;
@@ -111,11 +128,10 @@ module Bridge::SMTreeHasher {
     }
 
     public fun path_size_in_bits(): u64 {
-        SMTHash::size()*8
+        SMTHash::size() * 8
     }
 
     public fun placeholder(): vector<u8> {
         SMTHash::size_zero_bytes()
     }
-
 }
