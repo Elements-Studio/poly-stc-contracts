@@ -12,6 +12,7 @@ module Bridge::CrossChainData {
     const ERR_INITIALIZED_REPEATE: u64 = 101;
     const ERR_PROOF_HASH_INVALID: u64 = 102;
     const ERR_PROOF_ROOT_HASH_INVALID: u64 = 103;
+    const ERR_NON_MEMBERSHIP_LEAF_DATA_INVALID: u64 = 104;
 
     struct Consensus has key, store {
         //  When Poly chain switches the consensus epoch book keepers, the consensus peers public keys of Poly chain should be 
@@ -134,6 +135,8 @@ module Bridge::CrossChainData {
     ): bool acquires SparseMerkleTreeRoot {
         let smt_root = borrow_global_mut<SparseMerkleTreeRoot>(CrossChainGlobal::genesis_account());
         assert!(*&smt_root.hash == *proof_root, Errors::invalid_state(ERR_PROOF_ROOT_HASH_INVALID));
+        assert!(*proof_leaf == x"" || *proof_leaf == CrossChainSMTProofs::leaf_default_value_hash(),
+            Errors::invalid_argument(ERR_NON_MEMBERSHIP_LEAF_DATA_INVALID));
         SMTProofs::verify_non_membership_proof_by_leaf_path(&smt_root.hash, proof_leaf, proof_siblings, input_hash)
     }
 }
