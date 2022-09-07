@@ -29,6 +29,7 @@ module Bridge::SMTreeHasher {
 
         let prefix_len = Vector::length(&LEAF_PREFIX);
         assert!(data_len >= prefix_len + path_size(), Errors::invalid_argument(ERROR_INVALID_LEAF_DATA));
+        assert!(SMTUtils::sub_u8_vector(data, 0, prefix_len) == LEAF_PREFIX, Errors::invalid_argument(ERROR_INVALID_LEAF_DATA));
 
         let start = 0;
         let end = prefix_len;
@@ -46,8 +47,9 @@ module Bridge::SMTreeHasher {
 
     public fun parse_node(data: &vector<u8>): (vector<u8>, vector<u8>) {
         let data_len = Vector::length(data);
-        let prefix_len = Vector::length(&LEAF_PREFIX);
+        let prefix_len = Vector::length(&NODE_PREFIX);
         assert!(data_len == prefix_len + path_size()*2, Errors::invalid_argument(ERROR_INVALID_NODE_DATA));
+        assert!(SMTUtils::sub_u8_vector(data, 0, prefix_len) == NODE_PREFIX, Errors::invalid_argument(ERROR_INVALID_NODE_DATA));
 
         let start = 0;
         let end = prefix_len;
