@@ -13,6 +13,9 @@ module Bridge::LockProxy {
     use Bridge::Bytes;
     use Bridge::ZeroCopySink;
     use Bridge::ZeroCopySource;
+    use Bridge::CrossChainProcessCombinator;
+
+    const ERR_DEPRECATED: u64 = 1;
 
     const ERROR_LOCK_AMOUNT_ZERO: u64 = 101;
     const ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH: u64 = 102;
@@ -28,9 +31,10 @@ module Bridge::LockProxy {
     const ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT: u64 = 112;
     const ERROR_ONLY_FOR_INIT_BUG_FIX: u64 = 113;
 
+
     const ADDRESS_LENGTH: u64 = 16;
 
-    struct AssetHashMap<phantom TokenT,phantom ChainType> has key, store {
+    struct AssetHashMap<phantom TokenT, phantom ChainType> has key, store {
         to_asset_hash: vector<u8>
     }
 
@@ -122,7 +126,7 @@ module Bridge::LockProxy {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
-        move_to(signer, LockEventStore{
+        move_to(signer, LockEventStore {
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(signer),
             bind_asset_event: Event::new_event_handle<BindAssetEvent>(signer),
             unlock_event: Event::new_event_handle<UnlockEvent>(signer),
@@ -130,7 +134,7 @@ module Bridge::LockProxy {
         });
 
         // //////////
-        move_to(signer, FeeEventStore{
+        move_to(signer, FeeEventStore {
             cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
             cross_chain_fee_speed_up_event: Event::new_event_handle<CrossChainFeeSpeedUpEvent>(signer),
         });
@@ -140,7 +144,7 @@ module Bridge::LockProxy {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
         if (!exists<FeeEventStore>(account)) {
-            move_to(signer, FeeEventStore{
+            move_to(signer, FeeEventStore {
                 cross_chain_fee_lock_event: Event::new_event_handle<CrossChainFeeLockEvent>(signer),
                 cross_chain_fee_speed_up_event: Event::new_event_handle<CrossChainFeeSpeedUpEvent>(signer),
             });
@@ -157,7 +161,7 @@ module Bridge::LockProxy {
         let withdraw_token = Account::withdraw<TokenT>(signer, amount);
         if (!exists<LockTreasury<TokenT>>(genesis_account)) {
             assert!(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
-            move_to(signer, LockTreasury<TokenT>{
+            move_to(signer, LockTreasury<TokenT> {
                 token: withdraw_token,
             });
         } else {
@@ -172,7 +176,7 @@ module Bridge::LockProxy {
             // move 1 nanoSTC to lock-treasury to init it.
             let withdraw_token = Account::withdraw<STC::STC>(signer, 1);
             assert!(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
-            move_to(signer, LockTreasury<STC::STC>{
+            move_to(signer, LockTreasury<STC::STC> {
                 token: withdraw_token,
             });
         }
@@ -200,7 +204,7 @@ module Bridge::LockProxy {
         assert!(!exists<ProxyHashMap<ChainType>>(CrossChainGlobal::genesis_account()),
             Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
 
-        move_to(signer, ProxyHashMap<ChainType>{
+        move_to(signer, ProxyHashMap<ChainType> {
             to_proxy_hash: *proxy_hash,
         });
 
@@ -220,7 +224,7 @@ module Bridge::LockProxy {
         // assert!(exists<ProxyHashMap<ChainType>>(genesis_account),
         //     Errors::invalid_state(ERROR_PROXY_HASH_INITIALIZE_STATE));
         if (!exists<ProxyHashMap<ChainType>>(genesis_account)) {
-            move_to(signer, ProxyHashMap<ChainType>{
+            move_to(signer, ProxyHashMap<ChainType> {
                 to_proxy_hash: *proxy_hash,
             });
         };
@@ -245,7 +249,7 @@ module Bridge::LockProxy {
         assert!(!exists<AssetHashMap<TokenT, ToChainType>>(CrossChainGlobal::genesis_account()),
             Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
 
-        move_to(signer, AssetHashMap<TokenT, ToChainType>{
+        move_to(signer, AssetHashMap<TokenT, ToChainType> {
             to_asset_hash: *to_asset_hash,
         });
         inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
@@ -266,7 +270,7 @@ module Bridge::LockProxy {
         // assert!(exists<AssetHashMap<TokenT, ToChainType>>(genesis_account),
         //     Errors::invalid_state(ERROR_ASSET_HASH_INITIALIZE_STATE));
         if (!exists<AssetHashMap<TokenT, ToChainType>>(genesis_account)) {
-            move_to(signer, AssetHashMap<TokenT, ToChainType>{
+            move_to(signer, AssetHashMap<TokenT, ToChainType> {
                 to_asset_hash: *to_asset_hash,
             });
             inner_emit_asset_hash_event<TokenT>(to_chain_id, to_asset_hash);
@@ -290,11 +294,8 @@ module Bridge::LockProxy {
                                                      to_address: &vector<u8>,
                                                      amount: u128):
     (
-        vector<u8>,
-        vector<u8>,
-        vector<u8>,
+        CrossChainProcessCombinator::LockToChainParamPack,
         LockEvent,
-        CrossChainGlobal::ExecutionCapability,
     )
     acquires AssetHashMap, ProxyHashMap, LockTreasury {
         // bytes memory toAssetHash = assetHashMap[fromAssetHash][toChainId];
@@ -336,10 +337,16 @@ module Bridge::LockProxy {
         assert!(Vector::length(&proxy_hash_map.to_proxy_hash) > 0, Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH));
 
         (
-            *&proxy_hash_map.to_proxy_hash,
-            b"unlock",
-            *&tx_data,
-            LockEvent{
+            // *&proxy_hash_map.to_proxy_hash,
+            // b"unlock",
+            // *&tx_data,
+
+            CrossChainProcessCombinator::lock_to_chain_parameters(
+                to_chain_id,
+                &proxy_hash_map.to_proxy_hash,
+                &b"unlock", &tx_data
+            ),
+            LockEvent {
                 from_address: Address::bytify(Signer::address_of(signer)),
                 from_asset_hash: Token::token_code<TokenT>(),
                 to_chain_id,
@@ -347,7 +354,6 @@ module Bridge::LockProxy {
                 to_address: *to_address,
                 amount
             },
-            CrossChainGlobal::generate_execution_cap(&tx_data, true),
         )
     }
 
@@ -365,7 +371,7 @@ module Bridge::LockProxy {
         Account::deposit(fee_collection_account, stc_token);
 
         // ////////////////////////////////
-        let cc_fee_event = CrossChainFeeLockEvent{
+        let cc_fee_event = CrossChainFeeLockEvent {
             from_asset: Token::token_code<TokenT>(),
             sender: Signer::address_of(signer),
             to_chain_id: to_chain_id,
@@ -402,6 +408,15 @@ module Bridge::LockProxy {
     //        );
     //    }
 
+    public fun unlock<TokenT: store, ChainType: store>(_from_contract_addr: &vector<u8>,
+                                                       _to_asset_hash: &vector<u8>,
+                                                       _to_address: &vector<u8>,
+                                                       _amount: u128,
+                                                       _tx_hash: &vector<u8>,
+                                                       _cap: &CrossChainGlobal::ExecutionCapability) {
+        abort Errors::invalid_state(ERR_DEPRECATED)
+    }
+
     /* @notice                  This function is meant to be invoked by the ETH crosschain management contract,
     *                           then mint a certin amount of tokens to the designated address since a certain amount
     *                           was burnt from the source chain invoker.
@@ -410,31 +425,41 @@ module Bridge::LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock<TokenT: store, ChainType: store>(from_contract_addr: &vector<u8>,
-                                                       to_asset_hash: &vector<u8>,
-                                                       to_address: &vector<u8>,
-                                                       amount: u128,
-                                                       tx_hash: &vector<u8>,
-                                                       cap: &CrossChainGlobal::ExecutionCapability):
+    public fun unlock_with_pack<TokenT: store, ChainType: store>(pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+                                                                 cer: CrossChainProcessCombinator::MerkleProofCertificate):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
         CrossChainGlobal::require_not_freezing();
 
         assert!(
-            CrossChainGlobal::verify_execution_cap(cap, tx_hash),
+            CrossChainProcessCombinator::verify_proof_certificate(cer, &pack),
             Errors::invalid_state(ERROR_UNLOCK_EXECUTECAP_INVALID)
         );
+
+        let (
+            _,
+            args,
+            _,
+            from_contract,
+            _,
+        ) = CrossChainProcessCombinator::unpack_head_verified_param(pack);
+
+        let (
+            to_asset_hash,
+            to_address,
+            amount,
+        ) = deserialize_tx_args(args);
 
         let genesis_account = CrossChainGlobal::genesis_account();
 
         // Check from contract address
-        assert!(Vector::length(from_contract_addr) > 0, Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
+        assert!(Vector::length(&from_contract) > 0, Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
 
         let asset_hash_map = borrow_global<ProxyHashMap<ChainType>>(genesis_account);
-        assert!(*&asset_hash_map.to_proxy_hash == *from_contract_addr,
+        assert!(*&asset_hash_map.to_proxy_hash == from_contract,
             Errors::invalid_state(ERROR_UNLOCK_ILLEGAL_FROM_PROXY_HASH));
 
-        assert!(Vector::length(to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
-        let payee = Address::addressify(*to_address);
+        assert!(Vector::length(&to_address) == ADDRESS_LENGTH, Errors::invalid_state(ERROR_UNLOCK_INVALID_ADDRESS));
+        let payee = Address::addressify(*&to_address);
 
         // ////////////////////////////////
         if (!Account::exists_at(payee)) {
@@ -448,9 +473,9 @@ module Bridge::LockProxy {
         let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
         Account::deposit<TokenT>(payee, deposit_token);
 
-        UnlockEvent{
-            to_asset_hash: *to_asset_hash,
-            to_address: *to_address,
+        UnlockEvent {
+            to_asset_hash,
+            to_address,
             amount,
         }
     }
@@ -471,7 +496,7 @@ module Bridge::LockProxy {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.bind_proxy_event,
-            BindProxyEvent{
+            BindProxyEvent {
                 to_chain_id,
                 target_proxy_hash: *target_proxy_hash,
             },
@@ -483,7 +508,7 @@ module Bridge::LockProxy {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.bind_asset_event,
-            BindAssetEvent{
+            BindAssetEvent {
                 to_chain_id,
                 from_asset_hash: Token::token_code<TokenT>(),
                 target_proxy_hash: *target_proxy_hash,
