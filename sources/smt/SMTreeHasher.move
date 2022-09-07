@@ -101,6 +101,7 @@ module Bridge::SMTreeHasher {
         let data_len = Vector::length(data);
         let prefix_len = Vector::length(&LEAF_PREFIX);
         assert!(data_len >= prefix_len + path_size(), Errors::invalid_state(ERROR_INVALID_LEAF_DATA_LENGTH));
+        assert!(SMTUtils::sub_u8_vector(data, 0, prefix_len) == LEAF_PREFIX, Errors::invalid_argument(ERROR_INVALID_LEAF_DATA));
         SMTHash::hash(data)
     }
 
