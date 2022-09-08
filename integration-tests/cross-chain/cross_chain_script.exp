@@ -12,9 +12,9 @@ task 4 'run'. lines 23-31:
   "status": "Executed"
 }
 
-task 5 'run'. lines 33-55:
+task 5 'run'. lines 33-50:
 {
-  "gas_used": 33503,
+  "gas_used": 33375,
   "status": {
     "MoveAbort": {
       "location": {

@@ -182,4 +182,8 @@ module Bridge::CrossChainScript {
     public(script) fun withdraw_from_lock_treasury<TokenT: store>(signer: signer, amount: u128) {
         LockProxy::withdraw_from_treasury<TokenT>(&signer, amount);
     }
+
+    public(script) fun set_merkle_root_hash(signer: signer, root_hash: vector<u8>) {
+        CrossChainData::set_merkle_root_hash(&signer, &root_hash);
+    }
 }

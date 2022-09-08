@@ -60,7 +60,7 @@ module Bridge::CrossChainLibrary {
     // @param audit_path        Poly chain merkle proof
     // @param root              Poly chain root
     // @return                  The verified value included in audit_path
-    public fun merkle_prove(audit_path: &vector<u8>, root: &vector<u8>): (vector<u8>){
+    public fun merkle_prove(audit_path: &vector<u8>, root: &vector<u8>): vector<u8>{
         let offset: u64 = 0;
         let (value, offset) = ZeroCopySource::next_var_bytes(audit_path, offset);
         let hash = hash_leaf(&value);
@@ -346,6 +346,37 @@ module Bridge::CrossChainLibrary {
             *newkey_index_2 = 03u8;
         };
         newkey
+    }
+
+
+    public fun serialize_tx_args(to_asset_hash: vector<u8>,
+                                 to_address: vector<u8>,
+                                 amount: u128): vector<u8> {
+        let buff = Vector::empty<u8>();
+        buff = Bytes::concat(&buff, ZeroCopySink::write_var_bytes(&to_asset_hash));
+        buff = Bytes::concat(&buff, ZeroCopySink::write_var_bytes(&to_address));
+        buff = Bytes::concat(&buff, ZeroCopySink::write_u256(ZeroCopySink::write_u128(amount)));
+        buff
+    }
+
+    /**
+    * Parse args from transaction value bytes
+    * struct TxArgs {
+    *    bytes toAssetHash;
+    *    bytes toAddress;
+    *    uint256 amount;
+    * }
+    */
+    public fun deserialize_tx_args(value_bs: vector<u8>): (vector<u8>, vector<u8>, u128) {
+        let offset = 0;
+        let (to_asset_hash, offset) = ZeroCopySource::next_var_bytes(&value_bs, offset);
+        let (to_address, offset) = ZeroCopySource::next_var_bytes(&value_bs, offset);
+        let (amount, _) = ZeroCopySource::next_u128(&value_bs, offset);
+        (
+            to_asset_hash,
+            to_address,
+            amount,
+        )
     }
 
 }
