@@ -339,7 +339,8 @@ module Bridge::LockProxy {
             CrossChainProcessCombinator::lock_to_chain_parameters(
                 to_chain_id,
                 &proxy_hash_map.to_proxy_hash,
-                &b"unlock", &tx_data
+                &b"unlock",
+                &tx_data
             ),
             LockEvent {
                 from_address: Address::bytify(Signer::address_of(signer)),

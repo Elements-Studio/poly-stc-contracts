@@ -497,7 +497,6 @@ module Bridge::CrossChainManager {
 module Bridge::CrossChainManagerTest {
     use StarcoinFramework::Debug;
     use Bridge::CrossChainLibrary;
-    use Bridge::LockProxy;
 
     #[test]
     fun testParseUnlockParams1() {
@@ -544,7 +543,7 @@ module Bridge::CrossChainManagerTest {
             to_asset_hash,
             to_address,
             amount,
-        ) = LockProxy::deserialize_tx_args(args);
+        ) = CrossChainLibrary::deserialize_tx_args(args);
         Debug::print(&to_asset_hash);
         Debug::print(&to_address);
         Debug::print(&amount);
