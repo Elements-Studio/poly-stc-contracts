@@ -44,7 +44,7 @@ script {
             &signer, to_chain_id, &BCS::to_bytes(&@bob), 10000000);
 
         // Do crosschain option from cross chain manager
-        CrossChainManager::cross_chain(&signer, parameters);
+        CrossChainManager::cross_chain_with_param_pack(&signer, parameters);
     }
 }
 // check: "Keep(ABORTED { code: 26369"
