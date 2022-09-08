@@ -3,31 +3,23 @@ processed 6 tasks
 task 2 'run'. lines 5-17:
 {
   "gas_used": 584956,
-  "status": {
-    "Keep": "Executed"
-  }
+  "status": "Executed"
 }
 
 task 3 'run'. lines 20-35:
 {
   "gas_used": 687248,
-  "status": {
-    "Keep": "Executed"
-  }
+  "status": "Executed"
 }
 
 task 4 'run'. lines 37-63:
 {
   "gas_used": 814553,
-  "status": {
-    "Keep": "Executed"
-  }
+  "status": "Executed"
 }
 
 task 5 'run'. lines 65-93:
 {
   "gas_used": 308407,
-  "status": {
-    "Keep": "Executed"
-  }
+  "status": "Executed"
 }
