@@ -16,6 +16,8 @@ module Bridge::CrossChainManager {
 
     const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
 
+    const ERR_OBSOLETED: u64 = 1;
+
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;
     const ERR_NEXT_BOOK_KEEPER_EMPTY: u64 = 103;
@@ -230,8 +232,9 @@ module Bridge::CrossChainManager {
     *  @param txData        Transaction data for target chain, include to_address, amount
     *  @return              true or false
     */
-    public fun cross_chain(signer: &signer,
-                           lock_parameters: CrossChainProcessCombinator::LockToChainParamPack) acquires EventStore {
+    public fun cross_chain_with_param_pack(signer: &signer,
+                                           lock_parameters: CrossChainProcessCombinator::LockToChainParamPack)
+    acquires EventStore {
         // // Load Ethereum cross chain data contract
         // IEthCrossChainData eccd = IEthCrossChainData(EthCrossChainDataAddress);
 
@@ -330,11 +333,11 @@ module Bridge::CrossChainManager {
     *                       used to verify the validity of curRawHeader
     *  @return              true or false
     */
-    public fun verify_header(proof: &vector<u8>,
-                             raw_header: &vector<u8>,
-                             header_proof: &vector<u8>,
-                             cur_raw_header: &vector<u8>,
-                             header_sig: &vector<u8>)
+    public fun verify_header_with_param_pack(proof: &vector<u8>,
+                                             raw_header: &vector<u8>,
+                                             header_proof: &vector<u8>,
+                                             cur_raw_header: &vector<u8>,
+                                             header_sig: &vector<u8>)
     : CrossChainProcessCombinator::HeaderVerifyedParamPack acquires EventStore {
         // Load ehereum cross chain data contract
         let (
@@ -471,6 +474,23 @@ module Bridge::CrossChainManager {
     //
     //     CrossChainProofCap::create_proof_certificate(chain_id, tx_hash, merkle_proof_root, merkle_proof_leaf)
     // }
+
+    public fun cross_chain(_signer: &signer,
+                           _to_chain_id: u64,
+                           _to_contract: &vector<u8>,
+                           _method: &vector<u8>,
+                           _tx_data: &vector<u8>,
+                           _cap: CrossChainGlobal::ExecutionCapability) {
+        abort Errors::invalid_state(ERR_OBSOLETED)
+    }
+
+    public fun verify_header(_proof: &vector<u8>,
+                             _raw_header: &vector<u8>,
+                             _header_proof: &vector<u8>,
+                             _cur_raw_header: &vector<u8>,
+                             _header_sig: &vector<u8>) {
+        abort Errors::invalid_state(ERR_OBSOLETED)
+    }
 }
 
 #[test_only]

@@ -40,7 +40,8 @@ script {
 
     fun cant_do_lock(signer: signer) {
         let to_chain_id = 31;
-        let ( parameters, _,) = LockProxy::lock<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(&signer, to_chain_id, &BCS::to_bytes(&@bob), 10000000);
+        let ( parameters, _,) = LockProxy::lock_with_param_pack<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer, to_chain_id, &BCS::to_bytes(&@bob), 10000000);
 
         // Do crosschain option from cross chain manager
         CrossChainManager::cross_chain(&signer, parameters);

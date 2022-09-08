@@ -68,16 +68,16 @@ module Bridge::CrossChainRouter {
                                             amount: u128) {
         if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
             let (lock_parameters, event) =
-                LockProxy::lock<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, to_address, amount);
+                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, to_address, amount);
             // Do crosschain option from cross chain manager
-            CrossChainManager::cross_chain(signer, lock_parameters);
+            CrossChainManager::cross_chain_with_param_pack(signer, lock_parameters);
             // Publish lock event
             LockProxy::emit_lock_event(event);
         } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
             let (lock_parameters, event) =
-                LockProxy::lock<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, to_address, amount);
+                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, to_address, amount);
             // Do crosschain option from cross chain manager
-            CrossChainManager::cross_chain(signer, lock_parameters);
+            CrossChainManager::cross_chain_with_param_pack(signer, lock_parameters);
             // Publish lock event
             LockProxy::emit_lock_event(event);
         } else {
@@ -98,7 +98,7 @@ module Bridge::CrossChainRouter {
         CrossChainGlobal::require_not_freezing();
 
         // Verify header and parse method and args from proof vector
-        let header_verified_params = CrossChainManager::verify_header(
+        let header_verified_params = CrossChainManager::verify_header_with_param_pack(
             proof,
             raw_header,
             header_proof,
