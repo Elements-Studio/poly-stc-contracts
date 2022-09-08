@@ -62,10 +62,10 @@ module Bridge::CrossChainRouter {
     }
 
     // Do lock operation on inner calling
-    public fun inner_do_lock<TokenT: store>(signer: &signer,
-                                            to_chain_id: u64,
-                                            to_address: &vector<u8>,
-                                            amount: u128) {
+    fun inner_do_lock<TokenT: store>(signer: &signer,
+                                     to_chain_id: u64,
+                                     to_address: &vector<u8>,
+                                     amount: u128) {
         if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
             let (lock_parameters, event) =
                 LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, to_address, amount);
@@ -134,7 +134,7 @@ module Bridge::CrossChainRouter {
     }
 
     // Do unlock operation on inner calling
-    public fun inner_do_unlock<TokenT: store>(header_verified_params: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+    fun inner_do_unlock<TokenT: store>(header_verified_params: CrossChainProcessCombinator::HeaderVerifyedParamPack,
                                               certificate: CrossChainProcessCombinator::MerkleProofCertificate): bool {
         let from_chain_id = CrossChainProcessCombinator::lookup_from_chain_id(&header_verified_params);
         let ret = if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(from_chain_id)) {
