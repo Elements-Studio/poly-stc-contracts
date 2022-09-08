@@ -11,6 +11,8 @@ module Bridge::CrossChainRouter {
     use Bridge::LockProxy;
     use Bridge::CrossChainProcessCombinator;
 
+    const ERROR_DECREPTED: u64 = 1;
+
     const ERROR_NO_SUPPORT_UNLOCK_ASSET_TYPE: u64 = 101;
     const ERROR_NO_SUPPORT_UNLOCK_CHAIN_TYPE: u64 = 102;
     const ERROR_NO_SUPPORT_UNLOCK_OPTION: u64 = 103;
@@ -19,7 +21,6 @@ module Bridge::CrossChainRouter {
     const ERROR_NO_SUPPORT_BIND_ASSET_TYPE: u64 = 106;
     const ERROR_NO_SUPPORT_BIND_CHAIN_TYPE: u64 = 107;
     const ERROR_NO_SUPPORT_METHOD: u64 = 108;
-    //const ERROR_NO_TOO_MUCH_FEE: u64 = 108;
 
     // This function is meant to be invoked by the user,
     // a certin amount teokens will be locked in the proxy contract the invoker/msg.sender immediately.
@@ -119,11 +120,11 @@ module Bridge::CrossChainRouter {
             let to_asset_hash = CrossChainProcessCombinator::lookup_asset_hash(&header_verified_params);
 
             let ret = if (CrossChainGlobal::asset_hash_match<STC::STC>(&to_asset_hash)) {
-                inner_do_unlock<STC::STC>(header_verified_params, certificate)
+                inner_do_unlock_with_param_pack<STC::STC>(header_verified_params, certificate)
             } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(&to_asset_hash)) {
-                inner_do_unlock<XUSDT::XUSDT>(header_verified_params, certificate)
+                inner_do_unlock_with_param_pack<XUSDT::XUSDT>(header_verified_params, certificate)
             } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(&to_asset_hash)) {
-                inner_do_unlock<XETH::XETH>(header_verified_params, certificate)
+                inner_do_unlock_with_param_pack<XETH::XETH>(header_verified_params, certificate)
             } else {
                 false
             };
@@ -133,9 +134,19 @@ module Bridge::CrossChainRouter {
         };
     }
 
+    public fun inner_do_unlock<TokenT: store>(_from_chain_id: u64,
+                                              _from_contract: &vector<u8>,
+                                              _to_asset_hash: &vector<u8>,
+                                              _to_address: &vector<u8>,
+                                              _amount: u128,
+                                              _tx_hash: &vector<u8>,
+                                              _cap: &CrossChainGlobal::ExecutionCapability): bool {
+        abort Errors::invalid_state(ERROR_DECREPTED)
+    }
+
     // Do unlock operation on inner calling
-    fun inner_do_unlock<TokenT: store>(header_verified_params: CrossChainProcessCombinator::HeaderVerifyedParamPack,
-                                              certificate: CrossChainProcessCombinator::MerkleProofCertificate): bool {
+    fun inner_do_unlock_with_param_pack<TokenT: store>(header_verified_params: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+                                                       certificate: CrossChainProcessCombinator::MerkleProofCertificate): bool {
         let from_chain_id = CrossChainProcessCombinator::lookup_from_chain_id(&header_verified_params);
         let ret = if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(from_chain_id)) {
             let unlock_event = LockProxy::unlock_with_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(header_verified_params, certificate);

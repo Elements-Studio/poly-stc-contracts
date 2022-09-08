@@ -12,7 +12,8 @@ module Bridge::LockProxy {
     use Bridge::Address;
     use Bridge::CrossChainProcessCombinator;
 
-    const ERR_DEPRECATED: u64 = 1;
+
+    const ERROR_DECREPTED: u64 = 1;
 
     const ERROR_LOCK_AMOUNT_ZERO: u64 = 101;
     const ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH: u64 = 102;
@@ -276,7 +277,7 @@ module Bridge::LockProxy {
         CrossChainGlobal::ExecutionCapability,
     )
     {
-        abort Errors::invalid_state(ERR_DEPRECATED)
+        abort Errors::invalid_state(ERROR_DECREPTED)
     }
 
     /* @notice                  This function is meant to be invoked by the user,
@@ -410,7 +411,7 @@ module Bridge::LockProxy {
                                                        _amount: u128,
                                                        _tx_hash: &vector<u8>,
                                                        _cap: &CrossChainGlobal::ExecutionCapability) {
-        abort Errors::invalid_state(ERR_DEPRECATED)
+        abort Errors::invalid_state(ERROR_DECREPTED)
     }
 
     /* @notice                  This function is meant to be invoked by the ETH crosschain management contract,
@@ -528,7 +529,7 @@ module Bridge::LockProxy {
     public fun serialize_tx_args(_to_asset_hash: vector<u8>,
                                  _to_address: vector<u8>,
                                  _amount: u128): vector<u8> {
-        abort Errors::invalid_state(ERR_DEPRECATED)
+        abort Errors::invalid_state(ERROR_DECREPTED)
         // let buff = Vector::empty<u8>();
         // buff = Bytes::concat(&buff, ZeroCopySink::write_var_bytes(&to_asset_hash));
         // buff = Bytes::concat(&buff, ZeroCopySink::write_var_bytes(&to_address));
@@ -545,7 +546,7 @@ module Bridge::LockProxy {
     * }
     */
     public fun deserialize_tx_args(_value_bs: vector<u8>): (vector<u8>, vector<u8>, u128) {
-        abort Errors::invalid_state(ERR_DEPRECATED)
+        abort Errors::invalid_state(ERROR_DECREPTED)
         // let offset = 0;
         // let (to_asset_hash, offset) = ZeroCopySource::next_var_bytes(&value_bs, offset);
         // let (to_address, offset) = ZeroCopySource::next_var_bytes(&value_bs, offset);

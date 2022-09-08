@@ -16,7 +16,7 @@ module Bridge::CrossChainManager {
 
     const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
 
-    const ERR_OBSOLETED: u64 = 1;
+    const ERR_DECREPTED: u64 = 1;
 
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;
@@ -481,7 +481,7 @@ module Bridge::CrossChainManager {
                            _method: &vector<u8>,
                            _tx_data: &vector<u8>,
                            _cap: CrossChainGlobal::ExecutionCapability) {
-        abort Errors::invalid_state(ERR_OBSOLETED)
+        abort Errors::invalid_state(ERR_DECREPTED)
     }
 
     public fun verify_header(_proof: &vector<u8>,
@@ -489,7 +489,7 @@ module Bridge::CrossChainManager {
                              _header_proof: &vector<u8>,
                              _cur_raw_header: &vector<u8>,
                              _header_sig: &vector<u8>) {
-        abort Errors::invalid_state(ERR_OBSOLETED)
+        abort Errors::invalid_state(ERR_DECREPTED)
     }
 }
 
