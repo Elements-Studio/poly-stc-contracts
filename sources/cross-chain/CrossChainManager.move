@@ -13,8 +13,7 @@ module Bridge::CrossChainManager {
     use Bridge::ZeroCopySink;
     use Bridge::Bytes;
     use Bridge::CrossChainProcessCombinator;
-
-    const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
+    use Bridge::CrossChainConstant;
 
     const ERR_DECREPTED: u64 = 1;
 
@@ -299,7 +298,7 @@ module Bridge::CrossChainManager {
         let cross_chain_id =
             Hash::sha3_256(Bytes::concat(&genesis_addr_byte, *&param_tx_hash));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&cross_chain_id));
-        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&PROXY_HASH_STARCOIN));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&CrossChainConstant::get_proxy_hash_starcoin()));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_u64(to_chain_id));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&to_contract));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&method));
@@ -315,7 +314,7 @@ module Bridge::CrossChainManager {
             CrossChainEvent {
                 sender: Address::bytify(account),
                 tx_id: param_tx_hash,
-                proxy_or_asset_contract: PROXY_HASH_STARCOIN,
+                proxy_or_asset_contract: CrossChainConstant::get_proxy_hash_starcoin(),
                 to_chain_id,
                 to_contract,
                 raw_data: raw_param,

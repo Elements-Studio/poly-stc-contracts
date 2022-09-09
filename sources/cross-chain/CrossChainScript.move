@@ -10,15 +10,7 @@ module Bridge::CrossChainScript {
     use Bridge::LockProxy;
     use Bridge::XETH;
     use Bridge::XUSDT;
-
-    const DEFAULT_CHAINID_STARCOIN: u64 = 31;
-    const DEFAULT_CHAINID_ETHEREUM: u64 = 2;
-
-    const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
-
-    const ASSET_HASH_STC: vector<u8> = b"0x00000000000000000000000000000001::STC::STC";
-    const ASSET_HASH_XETH: vector<u8> = b"Bridge::XETH::XETH";
-    const ASSET_HASH_XUSDT: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::XUSDT::XUSDT";
+    use Bridge::CrossChainConstant;
 
     // Initialize genesis from contract owner
     public(script) fun init_genesis(signer: signer,
@@ -30,25 +22,37 @@ module Bridge::CrossChainScript {
             &pub_key_list);
 
         // Initialize default chain IDs
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(&signer, DEFAULT_CHAINID_STARCOIN);
-        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(&signer, DEFAULT_CHAINID_ETHEREUM);
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::STARCOIN_CHAIN>(
+            &signer,
+            CrossChainConstant::get_default_chain_id_starcoin());
+        CrossChainGlobal::set_chain_id<CrossChainGlobal::ETHEREUM_CHAIN>(
+            &signer,
+            CrossChainConstant::get_default_chain_id_ethereum());
 
         // Bind default proxy hash of Starcoin chain
         LockProxy::init_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, DEFAULT_CHAINID_STARCOIN, &PROXY_HASH_STARCOIN);
+            &signer,
+            CrossChainConstant::get_default_chain_id_starcoin(),
+            &CrossChainConstant::get_proxy_hash_starcoin());
 
         // Set asset hashes of Starcoin chain
-        CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &ASSET_HASH_STC);
-        CrossChainGlobal::set_asset_hash<XETH::XETH>(&signer, &ASSET_HASH_XETH);
-        CrossChainGlobal::set_asset_hash<XUSDT::XUSDT>(&signer, &ASSET_HASH_XUSDT);
+        CrossChainGlobal::set_asset_hash<STC::STC>(&signer, &CrossChainConstant::get_asset_hash_stc());
+        CrossChainGlobal::set_asset_hash<XETH::XETH>(&signer, &CrossChainConstant::get_asset_hash_xeth());
+        CrossChainGlobal::set_asset_hash<XUSDT::XUSDT>(&signer, &CrossChainConstant::get_asset_hash_xusdt());
 
         // Bind asset hashes to support Starcoin-to-Starcoin Cross-Chain transfer
         LockProxy::init_asset_hash<STC::STC, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_STC);
+            &signer,
+            CrossChainConstant::get_default_chain_id_starcoin(),
+            &CrossChainConstant::get_asset_hash_stc());
         LockProxy::init_asset_hash<XETH::XETH, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XETH);
+            &signer,
+            CrossChainConstant::get_default_chain_id_starcoin(),
+            &CrossChainConstant::get_asset_hash_xeth());
         LockProxy::init_asset_hash<XUSDT::XUSDT, CrossChainGlobal::STARCOIN_CHAIN>(
-            &signer, DEFAULT_CHAINID_STARCOIN, &ASSET_HASH_XUSDT);
+            &signer,
+            CrossChainConstant::get_default_chain_id_starcoin(),
+            &CrossChainConstant::get_asset_hash_xusdt());
 
         // let xeth_mint_amount = 13611294676837538538534984; //   13,611,294,676,837,538,538,534,984
         let xeth_mint_amount = 1000000000000000000000000000;  //1,000,000,000,000,000,000,000,000,000
