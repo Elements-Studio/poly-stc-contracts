@@ -80,7 +80,8 @@ module Bridge::CrossChainData {
         *&consesus.con_keepers_pk_bytes
     }
 
-    public(friend) fun put_cur_epoch_start_height(curEpochStartHeight: u64) acquires Consensus {
+    public(friend) fun put_cur_epoch_start_height(signer: &signer, curEpochStartHeight: u64) acquires Consensus {
+        CrossChainGlobal::require_admin_account(Signer::address_of(signer));
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.cur_epoch_start_height = curEpochStartHeight;
     }
