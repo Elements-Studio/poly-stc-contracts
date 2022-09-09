@@ -12,9 +12,11 @@ module Bridge::CrossChainManager {
     use Bridge::CrossChainGlobal;
     use Bridge::ZeroCopySink;
     use Bridge::Bytes;
-    use Bridge::CrossChainSMTProofs;
+    use Bridge::CrossChainProcessCombinator;
 
     const PROXY_HASH_STARCOIN: vector<u8> = b"0xe52552637c5897a2d499fbf08216f73e::CrossChainScript";
+
+    const ERR_DECREPTED: u64 = 1;
 
     const ERR_CONTRACT_INITIALIZE_REPEATE: u64 = 101;
     const ERR_NEXT_BOOK_KEEPER_ILLEGAL: u64 = 102;
@@ -90,7 +92,7 @@ module Bridge::CrossChainManager {
 
         CrossChainGlobal::require_genesis_account(Signer::address_of(signer));
 
-        move_to(signer, EventStore{
+        move_to(signer, EventStore {
             init_genesis_block_event: Event::new_event_handle<InitGenesisBlockEvent>(signer),
             change_book_keeper_event: Event::new_event_handle<ChangeBookKeeperEvent>(signer),
             cross_chain_event: Event::new_event_handle<CrossChainEvent>(signer),
@@ -124,7 +126,7 @@ module Bridge::CrossChainManager {
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.init_genesis_block_event,
-            InitGenesisBlockEvent{
+            InitGenesisBlockEvent {
                 height: (header_height as u128),
                 raw_header: *raw_header,
             },
@@ -215,7 +217,7 @@ module Bridge::CrossChainManager {
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.change_book_keeper_event,
-            ChangeBookKeeperEvent{
+            ChangeBookKeeperEvent {
                 height: (header_height as u128),
                 raw_header: *raw_header,
             },
@@ -230,12 +232,9 @@ module Bridge::CrossChainManager {
     *  @param txData        Transaction data for target chain, include to_address, amount
     *  @return              true or false
     */
-    public fun cross_chain(signer: &signer,
-                           to_chain_id: u64,
-                           to_contract: &vector<u8>,
-                           method: &vector<u8>,
-                           tx_data: &vector<u8>,
-                           cap: CrossChainGlobal::ExecutionCapability) acquires EventStore {
+    public fun cross_chain_with_param_pack(signer: &signer,
+                                           lock_parameters: CrossChainProcessCombinator::LockToChainParamPack)
+    acquires EventStore {
         // // Load Ethereum cross chain data contract
         // IEthCrossChainData eccd = IEthCrossChainData(EthCrossChainDataAddress);
 
@@ -262,15 +261,17 @@ module Bridge::CrossChainManager {
         // emit CrossChainEvent(tx.origin, paramTxHash, msg.sender, toChainId, toContract, rawParam);
         // return true;
 
+        let (
+            to_chain_id,
+            to_contract,
+            method,
+            tx_data
+        ) = CrossChainProcessCombinator::unpack_lock_to_chain_parameters(lock_parameters);
+
         // Check global freezing switch has closed
         CrossChainGlobal::require_not_freezing();
 
-        // Capability handle
-        CrossChainGlobal::verify_execution_cap(&cap, tx_data);
-        CrossChainGlobal::destroy_execution_cap(cap);
-
         let account = Signer::address_of(signer);
-
         let raw_param = Vector::empty<u8>();
 
         // Tx hash index
@@ -300,9 +301,9 @@ module Bridge::CrossChainManager {
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&cross_chain_id));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&PROXY_HASH_STARCOIN));
         raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_u64(to_chain_id));
-        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(to_contract));
-        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(method));
-        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(tx_data));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&to_contract));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&method));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&tx_data));
         // --------- serialize MakeTxParam end ---------
 
         // Must save it in the storage to be included in the proof to be verified.
@@ -311,12 +312,12 @@ module Bridge::CrossChainManager {
 
         Event::emit_event(
             &mut event_store.cross_chain_event,
-            CrossChainEvent{
+            CrossChainEvent {
                 sender: Address::bytify(account),
                 tx_id: param_tx_hash,
                 proxy_or_asset_contract: PROXY_HASH_STARCOIN,
                 to_chain_id,
-                to_contract: *to_contract,
+                to_contract,
                 raw_data: raw_param,
             },
         );
@@ -332,19 +333,12 @@ module Bridge::CrossChainManager {
     *                       used to verify the validity of curRawHeader
     *  @return              true or false
     */
-    public fun verify_header(proof: &vector<u8>,
-                             raw_header: &vector<u8>,
-                             header_proof: &vector<u8>,
-                             cur_raw_header: &vector<u8>,
-                             header_sig: &vector<u8>)
-    : (
-        vector<u8>, // method
-        vector<u8>, // args
-        u64, // from chain id
-        vector<u8>, // from_contract
-        CrossChainGlobal::ExecutionCapability,
-        vector<u8>, // tx hash
-    ) acquires EventStore {
+    public fun verify_header_with_param_pack(proof: &vector<u8>,
+                                             raw_header: &vector<u8>,
+                                             header_proof: &vector<u8>,
+                                             cur_raw_header: &vector<u8>,
+                                             header_sig: &vector<u8>)
+    : CrossChainProcessCombinator::HeaderVerifyedParamPack acquires EventStore {
         // Load ehereum cross chain data contract
         let (
             _,
@@ -432,7 +426,7 @@ module Bridge::CrossChainManager {
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.verify_header_and_execute_tx_event,
-            VerifyHeaderAndExecuteTxEvent{
+            VerifyHeaderAndExecuteTxEvent {
                 from_chain_id,
                 to_contract,
                 cross_chain_tx_hash: *&cross_chain_tx_hash,
@@ -440,14 +434,15 @@ module Bridge::CrossChainManager {
             },
         );
 
-        (
-            method,
-            args,
-            from_chain_id,
-            from_contract,
-            CrossChainGlobal::generate_execution_cap(&cross_chain_tx_hash, false),
-            cross_chain_tx_hash,
-        )
+        //(
+        // method,
+        // args,
+        // from_chain_id,
+        // from_contract,
+        // CrossChainGlobal::generate_execution_cap(&cross_chain_tx_hash, false),
+        // cross_chain_tx_hash,
+        //)
+        CrossChainProcessCombinator::pack_header_verified_param(method, args, from_chain_id, from_contract, cross_chain_tx_hash)
     }
 
     // Process undefine execution after verify success.
@@ -455,30 +450,46 @@ module Bridge::CrossChainManager {
         CrossChainGlobal::destroy_execution_cap(cap);
     }
 
-    // Check and marking transaction exists
-    public fun check_and_mark_transaction_exists(chain_id: u64,
-                                                 tx_hash: &vector<u8>,
-                                                 merkle_proof_root: &vector<u8>,
-                                                 merkle_proof_leaf: &vector<u8>,
-                                                 merkle_proof_siblings: &vector<vector<u8>>,
-                                                 cap: &mut CrossChainGlobal::ExecutionCapability
-    ) {
-        let proof_path_hash = CrossChainSMTProofs::generate_leaf_path(chain_id, tx_hash);
+    // // Check and marking transaction exists
+    // public fun check_and_mark_transaction_exists(chain_id: u64,
+    //                                              tx_hash: &vector<u8>,
+    //                                              merkle_proof_root: &vector<u8>,
+    //                                              merkle_proof_leaf: &vector<u8>,
+    //                                              merkle_proof_siblings: &vector<vector<u8>>
+    // ): CrossChainProofCap::MerkleProofCertificate {
+    //     let proof_path_hash = CrossChainSMTProofs::generate_leaf_path(chain_id, tx_hash);
+    //
+    //     assert!(
+    //         CrossChainData::check_chain_tx_not_exists(
+    //             &proof_path_hash,
+    //             merkle_proof_root,
+    //             merkle_proof_leaf,
+    //             merkle_proof_siblings),
+    //         Errors::invalid_state(ERR_TRANSACTION_EXECUTE_REPEATE));
+    //
+    //     CrossChainData::mark_from_chain_tx_exists(
+    //         &proof_path_hash,
+    //         merkle_proof_leaf,
+    //         merkle_proof_siblings);
+    //
+    //     CrossChainProofCap::create_proof_certificate(chain_id, tx_hash, merkle_proof_root, merkle_proof_leaf)
+    // }
 
-        assert!(
-            CrossChainData::check_chain_tx_not_exists(
-                &proof_path_hash,
-                merkle_proof_root,
-                merkle_proof_leaf,
-                merkle_proof_siblings),
-            Errors::invalid_state(ERR_TRANSACTION_EXECUTE_REPEATE));
+    public fun cross_chain(_signer: &signer,
+                           _to_chain_id: u64,
+                           _to_contract: &vector<u8>,
+                           _method: &vector<u8>,
+                           _tx_data: &vector<u8>,
+                           _cap: CrossChainGlobal::ExecutionCapability) {
+        abort Errors::invalid_state(ERR_DECREPTED)
+    }
 
-        CrossChainData::mark_from_chain_tx_exists(
-            &proof_path_hash,
-            merkle_proof_leaf,
-            merkle_proof_siblings);
-
-        CrossChainGlobal::tx_hash_has_proof(cap);
+    public fun verify_header(_proof: &vector<u8>,
+                             _raw_header: &vector<u8>,
+                             _header_proof: &vector<u8>,
+                             _cur_raw_header: &vector<u8>,
+                             _header_sig: &vector<u8>) {
+        abort Errors::invalid_state(ERR_DECREPTED)
     }
 }
 
@@ -486,7 +497,6 @@ module Bridge::CrossChainManager {
 module Bridge::CrossChainManagerTest {
     use StarcoinFramework::Debug;
     use Bridge::CrossChainLibrary;
-    use Bridge::LockProxy;
 
     #[test]
     fun testParseUnlockParams1() {
@@ -533,7 +543,7 @@ module Bridge::CrossChainManagerTest {
             to_asset_hash,
             to_address,
             amount,
-        ) = LockProxy::deserialize_tx_args(args);
+        ) = CrossChainLibrary::deserialize_tx_args(args);
         Debug::print(&to_asset_hash);
         Debug::print(&to_address);
         Debug::print(&amount);

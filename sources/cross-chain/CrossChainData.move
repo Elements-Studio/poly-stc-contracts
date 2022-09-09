@@ -142,6 +142,13 @@ module Bridge::CrossChainData {
             Errors::invalid_argument(ERR_NON_MEMBERSHIP_LEAF_DATA_INVALID));
         SMTProofs::verify_non_membership_proof_by_leaf_path(&smt_root.hash, proof_leaf, proof_siblings, input_hash)
     }
+    
+    /// Set proof root hash
+    public fun set_merkle_root_hash(signer: &signer, root_hash: &vector<u8>) acquires SparseMerkleTreeRoot {
+        CrossChainGlobal::require_admin_account(Signer::address_of(signer));
+        let smt_root = borrow_global_mut<SparseMerkleTreeRoot>(CrossChainGlobal::genesis_account());
+        smt_root.hash = *root_hash;
+    }
 
 //    #[test]
 //    fun test_check_chain_tx_not_exists() {
@@ -158,4 +165,6 @@ module Bridge::CrossChainData {
 //                || SMTUtils::sub_u8_vector(&proof_leaf, LEAF_DATA_VALUE_HASH_START_INDEX, LEAF_DATA_LEN) == CrossChainSMTProofs::leaf_default_value_hash(),
 //            Errors::invalid_argument(ERR_NON_MEMBERSHIP_LEAF_DATA_INVALID));
 //    }
+
+
 }

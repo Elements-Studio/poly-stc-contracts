@@ -4,7 +4,7 @@
 
 //# faucet --addr bob --amount 10000000000000000
 
-//# publish -k 0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
+//# publish
 module Bridge::CrossChainType {
 
     struct XETH has copy, drop, store {}
