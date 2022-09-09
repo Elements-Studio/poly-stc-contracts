@@ -5,6 +5,7 @@ module Bridge::CrossChainGlobal {
     use Bridge::CrossChainConfig;
 
     friend Bridge::CrossChainManager;
+    friend Bridge::CrossChainData;
     friend Bridge::LockProxy;
 
     const ERR_INVALID_ACCOUNT: u64 = 101;
@@ -19,6 +20,9 @@ module Bridge::CrossChainGlobal {
         tx_data: vector<u8>,
         proof_tx_non_exists: bool,
     }
+
+    /// InnerModuleCapability allows modules in the entire project to have permission to call each other
+    struct ModuleCallableCapability has drop {}
 
     struct ChainId<phantom ChainType> has key, store {
         chain_id: u64,
@@ -40,7 +44,7 @@ module Bridge::CrossChainGlobal {
     // Admin account permission check
     public fun require_admin_account(account: address) {
         assert!(account == CrossChainConfig::admin_account() ||
-               account == CrossChainConfig::genesis_account(),
+            account == CrossChainConfig::genesis_account(),
             Errors::invalid_argument(ERR_INVALID_ACCOUNT));
     }
 
@@ -60,17 +64,21 @@ module Bridge::CrossChainGlobal {
 
     public(friend) fun generate_execution_cap(tx_data: &vector<u8>,
                                               proof_tx_non_exists: bool): ExecutionCapability {
-        ExecutionCapability{
+        ExecutionCapability {
             tx_data: *tx_data,
             proof_tx_non_exists
         }
     }
 
     public(friend) fun destroy_execution_cap(cap: ExecutionCapability) {
-        let ExecutionCapability{
+        let ExecutionCapability {
             tx_data : _,
             proof_tx_non_exists: _
         } = cap;
+    }
+
+    public(friend) fun inner_module_cap(): ModuleCallableCapability {
+        ModuleCallableCapability {}
     }
 
 
@@ -96,7 +104,7 @@ module Bridge::CrossChainGlobal {
             let chain_id_store = borrow_global_mut<ChainId<ChainType>>(genesis_account());
             chain_id_store.chain_id = chain_id;
         } else {
-            move_to(signer, ChainId<ChainType>{
+            move_to(signer, ChainId<ChainType> {
                 chain_id
             });
         }
@@ -130,7 +138,7 @@ module Bridge::CrossChainGlobal {
             let asset_type = borrow_global_mut<AssetType<TokenT>>(genesis_account());
             asset_type.asset_hash = *asset_hash;
         } else {
-            move_to(signer, AssetType<TokenT>{
+            move_to(signer, AssetType<TokenT> {
                 asset_hash: *asset_hash
             });
         }

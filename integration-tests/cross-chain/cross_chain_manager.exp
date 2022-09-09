@@ -13,7 +13,7 @@ task 5 'run'. lines 58-69:
     "MoveAbort": {
       "location": {
         "Module": {
-          "address": "0xe52552637c5897a2d499fbf08216f73e",
+          "address": "0x416b32009fe49fcab1d5f2ba0153838f",
           "name": "CrossChainData"
         }
       },
@@ -35,7 +35,7 @@ task 7 'run'. lines 84-112:
     "MoveAbort": {
       "location": {
         "Module": {
-          "address": "0xe52552637c5897a2d499fbf08216f73e",
+          "address": "0x416b32009fe49fcab1d5f2ba0153838f",
           "name": "CrossChainManager"
         }
       },

@@ -9,6 +9,7 @@ module Bridge::CrossChainLibrary {
     use StarcoinFramework::Signature;
     use StarcoinFramework::Option::{Self, Option};
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};
+    use StarcoinFramework::BCS;
 
     // struct Header has key, store, drop, copy {
     //     version: u64, //origin uint32
@@ -379,13 +380,52 @@ module Bridge::CrossChainLibrary {
         )
     }
 
+    const HEX_SYMBOLS: vector<u8> = b"0123456789abcdef";
+
+    /// Converts a `u8` to its  hexadecimal representation with fixed length (in whole bytes).
+    /// so the returned String is `2 * length`  in size
+    public fun to_hex_string_without_prefix(value: u8): vector<u8> {
+        if (value == 0) {
+            return b"00"
+        };
+
+        let buffer = Vector::empty<u8>();
+        let len = 1;
+        let i: u64 = 0;
+        while (i < len * 2) {
+            Vector::push_back(&mut buffer, *Vector::borrow(&HEX_SYMBOLS, (value & 0xf as u64)));
+            value = value >> 4;
+            i = i + 1;
+        };
+        assert!(value == 0, 1);
+        Vector::reverse(&mut buffer);
+        buffer
+    }
+
+    /// Converts a `address` to its  hexadecimal representation with fixed length (in whole bytes).
+    /// so the returned String is `2 * length + 2`(with '0x') in size
+    public fun address_to_hex_string(addr: address): vector<u8> {
+        let hex_string = Vector::empty<u8>();
+        Vector::append(&mut hex_string, b"0x");
+        let addr_bytes = BCS::to_bytes<address>(&addr);
+        let i = 0;
+        let len = Vector::length(&addr_bytes);
+        while (i < len) {
+            let hex_slice = to_hex_string_without_prefix(*Vector::borrow(&addr_bytes, i));
+            Vector::append(&mut hex_string, hex_slice);
+            i = i + 1;
+        };
+        hex_string
+    }
 }
+
 #[test_only]
 module Bridge::CrossChainLibraryTest {
     use Bridge::CrossChainLibrary;
     use Bridge::ZeroCopySource;
     use StarcoinFramework::Debug::{Self};
     use StarcoinFramework::Vector;
+    use Bridge::CrossChainLibrary::address_to_hex_string;
 
     const POLYCHAIN_PUBKEY_LEN: u64 = 67;
     const POLYCHAIN_SIGNATURE_LEN: u64 = 65;
@@ -799,5 +839,17 @@ module Bridge::CrossChainLibraryTest {
         assert!(_next_book_keeper == next_book_keeper, 2017);
         assert!(_keepers == keepers, 2018);
     }
+
+    #[test]
+    public fun test_address_to_hex_string() {
+        assert!(b"0x4783d08fb16990bd35d83f3e23bf93b8" == address_to_hex_string(@0x4783d08fb16990bd35d83f3e23bf93b8), 2020);
+        assert!(b"0x4783d08fb16990bd35d83f3e23bf93b8" != address_to_hex_string(@0x416b32009fe49fcab1d5f2ba0153838f), 2021);
+
+        let str = Vector::empty<u8>();
+        Vector::append(&mut str, b"Script::");
+        Vector::append(&mut str, address_to_hex_string(@0x416b32009fe49fcab1d5f2ba0153838f));
+        assert!(b"Script::0x4783d08fb16990bd35d83f3e23bf93b8" != str, 2021);
+    }
+
 
 }
