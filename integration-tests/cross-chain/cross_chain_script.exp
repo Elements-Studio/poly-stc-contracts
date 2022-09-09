@@ -19,7 +19,7 @@ task 5 'run'. lines 33-50:
     "MoveAbort": {
       "location": {
         "Module": {
-          "address": "0xe52552637c5897a2d499fbf08216f73e",
+          "address": "0x416b32009fe49fcab1d5f2ba0153838f",
           "name": "CrossChainGlobal"
         }
       },

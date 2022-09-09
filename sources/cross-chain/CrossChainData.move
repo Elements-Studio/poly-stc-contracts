@@ -5,9 +5,12 @@ module Bridge::CrossChainData {
     use Bridge::SMTProofs;
     use Bridge::SMTUtils;
     use Bridge::SMTreeHasher;
+
     use StarcoinFramework::Errors;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Vector;
+
+    friend Bridge::CrossChainManager;
 
     const LEAF_DATA_VALUE_HASH_START_INDEX: u64 = 33;
     const LEAF_DATA_LEN: u64 = 65;
@@ -66,7 +69,7 @@ module Bridge::CrossChainData {
         });
     }
 
-    public fun put_cur_epoch_con_pubkey_bytes(bytes: vector<u8>) acquires Consensus {
+    public(friend) fun put_cur_epoch_con_pubkey_bytes(bytes: vector<u8>) acquires Consensus {
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.con_keepers_pk_bytes = bytes;
     }
@@ -77,7 +80,7 @@ module Bridge::CrossChainData {
         *&consesus.con_keepers_pk_bytes
     }
 
-    public fun put_cur_epoch_start_height(curEpochStartHeight: u64) acquires Consensus {
+    public(friend) fun put_cur_epoch_start_height(curEpochStartHeight: u64) acquires Consensus {
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.cur_epoch_start_height = curEpochStartHeight;
     }
@@ -95,7 +98,7 @@ module Bridge::CrossChainData {
     }
 
     // Store Ethereum cross chain tx hash, increase the index record by 1
-    public fun put_eth_tx_hash(eth_tx_hash: vector<u8>) acquires Consensus {
+    public(friend) fun put_eth_tx_hash(eth_tx_hash: vector<u8>) acquires Consensus {
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.eth_to_poly_tx_hash_index = consesus.eth_to_poly_tx_hash_index + 1;
         Vector::push_back<vector<u8>>(&mut consesus.eth_to_poly_tx_hash, eth_tx_hash);
