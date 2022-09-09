@@ -2,7 +2,7 @@ processed 6 tasks
 
 task 3 'run'. lines 7-21:
 {
-  "gas_used": 25585940,
+  "gas_used": 25688955,
   "status": "Executed"
 }
 
@@ -19,7 +19,7 @@ task 5 'run'. lines 33-50:
     "MoveAbort": {
       "location": {
         "Module": {
-          "address": "0x416b32009fe49fcab1d5f2ba0153838f",
+          "address": "0xe52552637c5897a2d499fbf08216f73e",
           "name": "CrossChainGlobal"
         }
       },
