@@ -1,6 +1,6 @@
 [package]
 name = "Poly-STC-Bridge"
-version = "1.0.1"
+version = "1.0.12"
 
 [addresses]
 StarcoinFramework = "0x1"
