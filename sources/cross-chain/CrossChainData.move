@@ -69,7 +69,8 @@ module Bridge::CrossChainData {
         });
     }
 
-    public(friend) fun put_cur_epoch_con_pubkey_bytes(bytes: vector<u8>) acquires Consensus {
+    public(friend) fun put_cur_epoch_con_pubkey_bytes(signer: &signer, bytes: vector<u8>) acquires Consensus {
+        CrossChainGlobal::require_admin_account(Signer::address_of(signer));
         let consesus = borrow_global_mut<Consensus>(CrossChainGlobal::genesis_account());
         consesus.con_keepers_pk_bytes = bytes;
     }
