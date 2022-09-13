@@ -22,6 +22,10 @@ module Bridge::XUSDT {
         let token = Token::mint<XUSDT>(account, amount);
         Account::deposit_to_self<XUSDT>(account, token)
     }
+
+    public fun burn(account: &signer, amount: u128) {
+        Token::burn(account, Account::withdraw<XUSDT>(account, amount));
+    }
 }
 
 module Bridge::XUSDTScripts {
@@ -32,8 +36,14 @@ module Bridge::XUSDTScripts {
         XUSDT::init(&account);
     }
 
+    /// Only called with someone who has mint capability
     public(script) fun mint(account: signer, amount: u128) {
         XUSDT::mint(&account, amount);
         LockProxy::move_to_treasury<XUSDT::XUSDT>(&account, amount);
+    }
+
+    /// Only called with someone who has burn capability
+    public(script) fun burn(account: signer, amount: u128) {
+        XUSDT::burn(&account, amount);
     }
 }
