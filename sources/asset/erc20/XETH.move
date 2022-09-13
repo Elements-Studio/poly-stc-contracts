@@ -19,6 +19,10 @@ module Bridge::XETH {
         let token = Token::mint<XETH>(account, amount);
         Account::deposit_to_self<XETH>(account, token);
     }
+
+    public fun burn(account: &signer, amount: u128) {
+        Token::burn(account, Account::withdraw<XETH>(account, amount));
+    }
 }
 
 module Bridge::XETHScripts {
@@ -29,8 +33,14 @@ module Bridge::XETHScripts {
         XETH::init(&account);
     }
 
+    /// Only called with someone who have burn capability
     public(script) fun mint(account: signer, amount: u128) {
         XETH::mint(&account, amount);
         LockProxy::move_to_treasury<XETH::XETH>(&account, amount);
+    }
+
+    /// Only called with someone who have burn capability
+    public(script) fun burn(account: signer, amount: u128) {
+        XETH::burn(&account, amount);
     }
 }

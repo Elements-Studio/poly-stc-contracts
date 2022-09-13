@@ -36,13 +36,13 @@ module Bridge::XUSDTScripts {
         XUSDT::init(&account);
     }
 
-    /// Only called with someone who has mint capability
+    /// Only called with someone who have mint capability
     public(script) fun mint(account: signer, amount: u128) {
         XUSDT::mint(&account, amount);
         LockProxy::move_to_treasury<XUSDT::XUSDT>(&account, amount);
     }
 
-    /// Only called with someone who has burn capability
+    /// Only called with someone who have burn capability
     public(script) fun burn(account: signer, amount: u128) {
         XUSDT::burn(&account, amount);
     }
