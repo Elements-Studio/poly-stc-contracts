@@ -847,9 +847,8 @@ module Bridge::CrossChainLibraryTest {
 
         let str = Vector::empty<u8>();
         Vector::append(&mut str, b"Script::");
-        Vector::append(&mut str, address_to_hex_string(@0x416b32009fe49fcab1d5f2ba0153838f));
-        assert!(b"Script::0x4783d08fb16990bd35d83f3e23bf93b8" != str, 2021);
+        Vector::append(&mut str, address_to_hex_string(@0x4783d08fb16990bd35d83f3e23bf93b8));
+        assert!(b"Script::0x4783d08fb16990bd35d83f3e23bf93b8" == *&str, 2022);
+        assert!(b"Script::0x416b32009fe49fcab1d5f2ba0153838f" != *&str, 2023);
     }
-
-
 }

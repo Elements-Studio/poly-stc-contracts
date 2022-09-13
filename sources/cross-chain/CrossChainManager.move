@@ -117,10 +117,10 @@ module Bridge::CrossChainManager {
         let (next_book_keeper, keepers) = CrossChainLibrary::verify_pubkey(pub_key_list);
         assert!(header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
 
-        CrossChainData::put_cur_epoch_start_height(header_height);
+        CrossChainData::put_cur_epoch_start_height(signer, header_height);
 
         let keep_serialized_byte = CrossChainLibrary::serialize_keepers(&keepers);
-        CrossChainData::put_cur_epoch_con_pubkey_bytes(keep_serialized_byte);
+        CrossChainData::put_cur_epoch_con_pubkey_bytes(signer, keep_serialized_byte);
 
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
@@ -208,9 +208,9 @@ module Bridge::CrossChainManager {
         assert!(header_next_bookkeeper == next_book_keeper, Errors::invalid_state(ERR_NEXT_BOOK_KEEPER_ILLEGAL));
 
         // update current epoch start height of Poly chain and current epoch consensus peers book keepers addresses
-        CrossChainData::put_cur_epoch_start_height(header_height);
+        CrossChainData::put_cur_epoch_start_height(signer, header_height);
         let serialized_keepers = CrossChainLibrary::serialize_keepers(&keepers);
-        CrossChainData::put_cur_epoch_con_pubkey_bytes(serialized_keepers);
+        CrossChainData::put_cur_epoch_con_pubkey_bytes(signer, serialized_keepers);
 
         // Fire the change book keeper event
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
