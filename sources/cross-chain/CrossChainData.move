@@ -11,6 +11,7 @@ module Bridge::CrossChainData {
     use StarcoinFramework::Vector;
 
     friend Bridge::CrossChainManager;
+    friend Bridge::CrossChainProcessCombinator;
 
     const LEAF_DATA_VALUE_HASH_START_INDEX: u64 = 33;
     const LEAF_DATA_LEN: u64 = 65;
