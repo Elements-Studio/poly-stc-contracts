@@ -95,7 +95,7 @@ module Bridge::CrossChainProcessCombinator {
         )
     }
 
-    public fun create_proof_certificate(header_verified_params: &HeaderVerifyedParamPack,
+    public(friend) fun create_proof_certificate(header_verified_params: &HeaderVerifyedParamPack,
                                         merkle_proof_root: &vector<u8>,
                                         merkle_proof_leaf: &vector<u8>,
                                         merkle_proof_siblings: &vector<vector<u8>>): MerkleProofCertificate {
