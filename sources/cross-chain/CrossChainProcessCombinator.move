@@ -31,8 +31,10 @@ module Bridge::CrossChainProcessCombinator {
 
     const ERR_TRANSACTION_EXECUTE_REPEATE: u64 = 101;
 
+    friend Bridge::CrossChainRouter;
     friend Bridge::CrossChainManager;
     friend Bridge::LockProxy;
+
 
     public(friend) fun lock_to_chain_parameters(to_chain_id: u64,
                                                 to_contract: &vector<u8>,
@@ -95,10 +97,10 @@ module Bridge::CrossChainProcessCombinator {
         )
     }
 
-    public fun create_proof_certificate(header_verified_params: &HeaderVerifyedParamPack,
-                                        merkle_proof_root: &vector<u8>,
-                                        merkle_proof_leaf: &vector<u8>,
-                                        merkle_proof_siblings: &vector<vector<u8>>): MerkleProofCertificate {
+    public(friend) fun create_proof_certificate(header_verified_params: &HeaderVerifyedParamPack,
+                                                merkle_proof_root: &vector<u8>,
+                                                merkle_proof_leaf: &vector<u8>,
+                                                merkle_proof_siblings: &vector<vector<u8>>): MerkleProofCertificate {
         let proof_path_hash = CrossChainSMTProofs::generate_leaf_path(
             header_verified_params.from_chain_id, &header_verified_params.tx_hash);
 
