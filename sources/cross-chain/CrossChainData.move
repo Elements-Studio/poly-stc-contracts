@@ -121,7 +121,7 @@ module Bridge::CrossChainData {
     }
 
     // Mark from chain tx fromChainTx as exist or processed
-    public fun mark_from_chain_tx_exists(
+    public(friend) fun mark_from_chain_tx_exists(
         input_hash: &vector<u8>,
         proof_leaf: &vector<u8>,
         proof_siblings: &vector<vector<u8>>)
