@@ -109,7 +109,12 @@ module Bridge::SMTUtils {
         } else {
             data_len
         };
-        while (i < actual_end) {
+        while ({
+            spec {
+                invariant result == vec[start..i];
+            };
+            i < actual_end
+        }) {
             Vector::push_back(&mut result, *Vector::borrow(vec, i));
             i = i + 1;
         };
@@ -117,16 +122,18 @@ module Bridge::SMTUtils {
     }
 
     spec fun min(end: u64, data_len: u64 ): u64 {
-        if (end < data_len && end >= 0) {
+        if (end < data_len) {
             end
         }else {
             data_len
         }
     }
 
-    // spec sub_u8_vector {
-    //     pragma addition_overflow_unchecked;
-    // }
+    spec sub_u8_vector {
+        pragma verify;
+        pragma addition_overflow_unchecked;
+        ensures result == vec[start..min(end,len(vec))];
+    }
 
     public fun sub_vector<ElementT: copy>(vec: &vector<ElementT>, start: u64, end: u64): vector<ElementT> {
         let i = start;
@@ -137,11 +144,21 @@ module Bridge::SMTUtils {
         } else {
             data_len
         };
-        while (i < actual_end) {
+        while ({
+            spec {
+                invariant result == vec[start..i];
+            };
+            i < actual_end
+        }) {
             Vector::push_back(&mut result, *Vector::borrow(vec, i));
             i = i + 1;
         };
         result
     }
 
+    spec sub_vector {
+        pragma verify;
+        pragma addition_overflow_unchecked;
+        ensures result == vec[start..min(end,len(vec))];
+    }
 }
