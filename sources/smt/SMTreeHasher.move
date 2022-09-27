@@ -5,6 +5,11 @@ module Bridge::SMTreeHasher {
     use StarcoinFramework::Errors;
     use StarcoinFramework::Vector;
 
+    spec module {
+        pragma verify = true;
+        pragma aborts_if_is_strict = true;
+    }
+
     // sparse merkle tree leaf(node) prefix.
     const LEAF_PREFIX: vector<u8> = x"00";
     // sparse merkle tree (internal)node prefix.

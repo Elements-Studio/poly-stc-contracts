@@ -3,6 +3,11 @@ module Bridge::SMTUtils {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Errors;
 
+    spec module {
+        pragma verify = true;
+        pragma aborts_if_is_strict = true;
+    }
+
     const ERROR_VECTORS_NOT_SAME_LENGTH: u64 = 103;
     const BIT_RIGHT: bool = true;
     const BIT_LEFT: bool = false;
