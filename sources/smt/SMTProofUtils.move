@@ -6,6 +6,11 @@ module Bridge::SMTProofUtils {
     use Bridge::SMTreeHasher;
     use Bridge::SMTHash;
 
+    spec module {
+        pragma verify = true;
+        pragma aborts_if_is_strict = true;
+    }
+    
     const ERROR_INVALID_PATH_BYTES_LENGTH: u64 = 101;
     const ERROR_INVALID_PATH_BITS_LENGTH: u64 = 102;
     const ERROR_INVALID_NODES_DATA_PACKAGE_LENGTH: u64 = 103;
@@ -20,7 +25,11 @@ module Bridge::SMTProofUtils {
         result_vec
     }
 
-
+    spec path_bits_to_bool_vector_from_msb {
+        pragma aborts_if_is_partial;
+        aborts_if len(path) != SMTreeHasher::path_size();
+        ensures len(result) == SMTreeHasher::path_size_in_bits();
+    }
 
     // Split sibling nodes data from concatenated data.
     // Due `Move` API call not yet support the parameter type such as vector<vector<u8>>,
@@ -34,7 +43,12 @@ module Bridge::SMTProofUtils {
             let result = Vector::empty<vector<u8>>();
             let size = len / node_data_length;
             let idx = 0;
-            while (idx < size) {
+            while ({
+                spec {
+                    invariant idx <= len(side_nodes_data) / SMTHash::size();
+                };
+                idx < size
+            }) {
                 let start = idx * node_data_length;
                 let end = start + node_data_length;
                 Vector::push_back(&mut result, SMTUtils::sub_u8_vector(side_nodes_data, start, end));
@@ -46,4 +60,7 @@ module Bridge::SMTProofUtils {
         }
     }
 
+    spec split_side_nodes_data {
+        aborts_if len(side_nodes_data) % SMTHash::size() != 0;
+    }
 }
