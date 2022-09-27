@@ -5,7 +5,6 @@ module Bridge::SMTUtils {
 
     spec module {
         pragma verify = true;
-        pragma aborts_if_is_strict = true;
     }
 
     const ERROR_VECTORS_NOT_SAME_LENGTH: u64 = 103;
@@ -82,6 +81,7 @@ module Bridge::SMTUtils {
         while ({
             spec {
                 invariant i <= len(data)*8;
+                invariant len(vec) == i;
             };
             i < Vector::length(data)*8
         }) {
@@ -93,6 +93,7 @@ module Bridge::SMTUtils {
 
     spec bits_to_bool_vector_from_msb {
         pragma addition_overflow_unchecked;
+        ensures len(result) == 8 * len(data);
     }
 
     public fun concat_u8_vectors(v1: &vector<u8>, v2: vector<u8>): vector<u8> {
