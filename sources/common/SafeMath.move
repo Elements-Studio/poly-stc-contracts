@@ -28,6 +28,12 @@ module Bridge::SafeMath {
         };
         U256::to_u128(&r_u256)
     }
+    spec safe_mul_div {
+        pragma verify;
+        pragma aborts_if_is_partial;
+        aborts_if z == 0;
+        aborts_if x * y /z > U128_MAX;
+    }
 
     public fun mul_div_u256(x: u128, y: u128, z: u128): U256 {
         if ( z == 0) {
@@ -42,6 +48,13 @@ module Bridge::SafeMath {
         let y_u256 = U256::from_u128(y);
         let z_u256 = U256::from_u128(z);
         U256::div(U256::mul(x_u256, y_u256), z_u256)
+    }
+
+    spec mul_div_u256 {
+        pragma verify;
+        pragma aborts_if_is_partial;
+        aborts_if z == 0;
+        ensures U256::value_of_U256(result) == x * y / z;
     }
 
     #[test]
