@@ -28,6 +28,12 @@ module Bridge::SafeMath {
         };
         U256::to_u128(&r_u256)
     }
+    spec safe_mul_div {
+        pragma verify;
+        pragma aborts_if_is_partial;
+        aborts_if z == 0;
+        aborts_if x * y /z > U128_MAX;
+    }
 
     public fun mul_div_u256(x: u128, y: u128, z: u128): U256 {
         if ( z == 0) {
@@ -42,6 +48,13 @@ module Bridge::SafeMath {
         let y_u256 = U256::from_u128(y);
         let z_u256 = U256::from_u128(z);
         U256::div(U256::mul(x_u256, y_u256), z_u256)
+    }
+
+    spec mul_div_u256 {
+        pragma verify;
+        pragma aborts_if_is_partial;
+        aborts_if z == 0;
+        ensures U256::value_of_U256(result) == x * y / z;
     }
 
     #[test]
@@ -77,8 +90,30 @@ module Bridge::SafeMath {
         U256::compare(&r1, &r2)
     }
 
+    spec safe_compare_u256 {
+        pragma verify;
+        pragma aborts_if_is_partial;
+        ensures result == compare_fun(x1 * y1, x2 * y2);
+    }
+
+    spec fun compare_fun (a: num, b: num): num {
+        if (a < b) {
+            LESS_THAN
+        } else if (a > b) {
+            GREATER_THAN
+        } else {
+            EQUAL
+        }
+    }
+
     public fun mul_u256(x: u128, y: u128): U256 {
         U256::mul(U256::from_u128(x), U256::from_u128(y))
+    }
+
+    spec mul_u256 {
+        pragma verify;
+        pragma aborts_if_is_partial;
+        ensures U256::value_of_U256(result) == x * y;
     }
 
     // support 18-bit or larger precision token
