@@ -13,6 +13,10 @@ module Bridge::ZeroCopySource {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Errors;
 
+    spec module {
+        pragma verify = true;
+    }
+
     const HEX_0XFD:vector<u8> = x"FD";
     const HEX_0XFFFF:vector<u8> = x"FFFF";
     const HEX_0XFFFFFFFF:vector<u8> = x"FFFFFFFF";
@@ -57,6 +61,10 @@ module Bridge::ZeroCopySource {
         }
     }
 
+    spec next_bool {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 1) > len(data)) || (offset >= offset + 1);
+    }
 
     // @notice              Read next byte starting at offset from data
     // @param data          Source bytes array
@@ -68,6 +76,10 @@ module Bridge::ZeroCopySource {
         (data_slice, offset + 1)
     }
 
+    spec next_byte {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 1) > len(data)) || (offset >= offset + 1);
+    }
 
     // @notice              Read next byte as u8 starting at offset from data
     // @param data          Source bytes array
@@ -80,6 +92,10 @@ module Bridge::ZeroCopySource {
         ((v as u8), offset + 1)
     }
 
+    spec next_u8 {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 1) > len(data)) || (offset >= offset + 1);
+    }
 
     // @notice              Read next two bytes as u16 type starting from offset
     // @param data          Source bytes array
@@ -93,6 +109,10 @@ module Bridge::ZeroCopySource {
         ((v as u64), offset + 2)
     }
 
+    spec next_u16 {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 2) > len(data)) || (offset >= offset + 2);
+    }
 
     // @notice              Read next four bytes as u32 type starting from offset
     // @param data          Source bytes array
@@ -106,6 +126,10 @@ module Bridge::ZeroCopySource {
         ((v as u64), offset + 4)
     }
 
+    spec next_u32 {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 4) > len(data)) || (offset >= offset + 4);
+    }
 
     // @notice              Read next eight bytes as u64 type starting from offset
     // @param data          Source bytes array
@@ -119,6 +143,10 @@ module Bridge::ZeroCopySource {
         ((v as u64), offset + 8)
     }
 
+    spec next_u64 {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 8) > len(data)) || (offset >= offset + 8);
+    }
 
     // @notice              Read next eight bytes as u128 type starting from offset
     // @param data          Source bytes array
@@ -132,6 +160,10 @@ module Bridge::ZeroCopySource {
         (v, offset + 16)
     }
 
+    spec next_u128 {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 16) > len(data)) || (offset >= offset + 16);
+    }
 
     // @notice              Read next 32 bytes as u256 type starting from offset,
     //                      there are limits considering the numerical limits in multi-chain
@@ -146,6 +178,11 @@ module Bridge::ZeroCopySource {
 //        Vector::reverse(&mut data_slice);
         let v = Bytes::bytes_reverse_to_u128(&data_slice);
         (v, offset + 32)
+    }
+
+    spec next_u256 {
+        pragma aborts_if_is_partial;
+        aborts_if ((offset + 32) > len(data)) || (offset >= offset + 32);
     }
 
     // @notice              Read next 32 bytes starting from offset,
