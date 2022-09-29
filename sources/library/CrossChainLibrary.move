@@ -13,6 +13,7 @@ module Bridge::CrossChainLibrary {
 
     spec module {
         pragma verify = true;
+        pragma aborts_if_is_strict = true;
     }
 
     // struct Header has key, store, drop, copy {
@@ -183,9 +184,9 @@ module Bridge::CrossChainLibrary {
         contain_m_addresses(keepers, &signers, m)
     }
 
-    // spec verify_sig {
-    //     pragma verify = false;
-    // }
+    spec verify_sig {
+        pragma verify = false;
+    }
 
 
     // @notice               Serialize Poly chain book keepers' info in Starcoin addresses format into raw bytes
@@ -339,7 +340,7 @@ module Bridge::CrossChainLibrary {
     }
 
     spec get_header_hash {
-        pragma verify = false;
+        aborts_if false;
     }
 
 
@@ -351,7 +352,7 @@ module Bridge::CrossChainLibrary {
     }
 
     spec hash_leaf {
-        pragma verify = false;
+        aborts_if false;
     }
 
 
@@ -365,7 +366,7 @@ module Bridge::CrossChainLibrary {
     }
 
     spec hash_children {
-        pragma verify = false;
+        aborts_if false;
     }
 
 
@@ -400,7 +401,7 @@ module Bridge::CrossChainLibrary {
     }
 
     spec contain_m_addresses {
-        pragma verify = true;
+        pragma verify = false;
     }
 
 
@@ -493,7 +494,12 @@ module Bridge::CrossChainLibrary {
         let addr_bytes = BCS::to_bytes<address>(&addr);
         let i = 0;
         let len = Vector::length(&addr_bytes);
-        while (i < len) {
+        while ({
+            spec {
+                invariant len(addr_bytes) >= i;
+            };
+            i < len
+            }) {
             let hex_slice = to_hex_string_without_prefix(*Vector::borrow(&addr_bytes, i));
             Vector::append(&mut hex_string, hex_slice);
             i = i + 1;
