@@ -39,6 +39,7 @@ module Bridge::Bytes {
     }
 
     spec slice {
+        pragma opaque = true;
         aborts_if false;
         ensures result == data[start..min(end, len(data))];
     }

@@ -11,6 +11,10 @@ module Bridge::CrossChainLibrary {
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};
     use StarcoinFramework::BCS;
 
+    spec module {
+        pragma verify = true;
+    }
+
     // struct Header has key, store, drop, copy {
     //     version: u64, //origin uint32
     //     chain_id: u64, //origin uint64
@@ -85,6 +89,10 @@ module Bridge::CrossChainLibrary {
         value
     }
 
+    spec merkle_prove {
+        pragma verify = false;
+    }
+
 
     // @notice              calculate next book keeper according to public key list
     // @param keyLen        consensus node number
@@ -111,11 +119,15 @@ module Bridge::CrossChainLibrary {
             i = i + 1;
         };
 
+      
         buf = Bytes::concat(&buf, ZeroCopySink::write_u16(m));
         let next_book_keeper = Hash::ripemd160(Hash::sha2_256(buf));
         (next_book_keeper, keepers)
     }
 
+    spec get_book_keeper {
+        pragma verify = false;
+    }
 
 
     // @notice              Verify public key derived from Poly chain
@@ -127,6 +139,13 @@ module Bridge::CrossChainLibrary {
         let n = Vector::length(pub_key_list) / POLYCHAIN_PUBKEY_LEN;
         assert!(n > 1, Errors::invalid_state(ERR_PUB_KEY_LIST_TOO_SHORT));
         get_book_keeper(n, (n - (n - 1) / 3), pub_key_list)
+    }
+
+    spec verify_pubkey {
+        pragma verify = false;
+        pragma aborts_if_is_partial = true;
+        aborts_if len(pub_key_list) % POLYCHAIN_PUBKEY_LEN > 0;
+        aborts_if len(pub_key_list) / POLYCHAIN_PUBKEY_LEN <= 1;
     }
 
 
@@ -141,7 +160,12 @@ module Bridge::CrossChainLibrary {
         let sig_count = Vector::length(sig_list) / POLYCHAIN_SIGNATURE_LEN;
         let signers = Vector::empty();
         let i = 0;
-        while (i < sig_count) {
+        while ({
+            spec {
+                invariant len(sig_list) >= i * POLYCHAIN_SIGNATURE_LEN;
+            };
+            i < sig_count
+            }) {
             // r = Bytes::slice(sig_list, i*POLYCHAIN_SIGNATURE_LEN, i*POLYCHAIN_SIGNATURE_LEN + 32);
             // s = Bytes::slice(sig_list, i*POLYCHAIN_SIGNATURE_LEN + 32, (i*POLYCHAIN_SIGNATURE_LEN + 32) + 32);
             // v_bytes = Bytes::slice(sig_list, i*POLYCHAIN_SIGNATURE_LEN + 64, (i*POLYCHAIN_SIGNATURE_LEN + 64)  + 1);
@@ -159,6 +183,10 @@ module Bridge::CrossChainLibrary {
         contain_m_addresses(keepers, &signers, m)
     }
 
+    // spec verify_sig {
+    //     pragma verify = false;
+    // }
+
 
     // @notice               Serialize Poly chain book keepers' info in Starcoin addresses format into raw bytes
     // @param keepers        The serialized addresses
@@ -167,7 +195,12 @@ module Bridge::CrossChainLibrary {
         let keeper_len = Vector::length(keepers);
         let keeper_bytes = ZeroCopySink::write_u64(keeper_len);
         let i = 0;
-        while (i < keeper_len){
+        while ({
+            spec {
+                invariant len(keepers) >= i;
+            };
+            i < keeper_len
+            }){
             keeper_bytes = Bytes::concat(&keeper_bytes, ZeroCopySink::write_var_bytes(Vector::borrow(keepers, i)));
             i = i + 1;
         };
@@ -186,12 +219,22 @@ module Bridge::CrossChainLibrary {
         let keepers = Vector::empty();
         let keeper_bytes;
         let i = 0 ;
-        while (i < keeper_len) {
+        while ({
+            spec {
+                invariant i <= keeper_len;
+                invariant len(keepers) == i;
+            };
+            i < keeper_len
+            }) {
             (keeper_bytes, offset) = ZeroCopySource::next_var_bytes(data, offset);
             Vector::push_back(&mut keepers, keeper_bytes);
             i = i + 1;
         };
         keepers
+    }
+
+    spec deserialize_keepers {
+        pragma aborts_if_is_partial;
     }
 
 
@@ -231,6 +274,10 @@ module Bridge::CrossChainLibrary {
             method,
             args
         )
+    }
+
+    spec deserialize_merkle_value {
+        pragma verify = false;
     }
 
 
@@ -279,12 +326,20 @@ module Bridge::CrossChainLibrary {
         )
     }
 
+    spec deserialize_header {
+        pragma verify = false;
+    }
+
 
     // @notice            Deserialize Poly chain block header raw bytes
     // @param rawHeader   Poly chain block header raw bytes
     // @return            header hash same as Poly chain
     public fun get_header_hash(raw_header: &vector<u8>): vector<u8>{
         Hash::sha2_256(Hash::sha2_256(*raw_header))
+    }
+
+    spec get_header_hash {
+        pragma verify = false;
     }
 
 
@@ -295,6 +350,10 @@ module Bridge::CrossChainLibrary {
         Hash::sha2_256(Bytes::concat(&x"00", *data))
     }
 
+    spec hash_leaf {
+        pragma verify = false;
+    }
+
 
     // @notice          Do hash children as the multi-chain does
     // @param l         Left node
@@ -303,6 +362,10 @@ module Bridge::CrossChainLibrary {
     public fun hash_children(l: &vector<u8>, r: &vector<u8>): vector<u8>{
         let bytes = Bytes::concat(&x"01", *l);
         Hash::sha2_256(Bytes::concat(&bytes, *r))
+    }
+
+    spec hash_children {
+        pragma verify = false;
     }
 
 
@@ -336,6 +399,10 @@ module Bridge::CrossChainLibrary {
         return cm >= m
     }
 
+    spec contain_m_addresses {
+        pragma verify = true;
+    }
+
 
     public fun compress_mc_pubkey(key: &vector<u8>): vector<u8> {
         assert!(Vector::length(key) >= 67, ERR_COMPRESS_MC_KEY_LENGTH_TOO_SHORT);
@@ -349,6 +416,10 @@ module Bridge::CrossChainLibrary {
         newkey
     }
 
+    spec compress_mc_pubkey {
+        aborts_if len(key) < 67;
+    }
+
 
     public fun serialize_tx_args(to_asset_hash: vector<u8>,
                                  to_address: vector<u8>,
@@ -358,6 +429,10 @@ module Bridge::CrossChainLibrary {
         buff = Bytes::concat(&buff, ZeroCopySink::write_var_bytes(&to_address));
         buff = Bytes::concat(&buff, ZeroCopySink::write_u256(ZeroCopySink::write_u128(amount)));
         buff
+    }
+
+    spec serialize_tx_args {
+        pragma verify = false;
     }
 
     /**
@@ -378,6 +453,10 @@ module Bridge::CrossChainLibrary {
             to_address,
             amount,
         )
+    }
+
+    spec deserialize_tx_args {
+        pragma verify = false;
     }
 
     const HEX_SYMBOLS: vector<u8> = b"0123456789abcdef";
@@ -402,6 +481,10 @@ module Bridge::CrossChainLibrary {
         buffer
     }
 
+    spec to_hex_string_without_prefix {
+        pragma verify = false;
+    }
+
     /// Converts a `address` to its  hexadecimal representation with fixed length (in whole bytes).
     /// so the returned String is `2 * length + 2`(with '0x') in size
     public fun address_to_hex_string(addr: address): vector<u8> {
@@ -416,6 +499,10 @@ module Bridge::CrossChainLibrary {
             i = i + 1;
         };
         hex_string
+    }
+
+    spec address_to_hex_string {
+        pragma verify = false;
     }
 }
 
