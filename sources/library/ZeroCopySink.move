@@ -13,6 +13,11 @@ module Bridge::ZeroCopySink {
     use StarcoinFramework::Vector;
     use StarcoinFramework::BCS;
 
+    spec module {
+        pragma verify = true;
+        pragma aborts_if_is_strict = true;
+    }
+
     const HEX_0XFD:vector<u8> = x"FD";
     const HEX_0XFFFF:vector<u8> = x"FFFF";
     const HEX_0XFFFFFFFF:vector<u8> = x"FFFFFFFF";
@@ -35,6 +40,10 @@ module Bridge::ZeroCopySink {
             Vector::append(&mut buf, x"00");
         };
         buf
+    }
+
+    spec write_bool {
+        ensures len(result) != 0;
     }
 
 //    public fun write_byte(data: vector<u8>) : vector<u8> {
@@ -97,6 +106,9 @@ module Bridge::ZeroCopySink {
         Bytes::concat(&data, little_endian_padding)
     }
 
+    spec write_u256 {
+        ensures result == concat(data,x"00000000000000000000000000000000");
+    }
 
    // @notice          Encode bytes format data into bytes
    // @param data      The bytes array data
@@ -126,4 +138,6 @@ module Bridge::ZeroCopySink {
             Bytes::concat(&x"FF", write_u64(data))
         }
     }
+
+
 }

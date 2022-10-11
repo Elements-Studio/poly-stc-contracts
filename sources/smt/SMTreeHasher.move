@@ -5,6 +5,11 @@ module Bridge::SMTreeHasher {
     use StarcoinFramework::Errors;
     use StarcoinFramework::Vector;
 
+    spec module {
+        pragma verify = true;
+        pragma aborts_if_is_strict = true;
+    }
+
     // sparse merkle tree leaf(node) prefix.
     const LEAF_PREFIX: vector<u8> = x"00";
     // sparse merkle tree (internal)node prefix.
@@ -45,6 +50,15 @@ module Bridge::SMTreeHasher {
         (leaf_node_path, leaf_node_value)
     }
 
+    spec parse_leaf {
+        let end = SMTUtils::min(len(LEAF_PREFIX),len(data)) - 1;
+        let end_1 = SMTUtils::min(len(LEAF_PREFIX)+path_size(),len(data)) - 1;
+        aborts_if data[0..end] != LEAF_PREFIX;
+        aborts_if len(data) < len(LEAF_PREFIX) + path_size();
+        ensures result_1 == data[len(LEAF_PREFIX)..end_1];
+        ensures result_2 == data[len(LEAF_PREFIX)+path_size()..len(data) - 1];
+    }
+
     //    #[test]
     //    #[expected_failure]
     //    public fun test_parse_leaf_1() {
@@ -82,6 +96,17 @@ module Bridge::SMTreeHasher {
         (left_data, right_data)
     }
 
+    spec parse_node {
+        let start = len(NODE_PREFIX);
+        let end = SMTUtils::min(start,len(data)) - 1;
+        let end_1 = SMTUtils::min(start+path_size(),len(data)) - 1;
+        let end_2 = len(data) - 1;
+        aborts_if data[0..end] != NODE_PREFIX;
+        aborts_if len(data) != len(NODE_PREFIX) + path_size() * 2;
+        ensures result_1 == data[start..end_1];
+        ensures result_2 == data[end_1..end_2];
+    }
+
     public fun digest_leaf(path: &vector<u8>, leaf_value: &vector<u8>): (vector<u8>, vector<u8>) {
         let value = LEAF_PREFIX;
         value = SMTUtils::concat_u8_vectors(&value, *path);
@@ -89,11 +114,19 @@ module Bridge::SMTreeHasher {
         (SMTHash::hash(&value), value)
     }
 
+    spec digest_leaf {
+        ensures result_2 == concat(concat(LEAF_PREFIX,path),leaf_value);
+    }
+
     public fun create_leaf_data(path: &vector<u8>, leaf_value: &vector<u8>): vector<u8> {
         let value = LEAF_PREFIX;
         value = SMTUtils::concat_u8_vectors(&value, *path);
         value = SMTUtils::concat_u8_vectors(&value, *leaf_value);
         value
+    }
+
+    spec create_leaf_data {
+        ensures result == concat(concat(LEAF_PREFIX,path),leaf_value);
     }
 
     // Digest leaf data. The parameter `data` includes leaf key and value.
@@ -105,6 +138,12 @@ module Bridge::SMTreeHasher {
         SMTHash::hash(data)
     }
 
+    spec digest_leaf_data {
+        let end = SMTUtils::min(len(LEAF_PREFIX),len(data)) - 1;
+        aborts_if len(data) < len(LEAF_PREFIX) + path_size();
+        aborts_if data[0..end] != LEAF_PREFIX;
+    }
+
     public fun digest_node(left_data: &vector<u8>, right_data: &vector<u8>): (vector<u8>, vector<u8>) {
         let node_left_right_data_length = SMTHash::size();
         assert!(Vector::length(left_data) == node_left_right_data_length, Errors::invalid_state(ERROR_INVALID_NODE_DATA_LENGTH));
@@ -114,6 +153,12 @@ module Bridge::SMTreeHasher {
         value = SMTUtils::concat_u8_vectors(&value, *left_data);
         value = SMTUtils::concat_u8_vectors(&value, *right_data);
         (SMTHash::hash(&value), value)
+    }
+
+    spec digest_node {
+        aborts_if SMTHash::size() != len(left_data);
+        aborts_if SMTHash::size() != len(right_data);
+        ensures result_2 == concat(concat(NODE_PREFIX,left_data),right_data);
     }
 
     public fun path(key: &vector<u8>): vector<u8> {

@@ -2,6 +2,11 @@ module Bridge::Bytes {
     use StarcoinFramework::Vector;
     use StarcoinFramework::BitOperators;
 
+    spec module {
+        pragma verify = true;
+        pragma aborts_if_is_strict = true;
+    }
+
     // left shift n bits.
     public fun lshift_u128(x: u128, n: u8): u128 {
         (x << n)
@@ -21,11 +26,22 @@ module Bridge::Bytes {
         } else {
             data_len
         };
-        while (i < actual_end) {
+        while ({
+            spec {
+                invariant result == data[start..i];
+            };
+            i < actual_end
+            }) {
             Vector::push_back(&mut result, *Vector::borrow(data, i));
             i = i + 1;
         };
         result
+    }
+
+    spec slice {
+        pragma opaque = true;
+        aborts_if false;
+        ensures result == data[start..min(end, len(data))];
     }
 
     public fun slice_range_with_template<Element: copy>(data: &vector<Element>, start: u64, end: u64): vector<Element> {
@@ -37,11 +53,25 @@ module Bridge::Bytes {
         } else {
             data_len
         };
-        while (i < actual_end) {
+        while ({
+            spec {
+                invariant result == data[start..i];
+            };
+            i < actual_end
+        }) {
             Vector::push_back(&mut result, *Vector::borrow(data, i));
             i = i + 1;
         };
         result
+    }
+
+    spec slice_range_with_template {
+        aborts_if false;
+        ensures result == data[start..min(end, len(data))];
+    }
+
+    spec fun min(x: u64, y: u64): u64 {
+        if (x < y) {x} else {y}
     }
 
     public fun concat(v1: &vector<u8>, v2: vector<u8>): vector<u8> {
@@ -50,18 +80,42 @@ module Bridge::Bytes {
         data
     }
 
+    spec concat {
+        let v1_length = len(v1);
+        let v2_length = len(v2);
+        let v1_last = v1[v1_length - 1];
+        let v2_last = v2[v2_length - 1];
+        aborts_if false;
+        ensures len(result) == v1_length + v2_length;
+        ensures (len(v1) > 0 && len(v2) > 0) ==> result[len(result) - 1] == v2_last;
+        ensures (len(v1) > 0 && len(v2) == 0) ==> result[len(result) - 1] == v1_last;
+    }
+
     public fun get_bit(data: &vector<u8>, index: u64): bool {
         let pos = index / 8;
         let bit = (7 - index % 8);
         (*Vector::borrow(data, pos) >> (bit as u8)) & 1u8 != 0
     }
 
+    spec get_bit {
+        aborts_if index / 8 >= len(data);
+    }
+
+
     public fun bytes_to_u64(data: &vector<u8>): u64 {
         let number: u64 = 0;
         let i = 0;
         let len = Vector::length(data);
-        while (i < len) {
+        while ({
+            spec {
+                invariant i <= len(data);
+            };
+            i < len
+            }) {
             let slice = *Vector::borrow(data, i);
+            spec {
+                assume (len - (i + 1)) * 8 <= MAX_U8;
+            };
             let bit = (len - (i + 1) as u8);
             //BitOperators::lshift return only u64
             number = number + BitOperators::lshift((slice as u64), bit * 8);
@@ -70,18 +124,37 @@ module Bridge::Bytes {
         number
     }
 
+    spec bytes_to_u64 {
+        pragma addition_overflow_unchecked;
+        pragma aborts_if_is_partial;
+        aborts_if false;
+    }
+
     // big endian cast
     public fun bytes_to_u128(data: &vector<u8>): u128 {
         let number: u128 = 0;
         let i = 0;
         let len = Vector::length(data);
-        while (i < len) {
+        while ({
+            spec {
+                invariant i <= len(data);
+            };
+            i < len
+            }) {
             let slice = *Vector::borrow(data, i);
+            spec {
+                assume (len - (i + 1)) * 8 <= MAX_U8;
+            };
             let bit = (len - (i + 1) as u8);
             number = number + lshift_u128((slice as u128), bit * 8);
             i = i + 1;
         };
         number
+    }
+
+    spec bytes_to_u128 {
+        pragma addition_overflow_unchecked;
+        aborts_if false;
     }
 
     // little endian cast
@@ -91,7 +164,14 @@ module Bridge::Bytes {
         if (len > 0){
             let i = len - 1;
             loop {
+                spec {
+                    invariant i >= 0;
+                    invariant i < len(data);
+                };
                 let slice = *Vector::borrow(data, i);
+                spec {
+                    assume i * 8 <= MAX_U8;
+                };
                 let bit = (i as u8);
                 number = number + lshift_u128((slice as u128), bit * 8);
                 if( i == 0){
@@ -99,8 +179,16 @@ module Bridge::Bytes {
                 };
                 i = i - 1;
             };
+            spec {
+                assert i == 0;
+            }
         };
         number
+    }
+
+    spec bytes_reverse_to_u128 {
+        pragma addition_overflow_unchecked;
+        aborts_if false;
     }
 
     public fun left_padding(data: &vector<u8>, total_len: u64): vector<u8>{
@@ -112,6 +200,12 @@ module Bridge::Bytes {
         *data
     }
 
+    spec left_padding {
+        aborts_if false;
+        ensures len(data) >= total_len ==> len(result) == len(data);
+        ensures len(data) < total_len ==> len(result) == total_len;
+    }
+
     public fun right_padding(data: &vector<u8>, total_len: u64): vector<u8>{
         let origin_len = Vector::length(data);
         if (origin_len < total_len){
@@ -121,14 +215,31 @@ module Bridge::Bytes {
         *data
     }
 
-    public fun create_zero_bytes(len: u64): vector<u8> {
+    spec right_padding {
+        aborts_if false;
+        ensures len(data) >= total_len ==> len(result) == len(data);
+        ensures len(data) < total_len ==> len(result) == total_len;
+    }
+
+    public fun create_zero_bytes(length: u64): vector<u8> {
         let i = 0 ;
         let bytes = Vector::empty();
-        while (i < len) {
+        while ({
+            spec {
+                invariant i <= length;
+                invariant len(bytes) == i;
+            };
+            i < length
+            }) {
             bytes = concat(&bytes, x"00");
             i = i + 1;
         };
         bytes
+    }
+
+    spec create_zero_bytes {
+        aborts_if false;
+        ensures len(result) == length;
     }
 }
 

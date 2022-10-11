@@ -56,6 +56,10 @@ module Bridge::SMTProofs {
     use Bridge::SMTUtils;
     use Bridge::SMTreeHasher;
 
+    spec module {
+        pragma verify = true;
+    }
+
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
     const ERROR_COUNT_COMMON_PREFIX: u64 = 102;
     const BIT_RIGHT: bool = true;
@@ -77,7 +81,7 @@ module Bridge::SMTProofs {
         let non_membership_leaf_hash = if (Vector::length<u8>(non_membership_leaf_data) > 0) {
             let (non_membership_leaf_path, _) = SMTreeHasher::parse_leaf(non_membership_leaf_data);
             assert!(*leaf_path != *&non_membership_leaf_path, Errors::invalid_state(ERROR_KEY_ALREADY_EXISTS_IN_PROOF));
-            assert!((SMTUtils::count_common_prefix(leaf_path, &non_membership_leaf_path) >= Vector::length(side_nodes)), ERROR_COUNT_COMMON_PREFIX);            
+            assert!((SMTUtils::count_common_prefix(leaf_path, &non_membership_leaf_path) >= Vector::length(side_nodes)), ERROR_COUNT_COMMON_PREFIX);
             SMTreeHasher::digest_leaf_data(non_membership_leaf_data)
         } else {
             SMTreeHasher::placeholder()
@@ -155,7 +159,12 @@ module Bridge::SMTProofs {
                 let place_holder_len = (common_prefix_count - side_nodes_len);
                 // Put placeholders
                 let idx = 0;
-                while (idx < place_holder_len) {
+                while ({
+                    spec {
+                        invariant idx <= place_holder_len;
+                    };
+                    idx < place_holder_len
+                }) {
                     Vector::push_back(&mut new_side_nodes, SMTreeHasher::placeholder());
                     idx = idx + 1;
                 };
@@ -167,11 +176,20 @@ module Bridge::SMTProofs {
 
         // Push old siblings into the new siblings array
         let idx = 0;
-        while (idx < side_nodes_len) {
+        while ({
+            spec {
+                invariant idx <= len(side_nodes);
+            };
+            idx < side_nodes_len
+        }) {
             Vector::push_back(&mut new_side_nodes, *Vector::borrow(side_nodes, idx));
             idx = idx + 1;
         };
         (new_side_nodes, new_leaf_hash)
+    }
+
+    spec create_membership_side_nodes {
+        pragma verify;
     }
 
     // Compute root hash.
@@ -183,9 +201,19 @@ module Bridge::SMTProofs {
         Debug::print(side_nodes);
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
 
+        spec {
+            assume len(node_hash) == 256;
+        };
+
         let i = 0;
         let current_hash = *node_hash;
-        while (i < side_nodes_len) {
+        while ({
+            spec {
+                invariant i <= side_nodes_len;
+                invariant len(current_hash) == 256;
+            };
+            i < side_nodes_len
+        }) {
             let bit = SMTUtils::get_bit_at_from_msb(path, side_nodes_len - i - 1);
             let sibling_hash = Vector::borrow<vector<u8>>(side_nodes, i);
             if (bit == BIT_RIGHT) {
@@ -196,6 +224,11 @@ module Bridge::SMTProofs {
             i = i + 1;
         };
         current_hash
+    }
+
+    spec compute_root_hash {
+        pragma verify;
+        ensures len(result) == 256;
     }
 
     //    struct SparseMerkleInternalNode has store, drop {
