@@ -176,9 +176,11 @@ module Bridge::LockProxy {
     }
 
     // Initialize proxy hash resource for `ChainType`
-    public fun init_proxy_hash<ChainType: store>(signer: &signer,
-                                                 chain_id: u64, // only for emit event, Must be identical to ChainType
-                                                 proxy_hash: &vector<u8>) acquires LockEventStore {
+    public fun init_proxy_hash<ChainType: store>(
+        signer: &signer,
+        chain_id: u64, // only for emit event, Must be identical to ChainType
+        proxy_hash: &vector<u8>
+    ) acquires LockEventStore {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
@@ -218,11 +220,12 @@ module Bridge::LockProxy {
     }
 
     // Bind asset hash, which called by genesis account
-    public fun init_asset_hash<TokenT: store,
-                               ToChainType: store>(signer: &signer,
-                                                   to_chain_id: u64, // only to emit event, MUST identical to ToChainType
-                                                   to_asset_hash: &vector<u8>)
-    acquires LockEventStore, LockTreasury {
+    // only to emit event, MUST identical to ToChainType
+    public fun init_asset_hash<TokenT: store, ToChainType: store>(
+        signer: &signer,
+        to_chain_id: u64,
+        to_asset_hash: &vector<u8>
+    ) acquires LockEventStore, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_genesis_account(account);
 
@@ -237,11 +240,12 @@ module Bridge::LockProxy {
     }
 
     // Bind asset hash, which called by amind & genesis account
-    public fun bind_asset_hash<TokenT: store,
-                               ToChainType: store>(signer: &signer,
-                                                   to_chain_id: u64, // only to emit event, MUST identical to ToChainType
-                                                   to_asset_hash: &vector<u8>)
-    acquires LockEventStore, AssetHashMap, LockTreasury {
+    // to_chain_id: only to emit event, MUST identical to ToChainType
+    public fun bind_asset_hash<TokenT: store, ToChainType: store>(
+        signer: &signer,
+        to_chain_id: u64, // only to emit event, MUST identical to ToChainType
+        to_asset_hash: &vector<u8>
+    ) acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_admin_account(account);
 
@@ -266,10 +270,12 @@ module Bridge::LockProxy {
     }
 
 
-    public fun lock<TokenT: store, ChainType: store>(_signer: &signer,
-                                                     _to_chain_id: u64,
-                                                     _to_address: &vector<u8>,
-                                                     _amount: u128):
+    public fun lock<TokenT: store, ChainType: store>(
+        _signer: &signer,
+        _to_chain_id: u64,
+        _to_address: &vector<u8>,
+        _amount: u128
+    ):
     (
         vector<u8>,
         vector<u8>,
@@ -324,14 +330,18 @@ module Bridge::LockProxy {
         // Stake to treasury
         move_to_treasury<TokenT>(signer, amount);
 
-        let asset_hash_map = borrow_global_mut<AssetHashMap<TokenT, ChainType>>(genesis_account);
+        let asset_hash_map =
+            borrow_global_mut<AssetHashMap<TokenT, ChainType>>(genesis_account);
         let tx_data = CrossChainLibrary::serialize_tx_args(
             *&asset_hash_map.to_asset_hash,
             *to_address,
             amount);
 
         let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
-        assert!(Vector::length(&proxy_hash_map.to_proxy_hash) > 0, Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH));
+        assert!(
+            Vector::length(&proxy_hash_map.to_proxy_hash) > 0,
+            Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH)
+        );
 
         (
             // *&proxy_hash_map.to_proxy_hash,
@@ -372,11 +382,11 @@ module Bridge::LockProxy {
         let cc_fee_event = CrossChainFeeLockEvent {
             from_asset: Token::token_code<TokenT>(),
             sender: Signer::address_of(signer),
-            to_chain_id: to_chain_id,
+            to_chain_id,
             to_address: *to_address,
-            net: net,
+            net,
             fee: stc_fee,
-            id: id,
+            id,
         };
         emit_fee_lock_event(cc_fee_event);
     }
@@ -423,8 +433,10 @@ module Bridge::LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock_with_pack<TokenT: store, ChainType: store>(pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
-                                                                 cer: CrossChainProcessCombinator::MerkleProofCertificate):
+    public fun unlock_with_pack<TokenT: store, ChainType: store>(
+        pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+        cer: CrossChainProcessCombinator::MerkleProofCertificate
+    ):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
         CrossChainGlobal::require_not_freezing();
 
@@ -467,7 +479,8 @@ module Bridge::LockProxy {
 
         // Do unlock from lock token treasury
         assert!(exists<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account()), ERROR_LOCK_TREASURY_NOT_EXISTS);
-        let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
+        let token_store =
+            borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
         let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
         Account::deposit<TokenT>(payee, deposit_token);
 
@@ -491,7 +504,8 @@ module Bridge::LockProxy {
 
     // Emit an proxy hash event with `BindProxyEvent` object
     fun inner_emit_proxy_hash_event(to_chain_id: u64, target_proxy_hash: &vector<u8>) acquires LockEventStore {
-        let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
+        let event_store =
+            borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.bind_proxy_event,
             BindProxyEvent {
@@ -502,8 +516,12 @@ module Bridge::LockProxy {
     }
 
     // Emit an proxy hash event with `BindAssetEvent` object
-    fun inner_emit_asset_hash_event<TokenT: store>(to_chain_id: u64, target_proxy_hash: &vector<u8>) acquires LockEventStore, LockTreasury {
-        let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
+    fun inner_emit_asset_hash_event<TokenT: store>(
+        to_chain_id: u64,
+        target_proxy_hash: &vector<u8>
+    ) acquires LockEventStore, LockTreasury {
+        let event_store =
+            borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.bind_asset_event,
             BindAssetEvent {
@@ -521,9 +539,9 @@ module Bridge::LockProxy {
         if (!exists<LockTreasury<TokenT>>(genesis_account)) {
             0
         } else {
-            let lock_token = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
+            let lock_token =
+                borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
             Token::value<TokenT>(&lock_token.token)
         }
     }
-
 }
