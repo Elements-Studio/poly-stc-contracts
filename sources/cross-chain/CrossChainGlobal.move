@@ -16,6 +16,8 @@ module Bridge::CrossChainGlobal {
 
     struct ETHEREUM_CHAIN has key, store {}
 
+    struct APTOS_CHAIN has key, store {}
+
     struct ExecutionCapability {
         tx_data: vector<u8>,
         proof_tx_non_exists: bool,

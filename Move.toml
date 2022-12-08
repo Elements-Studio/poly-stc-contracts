@@ -1,10 +1,11 @@
 [package]
 name = "Poly-STC-Bridge"
-version = "1.0.12"
+version = "1.0.13"
 
 [addresses]
 StarcoinFramework = "0x1"
 Bridge = "0xe52552637c5897a2d499fbf08216f73e"
+SwapAdmin = "0x8c109349c6bd91411d6bc962e080c4a3"
 
 [dependencies]
 StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "01c84198819310620f2417413c3c800df8292ae5" }

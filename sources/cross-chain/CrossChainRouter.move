@@ -1,15 +1,16 @@
 module Bridge::CrossChainRouter {
 
-    use StarcoinFramework::STC;
-    use StarcoinFramework::Errors;
-
-    use Bridge::XUSDT;
-    use Bridge::XETH;
-    use Bridge::SMTProofUtils;
-    use Bridge::CrossChainManager;
     use Bridge::CrossChainGlobal;
-    use Bridge::LockProxy;
+    use Bridge::CrossChainManager;
     use Bridge::CrossChainProcessCombinator;
+    use Bridge::LockProxy;
+    use Bridge::SMTProofUtils;
+    use Bridge::XETH;
+    use Bridge::XUSDT;
+
+    use StarcoinFramework::Errors;
+    use StarcoinFramework::STC;
+    use SwapAdmin::STAR;
 
     const ERROR_DECREPTED: u64 = 1;
 
@@ -25,29 +26,35 @@ module Bridge::CrossChainRouter {
     // This function is meant to be invoked by the user,
     // a certin amount teokens will be locked in the proxy contract the invoker/msg.sender immediately.
     // Then the same amount of tokens will be unloked from target chain proxy contract at the target chain with chainId later.
-    public fun lock(signer: &signer,
-                    from_asset_hash: &vector<u8>,
-                    to_chain_id: u64,
-                    to_address: &vector<u8>,
-                    amount: u128) {
+    public fun lock(
+        signer: &signer,
+        from_asset_hash: &vector<u8>,
+        to_chain_id: u64,
+        to_address: &vector<u8>,
+        amount: u128
+    ) {
         if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
             inner_do_lock<STC::STC>(signer, to_chain_id, to_address, amount);
         } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(from_asset_hash)) {
             inner_do_lock<XUSDT::XUSDT>(signer, to_chain_id, to_address, amount);
         } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(from_asset_hash)) {
             inner_do_lock<XETH::XETH>(signer, to_chain_id, to_address, amount);
+        } else if (CrossChainGlobal::asset_hash_match<STAR::STAR>(from_asset_hash)) {
+            inner_do_lock<STAR::STAR>(signer, to_chain_id, to_address, amount);
         } else {
             assert!(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
         }
     }
 
-    public fun lock_with_stc_fee(signer: &signer,
-                                 from_asset_hash: &vector<u8>,
-                                 to_chain_id: u64,
-                                 to_address: &vector<u8>,
-                                 amount: u128,
-                                 fee: u128,
-                                 id: u128) {
+    public fun lock_with_stc_fee(
+        signer: &signer,
+        from_asset_hash: &vector<u8>,
+        to_chain_id: u64,
+        to_address: &vector<u8>,
+        amount: u128,
+        fee: u128,
+        id: u128
+    ) {
         if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
             inner_do_lock<STC::STC>(signer, to_chain_id, to_address, amount);
             LockProxy::lock_stc_fee<STC::STC>(signer, to_chain_id, to_address, amount, fee, id);
@@ -57,45 +64,75 @@ module Bridge::CrossChainRouter {
         } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(from_asset_hash)) {
             inner_do_lock<XETH::XETH>(signer, to_chain_id, to_address, amount);
             LockProxy::lock_stc_fee<XETH::XETH>(signer, to_chain_id, to_address, amount, fee, id);
+        } else if (CrossChainGlobal::asset_hash_match<STAR::STAR>(from_asset_hash)) {
+            inner_do_lock<STAR::STAR>(signer, to_chain_id, to_address, amount);
+            LockProxy::lock_stc_fee<STAR::STAR>(signer, to_chain_id, to_address, amount, fee, id);
         } else {
             assert!(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
         }
     }
 
     // Do lock operation on inner calling
-    fun inner_do_lock<TokenT: store>(signer: &signer,
-                                     to_chain_id: u64,
-                                     to_address: &vector<u8>,
-                                     amount: u128) {
+    fun inner_do_lock<TokenT: store>(
+        signer: &signer,
+        to_chain_id: u64,
+        to_address: &vector<u8>,
+        amount: u128
+    ) {
         if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
             let (lock_parameters, event) =
-                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, to_address, amount);
+                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(
+                    signer,
+                    to_chain_id,
+                    to_address,
+                    amount
+                );
             // Do crosschain option from cross chain manager
             CrossChainManager::cross_chain_with_param_pack(signer, lock_parameters);
             // Publish lock event
             LockProxy::emit_lock_event(event);
         } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
             let (lock_parameters, event) =
-                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, to_address, amount);
+                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(
+                    signer,
+                    to_chain_id,
+                    to_address,
+                    amount
+                );
             // Do crosschain option from cross chain manager
             CrossChainManager::cross_chain_with_param_pack(signer, lock_parameters);
             // Publish lock event
             LockProxy::emit_lock_event(event);
-        } else {
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::APTOS_CHAIN>(to_chain_id)) {
+            let (lock_parameters, event) =
+                LockProxy::lock_with_param_pack<TokenT, CrossChainGlobal::APTOS_CHAIN>(
+                    signer,
+                    to_chain_id,
+                    to_address,
+                    amount
+                );
+            // Do crosschain option from cross chain manager
+            CrossChainManager::cross_chain_with_param_pack(signer, lock_parameters);
+            // Publish lock event
+            LockProxy::emit_lock_event(event);
+        }
+        else {
             assert!(false, Errors::invalid_state(ERROR_NO_SUPPORT_LOCK_CHAIN_TYPE));
         };
     }
 
 
     // Verify header and execute transaction
-    public fun verify_header_and_execute_tx(proof: &vector<u8>,
-                                            raw_header: &vector<u8>,
-                                            header_proof: &vector<u8>,
-                                            cur_raw_header: &vector<u8>,
-                                            header_sig: &vector<u8>,
-                                            merkle_proof_root: &vector<u8>,
-                                            merkle_proof_leaf: &vector<u8>,
-                                            input_merkle_proof_siblings: &vector<u8>) {
+    public fun verify_header_and_execute_tx(
+        proof: &vector<u8>,
+        raw_header: &vector<u8>,
+        header_proof: &vector<u8>,
+        cur_raw_header: &vector<u8>,
+        header_sig: &vector<u8>,
+        merkle_proof_root: &vector<u8>,
+        merkle_proof_leaf: &vector<u8>,
+        input_merkle_proof_siblings: &vector<u8>
+    ) {
         CrossChainGlobal::require_not_freezing();
 
         // Verify header and parse method and args from proof vector
@@ -125,6 +162,8 @@ module Bridge::CrossChainRouter {
                 inner_do_unlock_with_param_pack<XUSDT::XUSDT>(header_verified_params, certificate)
             } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(&to_asset_hash)) {
                 inner_do_unlock_with_param_pack<XETH::XETH>(header_verified_params, certificate)
+            } else if (CrossChainGlobal::asset_hash_match<STAR::STAR>(&to_asset_hash)) {
+                inner_do_unlock_with_param_pack<STAR::STAR>(header_verified_params, certificate)
             } else {
                 false
             };
@@ -134,26 +173,42 @@ module Bridge::CrossChainRouter {
         };
     }
 
-    public fun inner_do_unlock<TokenT: store>(_from_chain_id: u64,
-                                              _from_contract: &vector<u8>,
-                                              _to_asset_hash: &vector<u8>,
-                                              _to_address: &vector<u8>,
-                                              _amount: u128,
-                                              _tx_hash: &vector<u8>,
-                                              _cap: &CrossChainGlobal::ExecutionCapability): bool {
+    public fun inner_do_unlock<TokenT: store>(
+        _from_chain_id: u64,
+        _from_contract: &vector<u8>,
+        _to_asset_hash: &vector<u8>,
+        _to_address: &vector<u8>,
+        _amount: u128,
+        _tx_hash: &vector<u8>,
+        _cap: &CrossChainGlobal::ExecutionCapability
+    ): bool {
         abort Errors::invalid_state(ERROR_DECREPTED)
     }
 
     // Do unlock operation on inner calling
-    fun inner_do_unlock_with_param_pack<TokenT: store>(header_verified_params: CrossChainProcessCombinator::HeaderVerifyedParamPack,
-                                                       certificate: CrossChainProcessCombinator::MerkleProofCertificate): bool {
+    fun inner_do_unlock_with_param_pack<TokenT: store>(
+        header_verified_params: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+        certificate: CrossChainProcessCombinator::MerkleProofCertificate
+    ): bool {
         let from_chain_id = CrossChainProcessCombinator::lookup_from_chain_id(&header_verified_params);
         let ret = if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(from_chain_id)) {
-            let unlock_event = LockProxy::unlock_with_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(header_verified_params, certificate);
+            let unlock_event = LockProxy::unlock_with_pack<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(
+                header_verified_params,
+                certificate
+            );
             LockProxy::emit_unlock_event<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(unlock_event)
         } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(from_chain_id)) {
-            let unlock_event = LockProxy::unlock_with_pack<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(header_verified_params, certificate);
+            let unlock_event = LockProxy::unlock_with_pack<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(
+                header_verified_params,
+                certificate
+            );
             LockProxy::emit_unlock_event<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(unlock_event)
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::APTOS_CHAIN>(from_chain_id)) {
+            let unlock_event = LockProxy::unlock_with_pack<TokenT, CrossChainGlobal::APTOS_CHAIN>(
+                header_verified_params,
+                certificate
+            );
+            LockProxy::emit_unlock_event<TokenT, CrossChainGlobal::APTOS_CHAIN>(unlock_event)
         } else {
             abort Errors::invalid_state(ERROR_NO_SUPPORT_UNLOCK_CHAIN_TYPE)
         };
@@ -161,40 +216,45 @@ module Bridge::CrossChainRouter {
     }
 
 
-    public fun bind_proxy_hash(signer: &signer,
-                               to_chain_id: u64,
-                               target_proxy_hash: &vector<u8>) {
+    public fun bind_proxy_hash(signer: &signer, to_chain_id: u64, target_proxy_hash: &vector<u8>) {
         if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
             LockProxy::bind_proxy_hash<CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, target_proxy_hash);
         } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
             LockProxy::bind_proxy_hash<CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, target_proxy_hash);
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::APTOS_CHAIN>(to_chain_id)) {
+            LockProxy::bind_proxy_hash<CrossChainGlobal::APTOS_CHAIN>(signer, to_chain_id, target_proxy_hash);
         } else {
             abort Errors::invalid_state(ERROR_NO_SUPPORT_BIND_CHAIN_TYPE)
         };
     }
 
-    public fun bind_asset_hash(signer: &signer,
-                               from_asset_hash: &vector<u8>,
-                               to_chain_id: u64,
-                               to_asset_hash: &vector<u8>) {
+    public fun bind_asset_hash(
+        signer: &signer,
+        from_asset_hash: &vector<u8>,
+        to_chain_id: u64,
+        to_asset_hash: &vector<u8>
+    ) {
         if (CrossChainGlobal::asset_hash_match<STC::STC>(from_asset_hash)) {
             inner_do_bind_asset_hash<STC::STC>(signer, to_chain_id, to_asset_hash);
         } else if (CrossChainGlobal::asset_hash_match<XUSDT::XUSDT>(from_asset_hash)) {
             inner_do_bind_asset_hash<XUSDT::XUSDT>(signer, to_chain_id, to_asset_hash);
         } else if (CrossChainGlobal::asset_hash_match<XETH::XETH>(from_asset_hash)) {
             inner_do_bind_asset_hash<XETH::XETH>(signer, to_chain_id, to_asset_hash);
-        } else {
+        } else if (CrossChainGlobal::asset_hash_match<STAR::STAR>(from_asset_hash)) {
+            inner_do_bind_asset_hash<STAR::STAR>(signer, to_chain_id, to_asset_hash);
+        }
+        else {
             assert!(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_ASSET_TYPE));
         };
     }
 
-    fun inner_do_bind_asset_hash<TokenT: store>(signer: &signer,
-                                                to_chain_id: u64,
-                                                to_asset_hash: &vector<u8>) {
+    fun inner_do_bind_asset_hash<TokenT: store>(signer: &signer, to_chain_id: u64, to_asset_hash: &vector<u8>) {
         if (CrossChainGlobal::chain_id_match<CrossChainGlobal::STARCOIN_CHAIN>(to_chain_id)) {
             LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::STARCOIN_CHAIN>(signer, to_chain_id, to_asset_hash);
         } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::ETHEREUM_CHAIN>(to_chain_id)) {
             LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::ETHEREUM_CHAIN>(signer, to_chain_id, to_asset_hash);
+        } else if (CrossChainGlobal::chain_id_match<CrossChainGlobal::APTOS_CHAIN>(to_chain_id)) {
+            LockProxy::bind_asset_hash<TokenT, CrossChainGlobal::APTOS_CHAIN>(signer, to_chain_id, to_asset_hash);
         } else {
             assert!(false, Errors::invalid_state(ERROR_NO_SUPPORT_BIND_CHAIN_TYPE));
         };
