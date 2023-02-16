@@ -237,11 +237,11 @@ module Bridge::LockProxy {
     }
 
     // Bind asset hash, which called by amind & genesis account
-    public fun bind_asset_hash<TokenT: store,
-                               ToChainType: store>(signer: &signer,
-                                                   to_chain_id: u64, // only to emit event, MUST identical to ToChainType
-                                                   to_asset_hash: &vector<u8>)
-    acquires LockEventStore, AssetHashMap, LockTreasury {
+    public fun bind_asset_hash<TokenT: store, ToChainType: store>(
+        signer: &signer,
+        to_chain_id: u64,
+        to_asset_hash: &vector<u8>
+    ) acquires LockEventStore, AssetHashMap, LockTreasury {
         let account = Signer::address_of(signer);
         CrossChainGlobal::require_admin_account(account);
 
@@ -266,18 +266,12 @@ module Bridge::LockProxy {
     }
 
 
-    public fun lock<TokenT: store, ChainType: store>(_signer: &signer,
-                                                     _to_chain_id: u64,
-                                                     _to_address: &vector<u8>,
-                                                     _amount: u128):
-    (
-        vector<u8>,
-        vector<u8>,
-        vector<u8>,
-        LockEvent,
-        CrossChainGlobal::ExecutionCapability,
-    )
-    {
+    public fun lock<TokenT: store, ChainType: store>(
+        _signer: &signer,
+        _to_chain_id: u64,
+        _to_address: &vector<u8>,
+        _amount: u128
+    ): (vector<u8>, vector<u8>, vector<u8>, LockEvent, CrossChainGlobal::ExecutionCapability) {
         abort Errors::invalid_state(ERROR_DECREPTED)
     }
 
@@ -286,34 +280,13 @@ module Bridge::LockProxy {
     *                           Then the same amount of tokens will be unloked from target chain proxy contract at the target chain with chainId later.
     *  @param amount            The amount of tokens to be crossed from ethereum to the chain with chainId
     */
-    public fun lock_with_param_pack<TokenT: store, ChainType: store>(signer: &signer,
-                                                                     to_chain_id: u64,
-                                                                     to_address: &vector<u8>,
-                                                                     amount: u128):
-    (
-        CrossChainProcessCombinator::LockToChainParamPack,
-        LockEvent,
-    )
+    public fun lock_with_param_pack<TokenT: store, ChainType: store>(
+        signer: &signer,
+        to_chain_id: u64,
+        to_address: &vector<u8>,
+        amount: u128
+    ): (CrossChainProcessCombinator::LockToChainParamPack, LockEvent)
     acquires AssetHashMap, ProxyHashMap, LockTreasury {
-        // bytes memory toAssetHash = assetHashMap[fromAssetHash][toChainId];
-        // require(toAssetHash.length != 0, "empty illegal toAssetHash");
-
-        // TxArgs memory txArgs = TxArgs({
-        //     toAssetHash: toAssetHash,
-        //     toAddress: toAddress,
-        //     amount: amount
-        // });
-        // bytes memory txData = serialize_tx_args(txArgs);
-
-        // IEthCrossChainManagerProxy eccmp = IEthCrossChainManagerProxy(managerProxyContract);
-        // address eccmAddr = eccmp.getEthCrossChainManager();
-        // IEthCrossChainManager eccm = IEthCrossChainManager(eccmAddr);
-
-        // bytes memory toProxyHash = proxyHashMap[toChainId];
-        // require(toProxyHash.length != 0, "empty illegal toProxyHash");
-        // require(eccm.crossChain(toChainId, toProxyHash, "unlock", txData), "EthCrossChainManager crossChain executed error!");
-        // emit LockEvent(fromAssetHash, _msgSender(), toChainId, toAssetHash, toAddress, amount);
-
         assert!(amount > 0, Errors::invalid_argument(ERROR_LOCK_AMOUNT_ZERO));
 
         // Check global freezing switch has closed
@@ -331,7 +304,10 @@ module Bridge::LockProxy {
             amount);
 
         let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
-        assert!(Vector::length(&proxy_hash_map.to_proxy_hash) > 0, Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH));
+        assert!(
+            Vector::length(&proxy_hash_map.to_proxy_hash) > 0,
+            Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH)
+        );
 
         (
             // *&proxy_hash_map.to_proxy_hash,
@@ -355,13 +331,14 @@ module Bridge::LockProxy {
         )
     }
 
-    public fun lock_stc_fee<TokenT: store>(signer: &signer,
-                                           to_chain_id: u64,
-                                           to_address: &vector<u8>,
-                                           net: u128,
-                                           stc_fee: u128,
-                                           id: u128)
-    acquires FeeEventStore {
+    public fun lock_stc_fee<TokenT: store>(
+        signer: &signer,
+        to_chain_id: u64,
+        to_address: &vector<u8>,
+        net: u128,
+        stc_fee: u128,
+        id: u128
+    ) acquires FeeEventStore {
         let fee_collection_account = CrossChainGlobal::fee_collection_account();
 
         // ///////// lock STC fee here ///////////
@@ -398,20 +375,14 @@ module Bridge::LockProxy {
         );
     }
 
-    //    public fun publish_cross_chain_fee_speed_up_event(event: CrossChainFeeSpeedUpEvent) acquires FeeEventStore {
-    //        let event_store = borrow_global_mut<FeeEventStore>(CrossChainGlobal::genesis_account());
-    //        Event::emit_event(
-    //            &mut event_store.cross_chain_fee_speed_up_event,
-    //            event,
-    //        );
-    //    }
-
-    public fun unlock<TokenT: store, ChainType: store>(_from_contract_addr: &vector<u8>,
-                                                       _to_asset_hash: &vector<u8>,
-                                                       _to_address: &vector<u8>,
-                                                       _amount: u128,
-                                                       _tx_hash: &vector<u8>,
-                                                       _cap: &CrossChainGlobal::ExecutionCapability) {
+    public fun unlock<TokenT: store, ChainType: store>(
+        _from_contract_addr: &vector<u8>,
+        _to_asset_hash: &vector<u8>,
+        _to_address: &vector<u8>,
+        _amount: u128,
+        _tx_hash: &vector<u8>,
+        _cap: &CrossChainGlobal::ExecutionCapability
+    ) {
         abort Errors::invalid_state(ERROR_DECREPTED)
     }
 
@@ -423,9 +394,10 @@ module Bridge::LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock_with_pack<TokenT: store, ChainType: store>(pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
-                                                                 cer: CrossChainProcessCombinator::MerkleProofCertificate):
-    UnlockEvent acquires ProxyHashMap, LockTreasury {
+    public fun unlock_with_pack<TokenT: store, ChainType: store>(
+        pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+        cer: CrossChainProcessCombinator::MerkleProofCertificate
+    ): UnlockEvent acquires ProxyHashMap, LockTreasury {
         CrossChainGlobal::require_not_freezing();
 
         assert!(
@@ -502,7 +474,10 @@ module Bridge::LockProxy {
     }
 
     // Emit an proxy hash event with `BindAssetEvent` object
-    fun inner_emit_asset_hash_event<TokenT: store>(to_chain_id: u64, target_proxy_hash: &vector<u8>) acquires LockEventStore, LockTreasury {
+    fun inner_emit_asset_hash_event<TokenT: store>(
+        to_chain_id: u64,
+        target_proxy_hash: &vector<u8>
+    ) acquires LockEventStore, LockTreasury {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.bind_asset_event,
@@ -525,5 +500,4 @@ module Bridge::LockProxy {
             Token::value<TokenT>(&lock_token.token)
         }
     }
-
 }
