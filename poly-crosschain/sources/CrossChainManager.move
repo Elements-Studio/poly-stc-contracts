@@ -120,10 +120,12 @@ module Bridge::CrossChainManager {
     *  @param sigList       Poly chain consensus nodes signature list
     *  @return              true or false
     */
-    public fun change_book_keeper(signer: &signer,
-                                  raw_header: &vector<u8>,
-                                  pub_key_list: &vector<u8>,
-                                  sig_list: &vector<u8>) acquires EventStore {
+    public fun change_book_keeper(
+        signer: &signer,
+        raw_header: &vector<u8>,
+        pub_key_list: &vector<u8>,
+        sig_list: &vector<u8>
+    ) acquires EventStore {
         CrossChainGlobal::require_admin_account(Signer::address_of(signer));
 
         let (
