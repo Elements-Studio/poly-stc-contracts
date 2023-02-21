@@ -47,6 +47,7 @@
 // height
 // Note: @ denotes placeholder hash.
 // ```
+
 module Bridge::SMTProofs {
 
     use StarcoinFramework::Errors;

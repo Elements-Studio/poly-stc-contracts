@@ -1,0 +1,14 @@
+[package]
+name = "Zion-Cross-Chain"
+version = "2.0.1"
+
+[addresses]
+StarcoinFramework = "0x1"
+Bridge = "0xe52552637c5897a2d499fbf08216f73e"
+
+[dependencies]
+# v1.12.9
+StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "10f3e789c60f769b7cb724d07275bc5f8720c87a" }
+Bridge-STC-SMT = { local = "../stc-smt" }
+Bridge-STC-Utils = { local = "../stc-utils" }
+Bridge-STC-Assets = { local = "../stc-assets" }

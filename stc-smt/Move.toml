@@ -1,5 +1,5 @@
 [package]
-name = "STC-SMT"
+name = "Bridge-STC-SMT"
 version = "2.0.1"
 
 [addresses]
@@ -7,4 +7,4 @@ StarcoinFramework = "0x1"
 Bridge = "0xe52552637c5897a2d499fbf08216f73e"
 
 [dependencies]
-StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "01c84198819310620f2417413c3c800df8292ae5" }
+StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "10f3e789c60f769b7cb724d07275bc5f8720c87a" }
