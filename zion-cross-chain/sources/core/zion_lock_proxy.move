@@ -460,5 +460,4 @@ module Bridge::zion_lock_proxy {
         let source_decimals = Token::scaling_factor<CoinType>();
         (target_chain_amount * source_decimals / SafeMath::pow_10(target_decimals) as u64)
     }
-
 }
