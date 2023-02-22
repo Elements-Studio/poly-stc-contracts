@@ -1,8 +1,24 @@
 module Bridge::zion_lock_proxy_script {
     use Bridge::zion_lock_proxy;
+    use StarcoinFramework::Event;
+    use StarcoinFramework::TypeInfo::TypeInfo;
+    use StarcoinFramework::Token;
+    use StarcoinFramework::Account;
+    use StarcoinFramework::TypeInfo;
+    use StarcoinFramework::Signer;
 
-    public(script) fun init(signer: signer) {
-        zion_lock_proxy::init(&signer);
+    struct WrapperStore has key, store {
+        fee_collector: address,
+        lock_with_fee_event: Event::EventHandle<LockWithFeeEvent>
+    }
+
+    struct LockWithFeeEvent has store, drop {
+        from_asset: TypeInfo,
+        from_address: address,
+        to_chain_id: u64,
+        to_address: vector<u8>,
+        amount: u64,
+        fee_amount: u64
     }
 
     public(script) fun relay_unlock_tx<CoinType: store>(
@@ -20,6 +36,28 @@ module Bridge::zion_lock_proxy_script {
             account_proof,
             storage_proof,
             raw_cross_tx
+        );
+    }
+
+    public(script) fun lock<CoinType: store>(
+        account: signer,
+        amount: u128,
+        toChainId: u64,
+        toAddress: vector<u8>,
+    ) acquires WrapperStore {
+        let fund = Account::withdraw<CoinType>(&account, amount);
+        zion_lock_proxy::lock<CoinType>(&account, fund, toChainId, &toAddress);
+        let config_ref = borrow_global_mut<WrapperStore>(@Bridge);
+        Event::emit_event(
+            &mut config_ref.lock_with_fee_event,
+            LockWithFeeEvent {
+                from_asset: TypeInfo::type_of<Token::Token<CoinType>>(),
+                from_address: Signer::address_of(&account),
+                to_chain_id: toChainId,
+                to_address: toAddress,
+                amount: (amount as u64),
+                fee_amount: 0,
+            },
         );
     }
 

@@ -2,15 +2,13 @@ module Bridge::zion_lock_proxy {
 
     use Bridge::Bytes;
     use Bridge::CrossChainLibrary;
+    use Bridge::SafeMath;
     use Bridge::SimpleMapWrapper;
-    use Bridge::ZeroCopySink;
-    use Bridge::ZeroCopySource;
     use Bridge::zion_cross_chain_manager;
 
     use StarcoinFramework::Account;
     use StarcoinFramework::BCS;
     use StarcoinFramework::Event;
-    use StarcoinFramework::Math;
     use StarcoinFramework::Option;
     use StarcoinFramework::Signer;
     use StarcoinFramework::SimpleMap::{Self, SimpleMap};
@@ -357,8 +355,8 @@ module Bridge::zion_lock_proxy {
         let target_chain_amount = to_target_chain_amount<CoinType>(amount, to_asset_decimals);
 
         // pack args
-        let tx_data = serializeTxArgs(&to_asset, toAddress, target_chain_amount);
-
+        let tx_data = CrossChainLibrary::serialize_tx_args(
+            copy to_asset, *toAddress, target_chain_amount);
         // cross chain
         zion_cross_chain_manager::crossChain(account, license_ref, toChainId, &to_proxy, &b"unlock", &tx_data);
 
@@ -452,38 +450,15 @@ module Bridge::zion_lock_proxy {
         unlock<CoinType>(certificate);
     }
 
-
     // decimals conversion
     public fun to_target_chain_amount<CoinType: store>(amount: u64, target_decimals: u8): u128 {
         let source_decimals = Token::scaling_factor<CoinType>();
-        (amount as u128) * pow_10(target_decimals) / source_decimals
+        (amount as u128) * SafeMath::pow_10(target_decimals) / source_decimals
     }
 
     public fun from_target_chain_amount<CoinType: store>(target_chain_amount: u128, target_decimals: u8): u64 {
         let source_decimals = Token::scaling_factor<CoinType>();
-        (target_chain_amount * source_decimals / pow_10(target_decimals) as u64)
+        (target_chain_amount * source_decimals / SafeMath::pow_10(target_decimals) as u64)
     }
 
-    fun pow_10(decimals: u8): u128 {
-        Math::pow(10, (decimals as u64))
-    }
-
-    // codecs
-    public fun serializeTxArgs(to_asset: &vector<u8>, to_address: &vector<u8>, amount: u128): vector<u8> {
-        let buf = ZeroCopySink::write_var_bytes(to_asset);
-        Vector::append(&mut buf, ZeroCopySink::write_var_bytes(to_address));
-        Vector::append(&mut buf, ZeroCopySink::write_u256(BCS::to_bytes(&amount)));
-        return buf
-    }
-
-    public fun deserializeTxArgs(raw_data: &vector<u8>): (vector<u8>, vector<u8>, u128) {
-        let offset = (0 as u64);
-        let to_asset: vector<u8>;
-        let to_address: vector<u8>;
-        let amount: u64;
-        (to_asset, offset) = ZeroCopySource::next_var_bytes(raw_data, offset);
-        (to_address, offset) = ZeroCopySource::next_var_bytes(raw_data, offset);
-        (_, amount) = ZeroCopySource::next_u256(raw_data, offset);
-        return (to_asset, to_address, (amount as u128))
-    }
 }
