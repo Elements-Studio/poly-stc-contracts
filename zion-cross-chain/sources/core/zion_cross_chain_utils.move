@@ -9,6 +9,7 @@ module Bridge::zion_cross_chain_utils {
     use StarcoinFramework::Option;
     use StarcoinFramework::Signature;
     use StarcoinFramework::Vector;
+    use Bridge::zion_utils;
 
     struct Extra has copy, drop {
         epoch_end_height: u64,
@@ -127,7 +128,7 @@ module Bridge::zion_cross_chain_utils {
     public fun check_node_hash(raw: &vector<u8>, offset: u64, hash: &vector<u8>): bool {
         let (size, offset_) = rlp_read_kind(raw, offset);
         let full_size = size + offset_ - offset;
-        let node = Bytes::slice(raw, offset, full_size);
+        let node = zion_utils::slice(raw, offset, full_size);
         if (full_size < 32) {
             node == *hash
         } else {
@@ -139,8 +140,8 @@ module Bridge::zion_cross_chain_utils {
         let element_len = Vector::length(element);
         let key_len = Vector::length(key);
         if (key_len < element_len) return false;
-        if (Bytes::slice(key, 0, element_len) == *element) {
-            *key = Bytes::slice(key, element_len, key_len - element_len);
+        if (zion_utils::slice(key, 0, element_len) == *element) {
+            *key = zion_utils::slice(key, element_len, key_len - element_len);
             true
         } else {
             false
@@ -270,7 +271,7 @@ module Bridge::zion_cross_chain_utils {
         msg_hash: &vector<u8>,
         seal: &vector<u8>,
     ): vector<u8> {
-        let sig_bytes = Bytes::slice(seal, 0, APTOS_SIG_LEN);
+        let sig_bytes = zion_utils::slice(seal, 0, APTOS_SIG_LEN);
         let recovery_id = *Vector::borrow<u8>(seal, APTOS_SIG_LEN);
         ecrecover(msg_hash, &sig_bytes, recovery_id)
     }
@@ -296,7 +297,7 @@ module Bridge::zion_cross_chain_utils {
     // public fun ecdsa_public_key_to_zion_address(pk: &secp256k1::ECDSARawPublicKey): vector<u8> {
     //     let pk_bytes = secp256k1::ecdsa_raw_public_key_to_bytes(pk);
     //     let pk_hash = Hash::sha3_256(pk_bytes);
-    //     Bytes::slice(&pk_hash, Vector::length<u8>(&pk_hash) - ZION_ADDRESS_LEN, ZION_ADDRESS_LEN)
+    //     zion_utils::slice(&pk_hash, Vector::length<u8>(&pk_hash) - ZION_ADDRESS_LEN, ZION_ADDRESS_LEN)
     // }
 
     public fun get_header_hash(raw_header: vector<u8>): vector<u8> {
@@ -502,7 +503,7 @@ module Bridge::zion_cross_chain_utils {
     ): (vector<u8>, u64) {
         let (size, offset) = rlp_read_kind(raw, offset);
         assert!(size == 32, RLP_BYTES32_EINVALID_DATA_LENGTH);
-        (Bytes::slice(raw, offset, size), offset + size)
+        (zion_utils::slice(raw, offset, size), offset + size)
     }
 
     // return (value, offset_)
@@ -513,7 +514,7 @@ module Bridge::zion_cross_chain_utils {
         let size;
         (size, offset) = rlp_read_kind(raw, offset);
         assert!(size == ZION_ADDRESS_LEN, RLP_ZION_ADDRESS_EINVALID_DATA_LENGTH);
-        (Bytes::slice(raw, offset, size), offset + size)
+        (zion_utils::slice(raw, offset, size), offset + size)
     }
 
     // return (value, offset_)
@@ -558,7 +559,7 @@ module Bridge::zion_cross_chain_utils {
     ): (vector<u8>, u64) {
         let size;
         (size, offset) = rlp_read_kind(raw, offset);
-        (Bytes::slice(raw, offset, size), offset + size)
+        (zion_utils::slice(raw, offset, size), offset + size)
     }
 
     // return (size, offset_)

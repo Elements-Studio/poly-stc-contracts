@@ -5,6 +5,8 @@ module Bridge::zion_lock_proxy {
     use Bridge::SafeMath;
     use Bridge::SimpleMapWrapper;
     use Bridge::zion_cross_chain_manager;
+    use Bridge::zero_copy_source;
+    use Bridge::zero_copy_sink;
 
     use StarcoinFramework::Account;
     use StarcoinFramework::BCS;
@@ -15,6 +17,7 @@ module Bridge::zion_lock_proxy {
     use StarcoinFramework::Token;
     use StarcoinFramework::TypeInfo::{Self, TypeInfo};
     use StarcoinFramework::Vector;
+
 
     const DEPRECATED: u64 = 1;
     const ENOT_OWNER: u64 = 2;
@@ -459,5 +462,24 @@ module Bridge::zion_lock_proxy {
     public fun from_target_chain_amount<CoinType: store>(target_chain_amount: u128, target_decimals: u8): u64 {
         let source_decimals = Token::scaling_factor<CoinType>();
         (target_chain_amount * source_decimals / SafeMath::pow_10(target_decimals) as u64)
+    }
+
+    // codecs
+    public fun serializeTxArgs(to_asset: &vector<u8>, to_address: &vector<u8>, amount: u128): vector<u8> {
+        let buf = zero_copy_sink::write_var_bytes(to_asset);
+        Vector::append(&mut buf, zero_copy_sink::write_var_bytes(to_address));
+        Vector::append(&mut buf, zero_copy_sink::write_u256((0 as u128), amount));
+        return buf
+    }
+
+    public fun deserializeTxArgs(raw_data: &vector<u8>): (vector<u8>, vector<u8>, u128) {
+        let offset = (0 as u64);
+        let to_asset: vector<u8>;
+        let to_address: vector<u8>;
+        let amount: u128;
+        (to_asset, offset) = zero_copy_source::next_var_bytes(raw_data, offset);
+        (to_address, offset) = zero_copy_source::next_var_bytes(raw_data, offset);
+        (_, amount, _) = zero_copy_source::next_u256(raw_data, offset);
+        return (to_asset, to_address, amount)
     }
 }

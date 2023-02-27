@@ -56,6 +56,22 @@ module Bridge::Bytes {
         (*Vector::borrow(data, pos) >> (bit as u8)) & 1u8 != 0
     }
 
+    public fun bytes_to_bool(data: &vector<u8>): bool {
+        let len = Vector::length(data);
+        if (len != 1) {
+            return false
+        };
+        (*Vector::borrow(data, 0) == 1)
+    }
+
+    public fun bytes_to_u8(data: &vector<u8>): u8 {
+        let len = Vector::length(data);
+        if (len != 1) {
+            return 0
+        };
+        *Vector::borrow(data, 0)
+    }
+
     public fun bytes_to_u64(data: &vector<u8>): u64 {
         let number: u64 = 0;
         let i = 0;
@@ -88,13 +104,13 @@ module Bridge::Bytes {
     public fun bytes_reverse_to_u128(data: &vector<u8>): u128 {
         let number: u128 = 0;
         let len = Vector::length(data);
-        if (len > 0){
+        if (len > 0) {
             let i = len - 1;
             loop {
                 let slice = *Vector::borrow(data, i);
                 let bit = (i as u8);
                 number = number + lshift_u128((slice as u128), bit * 8);
-                if( i == 0){
+                if (i == 0) {
                     break
                 };
                 i = i - 1;
@@ -103,18 +119,18 @@ module Bridge::Bytes {
         number
     }
 
-    public fun left_padding(data: &vector<u8>, total_len: u64): vector<u8>{
+    public fun left_padding(data: &vector<u8>, total_len: u64): vector<u8> {
         let origin_len = Vector::length(data);
-        if (origin_len < total_len){
+        if (origin_len < total_len) {
             let padding_bytes = create_zero_bytes(total_len - origin_len);
             data = &concat(&padding_bytes, *data);
         };
         *data
     }
 
-    public fun right_padding(data: &vector<u8>, total_len: u64): vector<u8>{
+    public fun right_padding(data: &vector<u8>, total_len: u64): vector<u8> {
         let origin_len = Vector::length(data);
-        if (origin_len < total_len){
+        if (origin_len < total_len) {
             let padding_bytes = create_zero_bytes(total_len - origin_len);
             data = &concat(data, padding_bytes);
         };
@@ -155,11 +171,11 @@ module Bridge::BCSTest {
 
     #[test]
     public fun test_bcs_serialize() {
-        let cc_fee_event = CrossChainFeeLockEvent{
+        let cc_fee_event = CrossChainFeeLockEvent {
             from_asset: Token::token_code<STC::STC>(),
-            sender: @Bridge,//Signer::address_of(signer),
+            sender: @Bridge, //Signer::address_of(signer),
             to_chain_id: 11,
-            to_address: x"18351d311d32201149a4df2a9fc2db8a",//*to_address,
+            to_address: x"18351d311d32201149a4df2a9fc2db8a", //*to_address,
             net: 111,
             fee: 222,
             id: 333,
@@ -185,7 +201,7 @@ module Bridge::BytesTest {
         } else {
             data_len
         };
-        while (i < actual_end){
+        while (i < actual_end) {
             Vector::push_back(&mut result, *Vector::borrow(data, i));
             i = i + 1;
         };
@@ -194,33 +210,45 @@ module Bridge::BytesTest {
 
     #[test]
     public fun test_bytes_to_u128() {
-//        let hex:vector<u8> = x"98234aed82"; //653427142018
-        let hex:vector<u8> = x"014e95f5a48100"; //8955205
+        //        let hex:vector<u8> = x"98234aed82"; //653427142018
+        let hex: vector<u8> = x"014e95f5a48100"; //8955205
         let number = Bytes::bytes_to_u128(&hex);
         Debug::print<u128>(&number);
-//        assert!(number == 653427142018, 1001);
+        //        assert!(number == 653427142018, 1001);
         assert!(number == 367880955003136, 1001);
     }
 
-//    #[test, expected_failure(abort_code = 1)] //
+    #[test]
+    public fun test_bytes_to_bool() {
+        assert!(Bytes::bytes_to_bool(&x"01") == true, 10010);
+        assert!(Bytes::bytes_to_bool(&x"00") == false, 10011);
+    }
+
+    #[test]
+    public fun test_bytes_to_u8() {
+        assert!(Bytes::bytes_to_u8(&x"FF") == 255u8, 10020);
+        assert!(Bytes::bytes_to_u8(&x"80") == 128u8, 10021);
+    }
+
+    //    #[test, expected_failure(abort_code = 1)] //
     #[test, expected_failure]
     public fun test_cast_hex_u128_overflow() {
-        let hex:vector<u8> = x"c4c8b2db715e9f7e1d3306b9f6860a389635dfb3943db13f1005544a50fbb2"; //
+        let hex: vector<u8> = x"c4c8b2db715e9f7e1d3306b9f6860a389635dfb3943db13f1005544a50fbb2"; //
         let number = Bytes::bytes_to_u128(&hex);
         Debug::print<u128>(&number);
-//        assert!(number == 367880955003136, 1001);
+        //        assert!(number == 367880955003136, 1001);
     }
 
     #[test]
     public fun test_cast_hex_u128_bound() {
-        let hex:vector<u8> = x"00"; //
-        let number = Bytes::bytes_to_u128(&hex);
-        Debug::print<u128>(&number);
+        let hex: vector<u8> = x"000101"; //
+        let number = Bytes::bytes_to_u64(&hex);
+        Debug::print<u64>(&number);
     }
 
     #[test]
     public fun test_bytes_reverse_to_u128() {
-        let hex:vector<u8> = x"014e95f5a48100"; //367880955003136
+        let hex: vector<u8> = x"014e95f5a48100"; //367880955003136
         let number = Bytes::bytes_to_u128(&hex);
         Debug::print(&hex);
         Vector::reverse(&mut hex);
@@ -234,22 +262,22 @@ module Bridge::BytesTest {
 
     #[test]
     public fun test_vector() {
-        let hex:vector<u8> = x"014e95f5a48100"; //
-        let hex1:vector<u8> = x"01"; //
-        let hex2:vector<u8> = x"0166"; //
-//        let len = Vector::length(&hex);
+        let hex: vector<u8> = x"014e95f5a48100"; //
+        let hex1: vector<u8> = x"01"; //
+        let hex2: vector<u8> = x"0166"; //
+        //        let len = Vector::length(&hex);
         Debug::print<u64>(&Vector::length(&hex));
         Debug::print<u64>(&Vector::length(&hex1));
         Debug::print<u64>(&Vector::length(&hex2));
         Debug::print<vector<u8>>(&hex);
-        Debug::print<vector<u8>>(&slice(&hex, 1,12));
+        Debug::print<vector<u8>>(&slice(&hex, 1, 12));
     }
 
     #[test]
     public fun test_bcs_cmp() {
-        let hex1:vector<u8> = x"80"; //
-        let hex2:vector<u8> = x"0305c9"; //
-        let hex3:vector<u8> = x"0305c9"; //
+        let hex1: vector<u8> = x"80"; //
+        let hex2: vector<u8> = x"0305c9"; //
+        let hex3: vector<u8> = x"0305c9"; //
         let data1 = BCS::to_bytes<u8>(&128u8);
         let data2 = BCS::to_bytes<u128>(&198089u128);
         let data3 = BCS::to_bytes<u64>(&198089u64);
@@ -268,9 +296,9 @@ module Bridge::BytesTest {
 
     #[test]
     public fun test_padding() {
-        let hex:vector<u8> = x"01234f";
-        let _hex_left:vector<u8> = x"000000000001234f";
-        let _hex_right:vector<u8> = x"01234f0000000000";
+        let hex: vector<u8> = x"01234f";
+        let _hex_left: vector<u8> = x"000000000001234f";
+        let _hex_right: vector<u8> = x"01234f0000000000";
         let left_padding_bytes = Bytes::left_padding(&hex, 8);
         let right_padding_bytes = Bytes::right_padding(&hex, 8);
         assert!(_hex_left == copy left_padding_bytes, 1007);
@@ -281,10 +309,10 @@ module Bridge::BytesTest {
 
     #[test]
     public fun test_bytes_equal() {
-        let hex:vector<u8> = x"01234f";
-        let hex2:vector<u8> = Bytes::concat(&x"01", x"234f");
+        let hex: vector<u8> = x"01234f";
+        let hex2: vector<u8> = Bytes::concat(&x"01", x"234f");
         assert!(copy hex == copy hex2, 1009);
-        assert!(&hex ==  &hex2, 1011);
+        assert!(&hex == &hex2, 1011);
     }
 
     #[test]
