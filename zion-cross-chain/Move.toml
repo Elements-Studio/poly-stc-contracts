@@ -8,7 +8,7 @@ Bridge = "0xe52552637c5897a2d499fbf08216f73e"
 
 [dependencies]
 # v1.12.9
-StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "10f3e789c60f769b7cb724d07275bc5f8720c87a" }
+StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "2ee2378d0d6eaa4ebc1ac6d3e33c4aee11bc2fe4" }
 Bridge-STC-SMT = { local = "../stc-smt" }
 Bridge-STC-Utils = { local = "../stc-utils" }
 Bridge-STC-Assets = { local = "../stc-assets" }

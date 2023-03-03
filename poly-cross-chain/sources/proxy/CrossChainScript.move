@@ -13,7 +13,7 @@ module Bridge::CrossChainScript {
     use Bridge::CrossChainConstant;
 
     // Initialize genesis from contract owner
-    public(script) fun init_genesis(signer: signer,
+    public entry fun init_genesis(signer: signer,
                                     raw_header: vector<u8>,
                                     pub_key_list: vector<u8>) {
         inner_init_genesis(
@@ -85,7 +85,7 @@ module Bridge::CrossChainScript {
 
 
     // Lock operation from user call
-    public(script) fun lock(signer: signer,
+    public entry fun lock(signer: signer,
                             from_asset_hash: vector<u8>,
                             to_chain_id: u64,
                             to_address: vector<u8>,
@@ -93,7 +93,7 @@ module Bridge::CrossChainScript {
         CrossChainRouter::lock(&signer, &from_asset_hash, to_chain_id, &to_address, amount);
     }
 
-    public(script) fun lock_with_stc_fee(signer: signer,
+    public entry fun lock_with_stc_fee(signer: signer,
                                          from_asset_hash: vector<u8>,
                                          to_chain_id: u64,
                                          to_address: vector<u8>,
@@ -104,7 +104,7 @@ module Bridge::CrossChainScript {
     }
 
     // Check book keeper information
-    public(script) fun change_book_keeper(signer: signer,
+    public entry fun change_book_keeper(signer: signer,
                                           raw_header: vector<u8>,
                                           pub_key_list: vector<u8>,
                                           sig_list: vector<u8>) {
@@ -112,7 +112,7 @@ module Bridge::CrossChainScript {
     }
 
     // Verify header and execute transaction
-    public(script) fun verify_header_and_execute_tx(proof: vector<u8>,
+    public entry fun verify_header_and_execute_tx(proof: vector<u8>,
                                                     raw_header: vector<u8>,
                                                     header_proof: vector<u8>,
                                                     cur_raw_header: vector<u8>,
@@ -131,17 +131,17 @@ module Bridge::CrossChainScript {
             &merkle_proof_siblings);
     }
 
-    public(script) fun set_chain_id<ChainType: store>(signer: signer, chain_id: u64) {
+    public entry fun set_chain_id<ChainType: store>(signer: signer, chain_id: u64) {
         CrossChainGlobal::set_chain_id<ChainType>(&signer, chain_id);
     }
 
-    public(script) fun bind_proxy_hash(signer: signer,
+    public entry fun bind_proxy_hash(signer: signer,
                                        to_chain_id: u64,
                                        target_proxy_hash: vector<u8>) {
         CrossChainRouter::bind_proxy_hash(&signer, to_chain_id, &target_proxy_hash);
     }
 
-    public(script) fun bind_asset_hash(signer: signer,
+    public entry fun bind_asset_hash(signer: signer,
                                        from_asset_hash: vector<u8>,
                                        to_chain_id: u64,
                                        to_asset_hash: vector<u8>) {
@@ -149,7 +149,7 @@ module Bridge::CrossChainScript {
     }
 
     // Only for update
-    public(script) fun init_fee_event_store(signer: signer) {
+    public entry fun init_fee_event_store(signer: signer) {
         LockProxy::init_fee_event_store(&signer)
     }
 
@@ -164,30 +164,30 @@ module Bridge::CrossChainScript {
     }
 
     // Set admin account by genesis account
-    public(script) fun set_admin_account(signer: signer, admin: address) {
+    public entry fun set_admin_account(signer: signer, admin: address) {
         CrossChainConfig::set_admin_account(&signer, admin);
     }
 
     // Set fee collection account by genesis account
-    public(script) fun set_fee_collection_account(signer: signer, admin: address) {
+    public entry fun set_fee_collection_account(signer: signer, admin: address) {
         CrossChainConfig::set_fee_collection_account(&signer, admin);
     }
 
     // Set admin account by genesis account
-    public(script) fun set_freeze(signer: signer, switch: bool) {
+    public entry fun set_freeze(signer: signer, switch: bool) {
         CrossChainConfig::set_freeze(&signer, switch);
     }
 
     // Move STC to Lock-Treasury from genisis account(signer)'s balance
-    public(script) fun move_stc_balance_to_lock_treasury(signer: signer, amount: u128) {
+    public entry fun move_stc_balance_to_lock_treasury(signer: signer, amount: u128) {
         LockProxy::move_to_treasury<STC::STC>(&signer, amount);
     }
 
-    public(script) fun withdraw_from_lock_treasury<TokenT: store>(signer: signer, amount: u128) {
+    public entry fun withdraw_from_lock_treasury<TokenT: store>(signer: signer, amount: u128) {
         LockProxy::withdraw_from_treasury<TokenT>(&signer, amount);
     }
 
-    public(script) fun set_merkle_root_hash(signer: signer, root_hash: vector<u8>) {
+    public entry fun set_merkle_root_hash(signer: signer, root_hash: vector<u8>) {
         CrossChainData::set_merkle_root_hash(&signer, &root_hash);
     }
 }

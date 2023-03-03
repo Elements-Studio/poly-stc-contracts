@@ -1,15 +1,13 @@
 module Bridge::zion_cross_chain_utils {
 
     use Bridge::Bytes;
-
+    use Bridge::zion_utils;
     use StarcoinFramework::BCS;
-    use StarcoinFramework::EVMAddress;
     use StarcoinFramework::Hash;
     use StarcoinFramework::Math;
     use StarcoinFramework::Option;
-    use StarcoinFramework::Signature;
+    use StarcoinFramework::Secp256k1;
     use StarcoinFramework::Vector;
-    use Bridge::zion_utils;
 
     struct Extra has copy, drop {
         epoch_end_height: u64,
@@ -279,29 +277,22 @@ module Bridge::zion_cross_chain_utils {
     public fun ecrecover(
         msg_hash: &vector<u8>,
         sig_bytes: &vector<u8>,
-        _recovery_id: u8,
+        recovery_id: u8,
     ): vector<u8> {
-        let evm_address = Signature::ecrecover(*msg_hash, *sig_bytes);
-        if (Option::is_some(&evm_address)) {
-            EVMAddress::into_bytes(Option::destroy_some(evm_address))
-        } else {
-            Vector::empty<u8>()
-        }
+        let sig = Secp256k1::ecdsa_signature_from_bytes(*sig_bytes);
+        let signer_opt = Secp256k1::ecdsa_recover(*msg_hash, recovery_id, &sig);
+        assert!(Option::is_some(&signer_opt), ECRECOVER_EINVALID_SIGNATURE);
+        ecdsa_public_key_to_zion_address(&Option::destroy_some<Secp256k1::ECDSARawPublicKey>(signer_opt))
     }
-    //     let sig = secp256k1::ecdsa_signature_from_bytes(*sig_bytes);
-    //     let signer_opt = secp256k1::ecdsa_recover(*msg_hash, recovery_id, &sig);
-    //     assert!(option::is_some(&signer_opt), ECRECOVER_EINVALID_SIGNATURE);
-    //     ecdsa_public_key_to_zion_address(&option::destroy_some<secp256k1::ECDSARawPublicKey>(signer_opt))
-    // }
     //
-    // public fun ecdsa_public_key_to_zion_address(pk: &secp256k1::ECDSARawPublicKey): vector<u8> {
-    //     let pk_bytes = secp256k1::ecdsa_raw_public_key_to_bytes(pk);
-    //     let pk_hash = Hash::sha3_256(pk_bytes);
-    //     zion_utils::slice(&pk_hash, Vector::length<u8>(&pk_hash) - ZION_ADDRESS_LEN, ZION_ADDRESS_LEN)
-    // }
+    public fun ecdsa_public_key_to_zion_address(pk: &Secp256k1::ECDSARawPublicKey): vector<u8> {
+        let pk_bytes = Secp256k1::ecdsa_raw_public_key_to_bytes(pk);
+        let pk_hash = Hash::keccak_256(pk_bytes);
+        zion_utils::slice(&pk_hash, Vector::length<u8>(&pk_hash) - ZION_ADDRESS_LEN, ZION_ADDRESS_LEN)
+    }
 
     public fun get_header_hash(raw_header: vector<u8>): vector<u8> {
-        Hash::sha3_256(raw_header)
+        Hash::keccak_256(raw_header)
     }
 
     /*

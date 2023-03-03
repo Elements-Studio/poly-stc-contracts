@@ -1,35 +1,25 @@
 processed 9 tasks
 
-task 5 'run'. lines 25-50:
+task 5 'run'. lines 26-58:
 {
-  "gas_used": 3156438,
+  "gas_used": 3217162,
   "status": "Executed"
 }
 
-task 6 'run'. lines 52-69:
+task 6 'run'. lines 60-77:
 {
-  "gas_used": 6317964,
+  "gas_used": 7044088,
   "status": "Executed"
 }
 
-task 7 'run'. lines 71-87:
+task 7 'run'. lines 79-95:
 {
-  "gas_used": 1501147,
+  "gas_used": 1501131,
   "status": "Executed"
 }
 
-task 8 'run'. lines 89-123:
+task 8 'run'. lines 97-171:
 {
-  "gas_used": 1887896,
-  "status": {
-    "MoveAbort": {
-      "location": {
-        "Module": {
-          "address": "0xe52552637c5897a2d499fbf08216f73e",
-          "name": "zion_cross_chain_manager"
-        }
-      },
-      "abort_code": "17"
-    }
-  }
+  "gas_used": 7066111,
+  "status": "Executed"
 }
