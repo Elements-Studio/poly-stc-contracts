@@ -6,9 +6,13 @@ module Bridge::zion_lock_proxy_script {
     use StarcoinFramework::Account;
     use StarcoinFramework::TypeInfo;
     use StarcoinFramework::Signer;
+    use StarcoinFramework::STC;
+    use StarcoinFramework::Errors;
 
-    struct WrapperStore has key, store {
-        fee_collector: address,
+    const ERROR_NO_PRIVILEGE: u64 = 101;
+
+    struct LockWithFeeConfig has key, store {
+        billing_account: address,
         lock_with_fee_event: Event::EventHandle<LockWithFeeEvent>
     }
 
@@ -42,12 +46,18 @@ module Bridge::zion_lock_proxy_script {
     public entry fun lock<CoinType: store>(
         account: signer,
         amount: u128,
+        fee_amount: u128,
         toChainId: u64,
         toAddress: vector<u8>,
-    ) acquires WrapperStore {
+    ) acquires LockWithFeeConfig {
         let fund = Account::withdraw<CoinType>(&account, amount);
         zion_lock_proxy::lock<CoinType>(&account, fund, toChainId, &toAddress);
-        let config_ref = borrow_global_mut<WrapperStore>(@Bridge);
+        let config_ref = borrow_global_mut<LockWithFeeConfig>(@Bridge);
+
+        // ///////// lock STC fee here ///////////
+        let stc_token = Account::withdraw<STC::STC>(&account, fee_amount);
+        Account::deposit(config_ref.billing_account, stc_token);
+
         Event::emit_event(
             &mut config_ref.lock_with_fee_event,
             LockWithFeeEvent {
@@ -83,6 +93,20 @@ module Bridge::zion_lock_proxy_script {
 
     public entry fun unbindProxy(owner: signer, to_chain_id: u64) {
         zion_lock_proxy::unbindProxy(&owner, to_chain_id);
+    }
+
+    public entry fun setFeeConfig(owner: signer, billing_account: address) acquires LockWithFeeConfig {
+        let owner_addr = Signer::address_of(&owner);
+        assert!(Signer::address_of(&owner) == @Bridge, Errors::requires_capability(ERROR_NO_PRIVILEGE));
+        if (!exists<LockWithFeeConfig>(owner_addr)) {
+            move_to<LockWithFeeConfig>(&owner, LockWithFeeConfig {
+                billing_account,
+                lock_with_fee_event: Event::new_event_handle<LockWithFeeEvent>(&owner),
+            });
+        } else {
+            let cfg = borrow_global_mut<LockWithFeeConfig>(owner_addr);
+            cfg.billing_account = billing_account;
+        }
     }
 
     public entry fun bindAsset<CoinType>(
