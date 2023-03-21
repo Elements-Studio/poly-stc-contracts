@@ -29,7 +29,7 @@ module Bridge::zion_cross_chain_manager {
     const EINVLAID_BLOCK_HEIGHT: u64 = 17;
     const EEMPTY_VALIDATOR_SET: u64 = 18;
 
-    const ZION_CROSS_CHAIN_MANAGER_ADDRESS: vector<u8> = x"0000000000000000000000000000000000001003";
+    const ZION_CROSS_CHAIN_MANAGER_ADDRESS: vector<u8> = x"e52552637c5897a2d499fbf08216f73e";
 
     // access control
     struct ACLStore has key, store {

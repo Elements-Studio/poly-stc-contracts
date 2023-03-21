@@ -1,4 +1,4 @@
-processed 9 tasks
+processed 10 tasks
 
 task 5 'run'. lines 26-58:
 {
@@ -18,8 +18,24 @@ task 7 'run'. lines 79-95:
   "status": "Executed"
 }
 
-task 8 'run'. lines 97-171:
+task 8 'run'. lines 97-110:
 {
-  "gas_used": 7066111,
+  "gas_used": 7117993,
   "status": "Executed"
+}
+
+task 9 'run'. lines 112-133:
+{
+  "gas_used": 4190766,
+  "status": {
+    "MoveAbort": {
+      "location": {
+        "Module": {
+          "address": "0xe52552637c5897a2d499fbf08216f73e",
+          "name": "zion_cross_chain_manager"
+        }
+      },
+      "abort_code": "17"
+    }
+  }
 }
