@@ -4,6 +4,7 @@ module Bridge::zion_upgrade_script {
     use Bridge::zion_cross_chain_manager;
     use Bridge::zion_lock_proxy;
 
+    use StarcoinFramework::BCS;
     use StarcoinFramework::STC::STC;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Token;
@@ -22,13 +23,16 @@ module Bridge::zion_upgrade_script {
         zion_lock_proxy::receiveLicense(license);
 
         // Bind STC
-        zion_lock_proxy::bindProxy(&admin, starcoin_poly_id, x"e52552637c5897a2d499fbf08216f73e");
+        zion_lock_proxy::bindProxy(&admin, starcoin_poly_id, BCS::to_bytes(&@Bridge));
         zion_lock_proxy::bindAsset<STC>(
             &admin,
             starcoin_poly_id,
             b"0x1::STC::STC",
             SafeMath::log10(Token::scaling_factor<STC>())
         );
+
+        // TODO(Bob Ong): Bind XUSDT asset
+        // TODO(Bob Ong): Bind XETH asset
 
         // Fee
         migration_from_old_treasury();
