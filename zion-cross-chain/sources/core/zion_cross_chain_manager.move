@@ -163,7 +163,7 @@ module Bridge::zion_cross_chain_manager {
     }
 
     struct CrossChainEvent has store, drop {
-        sender: address,
+        sender: vector<u8>,
         tx_id: vector<u8>,
         proxy_or_asset_contract: vector<u8>,
         to_chain_id: u64,
@@ -440,7 +440,7 @@ module Bridge::zion_cross_chain_manager {
         Event::emit_event(
             &mut event_store.cross_chain_event,
             CrossChainEvent {
-                sender: Signer::address_of(account),
+                sender: BCS::to_bytes(&Signer::address_of(account)),
                 tx_id: param_tx_hash,
                 proxy_or_asset_contract: msg_sender,
                 to_chain_id: toChainId,
