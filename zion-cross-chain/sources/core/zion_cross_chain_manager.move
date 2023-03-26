@@ -9,6 +9,7 @@ module Bridge::zion_cross_chain_manager {
     use StarcoinFramework::Signer;
     use StarcoinFramework::SimpleMap::{Self, SimpleMap};
     use StarcoinFramework::Vector;
+    use Bridge::CrossChainLibrary;
 
     // Errors
     const EINVALID_SIGNER: u64 = 1;
@@ -420,7 +421,7 @@ module Bridge::zion_cross_chain_manager {
 
         let cross_chain_id = b"StarcoinCrossChainManager";
         Vector::append(&mut cross_chain_id, *&param_tx_hash);
-        cross_chain_id = Hash::sha3_256(cross_chain_id);
+        cross_chain_id = Hash::keccak_256(cross_chain_id);
 
         let raw_param = zion_cross_chain_utils::encode_tx_param(
             *&param_tx_hash,
@@ -433,7 +434,7 @@ module Bridge::zion_cross_chain_manager {
         );
 
         // mark
-        putAptosTxHash(&Hash::sha3_256(*&raw_param));
+        putAptosTxHash(&Hash::keccak_256(*&raw_param));
 
         // emit event
         let event_store = borrow_global_mut<EventStore>(@Bridge);
@@ -520,11 +521,11 @@ module Bridge::zion_cross_chain_manager {
         let storage_value = zion_cross_chain_utils::verify_account_proof(
             account_proof,
             &root,
-            &ZION_CROSS_CHAIN_MANAGER_ADDRESS,
+            &getZionCrossChainManagerAddr(),
             storage_proof,
             &storage_index
         );
-        assert!(storage_value == Hash::sha3_256(*raw_cross_tx), EVERIFY_PROOF_FAILED);
+        assert!(storage_value == Hash::keccak_256(*raw_cross_tx), EVERIFY_PROOF_FAILED);
 
         // double-spending check/mark
         assert!(!checkIfFromChainTxExist(from_chain_id, &cross_chain_id), EALREADY_EXECUTED);
@@ -546,7 +547,7 @@ module Bridge::zion_cross_chain_manager {
             &mut event_store.verify_header_and_execute_tx_event,
             VerifyHeaderAndExecuteTxEvent {
                 from_chain_id,
-                to_contract: copy to_contract,
+                to_contract,
                 cross_chain_tx_hash: zion_tx_hash,
                 from_chain_tx_hash: source_tx_hash,
             },
@@ -560,5 +561,11 @@ module Bridge::zion_cross_chain_manager {
             method,
             args,
         }
+    }
+
+    fun getZionCrossChainManagerAddr(): vector<u8> {
+        let ret = Vector::empty<u8>();
+        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@Bridge));
+        ret
     }
 }

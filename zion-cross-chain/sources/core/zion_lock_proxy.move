@@ -1,12 +1,10 @@
 module Bridge::zion_lock_proxy {
-
-    use Bridge::Bytes;
-    use Bridge::CrossChainLibrary;
     use Bridge::SafeMath;
     use Bridge::SimpleMapWrapper;
-    use Bridge::zion_cross_chain_manager;
-    use Bridge::zero_copy_source;
     use Bridge::zero_copy_sink;
+    use Bridge::zero_copy_source;
+    use Bridge::zion_cross_chain_manager::{Self, License};
+    use Bridge::zion_utils;
 
     use StarcoinFramework::Account;
     use StarcoinFramework::BCS;
@@ -18,6 +16,7 @@ module Bridge::zion_lock_proxy {
     use StarcoinFramework::TypeInfo::{Self, TypeInfo};
     use StarcoinFramework::Vector;
 
+    #[test_only] use StarcoinFramework::STC::STC;
 
     const DEPRECATED: u64 = 1;
     const ENOT_OWNER: u64 = 2;
@@ -35,6 +34,7 @@ module Bridge::zion_lock_proxy {
     const EINVALID_LICENSE_INFO: u64 = 14;
     const EINVALID_SIGNER: u64 = 15;
     const ELICENSE_STORE_NOT_EXIST: u64 = 16;
+    const EALREADY_INIT: u64 = 17;
 
 
     struct LockProxyStore has key, store {
@@ -52,8 +52,8 @@ module Bridge::zion_lock_proxy {
         coin: Token::Token<CoinType>
     }
 
-    struct LicenseStore has key, store {
-        license: Option::Option<zion_cross_chain_manager::License>
+    struct LicenseStore<LicenseType: store> has key, store {
+        license: Option::Option<LicenseType>
     }
 
     // events
@@ -89,7 +89,9 @@ module Bridge::zion_lock_proxy {
 
     // init
     public fun init(admin: &signer) {
-        assert!(Signer::address_of(admin) == @Bridge, EINVALID_SIGNER);
+        let admin_addr = Signer::address_of(admin);
+        assert!(admin_addr == @Bridge, EINVALID_SIGNER);
+        assert!(exists<LockProxyStore>(admin_addr), EALREADY_INIT);
 
         move_to<LockProxyStore>(admin, LockProxyStore {
             proxy_map: SimpleMap::create<u64, vector<u8>>(),
@@ -102,8 +104,16 @@ module Bridge::zion_lock_proxy {
             unlock_event: Event::new_event_handle<UnlockEvent>(admin),
         });
 
-        move_to<LicenseStore>(admin, LicenseStore {
-            license: Option::none<zion_cross_chain_manager::License>(),
+        create_license_store(admin);
+    }
+
+    // create license store
+    public fun create_license_store<>(admin: &signer) {
+        assert!(Signer::address_of(admin) == @Bridge, EINVALID_SIGNER);
+        assert!(!exists<LicenseStore<License>>(@Bridge), ELICENSE_STORE_ALREADY_EXIST);
+
+        move_to<LicenseStore<License>>(admin, LicenseStore<License> {
+            license: Option::none<License>(),
         });
     }
 
@@ -120,12 +130,13 @@ module Bridge::zion_lock_proxy {
     public fun getToAsset<CoinType>(to_chain_id: u64): (vector<u8>, u8) acquires LockProxyStore {
         let config_ref = borrow_global<LockProxyStore>(@Bridge);
         let from_asset = TypeInfo::type_of<Token::Token<CoinType>>();
+
         if (SimpleMap::contains_key(&config_ref.asset_map, &from_asset)) {
             let sub_table = SimpleMap::borrow(&config_ref.asset_map, &from_asset);
             if (SimpleMap::contains_key(sub_table, &to_chain_id)) {
                 let decimals_concat_to_asset = SimpleMap::borrow(sub_table, &to_chain_id);
                 let decimals = *Vector::borrow(decimals_concat_to_asset, 0);
-                let to_asset = Bytes::slice(decimals_concat_to_asset, 1, Vector::length(decimals_concat_to_asset) - 1);
+                let to_asset = zion_utils::slice(decimals_concat_to_asset, 1, Vector::length(decimals_concat_to_asset) - 1);
                 return (to_asset, decimals)
             } else {
                 abort ETARGET_ASSET_NOT_BIND
@@ -305,33 +316,27 @@ module Bridge::zion_lock_proxy {
 
 
     // license function
-    public fun receiveLicense(license: zion_cross_chain_manager::License) acquires LicenseStore {
-        assert!(exists<LicenseStore>(@Bridge), ELICENSE_STORE_NOT_EXIST);
-        let license_opt = &mut borrow_global_mut<LicenseStore>(@Bridge).license;
-        assert!(Option::is_none<zion_cross_chain_manager::License>(license_opt), ELICENSE_ALREADY_EXIST);
-        let (license_account, license_module_name) = zion_cross_chain_manager::getLicenseInfo(&license);
-        let this_type = TypeInfo::type_of<LicenseStore>();
-        let this_account = TypeInfo::account_address(&this_type);
-        let this_module_name = TypeInfo::module_name(&this_type);
-        assert!(license_account == this_account && license_module_name == this_module_name, EINVALID_LICENSE_INFO);
+    public fun receiveLicense<LicenseType: store>(license: LicenseType) acquires LicenseStore {
+        assert!(exists<LicenseStore<LicenseType>>(@Bridge), ELICENSE_STORE_NOT_EXIST);
+        let license_opt = &mut borrow_global_mut<LicenseStore<LicenseType>>(@Bridge).license;
+        assert!(Option::is_none<LicenseType>(license_opt), ELICENSE_ALREADY_EXIST);
         Option::fill(license_opt, license);
     }
 
-    public fun removeLicense(admin: &signer): zion_cross_chain_manager::License acquires LicenseStore {
+    public fun removeLicense<LicenseType: store>(admin: &signer): LicenseType acquires LicenseStore {
         assert!(Signer::address_of(admin) == @Bridge, EINVALID_SIGNER);
-        assert!(exists<LicenseStore>(@Bridge), ELICENSE_NOT_EXIST);
-        let license_opt = &mut borrow_global_mut<LicenseStore>(@Bridge).license;
-        assert!(Option::is_some<zion_cross_chain_manager::License>(license_opt), ELICENSE_NOT_EXIST);
-        Option::extract<zion_cross_chain_manager::License>(license_opt)
+        assert!(exists<LicenseStore<LicenseType>>(@Bridge), ELICENSE_NOT_EXIST);
+        let license_opt = &mut borrow_global_mut<LicenseStore<LicenseType>>(@Bridge).license;
+        assert!(Option::is_some<LicenseType>(license_opt), ELICENSE_NOT_EXIST);
+        Option::extract<LicenseType>(license_opt)
     }
 
     public fun getLicenseId(): vector<u8> acquires LicenseStore {
-        assert!(exists<LicenseStore>(@Bridge), ELICENSE_NOT_EXIST);
-        let license_opt = &borrow_global<LicenseStore>(@Bridge).license;
-        assert!(Option::is_some<zion_cross_chain_manager::License>(license_opt), ELICENSE_NOT_EXIST);
+        assert!(exists<LicenseStore<License>>(@Bridge), ELICENSE_NOT_EXIST);
+        let license_opt = &borrow_global<LicenseStore<License>>(@Bridge).license;
+        assert!(Option::is_some<License>(license_opt), ELICENSE_NOT_EXIST);
         return zion_cross_chain_manager::getLicenseId(Option::borrow(license_opt))
     }
-
 
     // lock
     public fun lock<CoinType: store>(
@@ -345,9 +350,9 @@ module Bridge::zion_lock_proxy {
         deposit(fund);
 
         // borrow license
-        assert!(exists<LicenseStore>(@Bridge), ELICENSE_NOT_EXIST);
-        let license_opt = &borrow_global<LicenseStore>(@Bridge).license;
-        assert!(Option::is_some<zion_cross_chain_manager::License>(license_opt), ELICENSE_NOT_EXIST);
+        assert!(exists<LicenseStore<License>>(@Bridge), ELICENSE_NOT_EXIST);
+        let license_opt = &borrow_global<LicenseStore<License>>(@Bridge).license;
+        assert!(Option::is_some<License>(license_opt), ELICENSE_NOT_EXIST);
         let license_ref = Option::borrow(license_opt);
 
         // get target proxy/asset
@@ -358,8 +363,7 @@ module Bridge::zion_lock_proxy {
         let target_chain_amount = to_target_chain_amount<CoinType>(amount, to_asset_decimals);
 
         // pack args
-        let tx_data = CrossChainLibrary::serialize_tx_args(
-            copy to_asset, *toAddress, target_chain_amount);
+        let tx_data = serializeTxArgs(&to_asset, toAddress, target_chain_amount);
         // cross chain
         zion_cross_chain_manager::crossChain(account, license_ref, toChainId, &to_proxy, &b"unlock", &tx_data);
 
@@ -374,7 +378,7 @@ module Bridge::zion_lock_proxy {
                 to_asset_hash: to_asset,
                 to_address: *toAddress,
                 amount,
-                target_chain_amount,
+                target_chain_amount: (target_chain_amount as u128),
             },
         );
     }
@@ -398,11 +402,11 @@ module Bridge::zion_lock_proxy {
             to_asset,
             to_address,
             from_chain_amount
-        ) = CrossChainLibrary::deserialize_tx_args(args);
+        ) = deserializeTxArgs(&args);
 
         // precision conversion
         let (_, decimals) = getToAsset<CoinType>(from_chain_id);
-        let amount = from_target_chain_amount<CoinType>(from_chain_amount, decimals);
+        let amount = from_target_chain_amount<CoinType>((from_chain_amount as u128), decimals);
 
         // check
         assert!(BCS::to_bytes(&TypeInfo::type_of<Token::Token<CoinType>>()) == to_asset, EINVALID_COINTYPE);
@@ -422,7 +426,7 @@ module Bridge::zion_lock_proxy {
                 to_asset: TypeInfo::type_of<Token::Token<CoinType>>(),
                 to_address: BCS::to_address(to_address),
                 amount,
-                from_chain_amount
+                from_chain_amount: (from_chain_amount as u128)
             },
         );
     }
@@ -436,8 +440,8 @@ module Bridge::zion_lock_proxy {
         raw_cross_tx: vector<u8>
     ) acquires Treasury, LicenseStore, LockProxyStore {
         // borrow license
-        assert!(exists<LicenseStore>(@Bridge), ELICENSE_NOT_EXIST);
-        let license_opt = &borrow_global<LicenseStore>(@Bridge).license;
+        assert!(exists<LicenseStore<License>>(@Bridge), ELICENSE_NOT_EXIST);
+        let license_opt = &borrow_global<LicenseStore<License>>(@Bridge).license;
         assert!(Option::is_some<zion_cross_chain_manager::License>(license_opt), ELICENSE_NOT_EXIST);
         let license_ref = Option::borrow(license_opt);
 
@@ -454,32 +458,164 @@ module Bridge::zion_lock_proxy {
     }
 
     // decimals conversion
-    public fun to_target_chain_amount<CoinType: store>(amount: u64, target_decimals: u8): u128 {
+    public fun to_target_chain_amount<CoinType: store>(amount: u64, target_decimals: u8): u256 {
         let source_decimals = Token::scaling_factor<CoinType>();
-        (amount as u128) * SafeMath::pow_10(target_decimals) / source_decimals
+        (amount as u256) * (SafeMath::pow_10(target_decimals) as u256) / (source_decimals as u256)
     }
 
     public fun from_target_chain_amount<CoinType: store>(target_chain_amount: u128, target_decimals: u8): u64 {
         let source_decimals = Token::scaling_factor<CoinType>();
         (target_chain_amount * source_decimals / SafeMath::pow_10(target_decimals) as u64)
     }
-
+    
     // codecs
-    public fun serializeTxArgs(to_asset: &vector<u8>, to_address: &vector<u8>, amount: u128): vector<u8> {
+    public fun serializeTxArgs(to_asset: &vector<u8>, to_address: &vector<u8>, amount: u256): vector<u8> {
         let buf = zero_copy_sink::write_var_bytes(to_asset);
         Vector::append(&mut buf, zero_copy_sink::write_var_bytes(to_address));
-        Vector::append(&mut buf, zero_copy_sink::write_u256((0 as u128), amount));
+        Vector::append(&mut buf, zero_copy_sink::write_u256(amount));
         return buf
     }
 
-    public fun deserializeTxArgs(raw_data: &vector<u8>): (vector<u8>, vector<u8>, u128) {
+    public fun deserializeTxArgs(raw_data: &vector<u8>): (vector<u8>, vector<u8>, u256) {
         let offset = (0 as u64);
         let to_asset: vector<u8>;
         let to_address: vector<u8>;
-        let amount: u128;
+        let amount: u256;
         (to_asset, offset) = zero_copy_source::next_var_bytes(raw_data, offset);
         (to_address, offset) = zero_copy_source::next_var_bytes(raw_data, offset);
-        (_, amount, _) = zero_copy_source::next_u256(raw_data, offset);
+        (amount, _) = zero_copy_source::next_u256(raw_data, offset);
         return (to_asset, to_address, amount)
+    }
+
+    //#[test_only] use StarcoinFramework::Debug;
+    #[test_only]
+    fun test_init(admin: &signer) {
+        assert!(Signer::address_of(admin) == @Bridge, EINVALID_SIGNER);
+
+        move_to<LockProxyStore>(admin, LockProxyStore{
+            proxy_map: SimpleMap::create<u64, vector<u8>>(),
+            asset_map: SimpleMap::create<TypeInfo, SimpleMap<u64, vector<u8>>>(),
+            paused: false,
+            owner: Signer::address_of(admin),
+            bind_proxy_event: Event::new_event_handle<BindProxyEvent>(admin),
+            bind_asset_event: Event::new_event_handle<BindAssetEvent>(admin),
+            lock_event: Event::new_event_handle<LockEvent>(admin),
+            unlock_event: Event::new_event_handle<UnlockEvent>(admin),
+        });
+
+        move_to<LicenseStore<License>>(admin, LicenseStore<License>{
+            license: Option::none<License>(),
+        });
+    }
+
+    #[test_only] 
+    fun test_setup(arg: &signer) {
+        Account::create_account_with_address<STC>(@Bridge);
+        test_init(arg);
+    }
+
+    #[test(arg = @Bridge)]
+    fun pause_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        assert!(!paused(), 0);
+        pause(&arg);
+        assert!(paused(), 0);
+        unpause(&arg);
+        assert!(!paused(), 0);
+    }
+
+    #[test(arg = @Bridge, invalid_signer = @0x2), expected_failure]
+    fun pause_failure_test(arg: signer, invalid_signer: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let addr = Signer::address_of(&invalid_signer);
+        Account::create_account_with_address<STC>(addr);
+        assert!(!paused(), 0);
+        pause(&invalid_signer);
+    }
+
+    #[test]
+    fun serializeTxArgs_test() {
+        let asset = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        let addr = x"E1D7C7a4596B038CEd2A84bF65B8647271C53208";
+        let amount = 13238898723897u256;
+        let arg = serializeTxArgs(&asset, &addr, amount);
+        let (asset_cp, addr_cp, amount_cp) = deserializeTxArgs(&arg);
+        assert!(asset == asset_cp, 0);
+        assert!(addr == addr_cp, 0);
+        assert!(amount == amount_cp, 0);
+    }
+
+    #[test(arg = @Bridge), expected_failure(abort_code = ETARGET_ASSET_NOT_BIND)]
+    fun bind_asset_nil_failure_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        getToAsset<STC>(10);
+    }
+
+    #[test(arg = @Bridge)]
+    fun bind_asset_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let targetAsset = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        let targetAsset2 = x"13233e3c0e6b48010873b947bddc4721b1bdff9648";
+
+        bindAsset<STC>(&arg, 10, targetAsset, 18);
+        let (asset, decimals) = getToAsset<STC>(10);
+        assert!((asset == targetAsset), 1001);
+        assert!(decimals == 18, 1002);
+
+        bindAsset<STC>(&arg, 10, targetAsset2, 9);
+        (asset, decimals) = getToAsset<STC>(10);
+        assert!((asset == targetAsset2), 1003);
+        assert!((asset != targetAsset), 1004);
+        assert!(decimals == 9, 1005);
+    }
+
+    #[test(arg = @Bridge), expected_failure(abort_code = ETARGET_ASSET_NOT_BIND)]
+    fun unbind_asset_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let targetAsset = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        bindAsset<STC>(&arg, 10, targetAsset, 18);
+        let (asset, decimals) = getToAsset<STC>(10);
+        assert!((asset == targetAsset), 0);
+        assert!(decimals == 18, 0);
+        unbindAsset<STC>(&arg, 10);
+        getToAsset<STC>(10);
+    }
+
+    #[test(arg = @Bridge, invalid_signer = @0x2), expected_failure]
+    fun bind_asset_failure_test(arg: signer, invalid_signer: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let targetAsset = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        bindAsset<STC>(&invalid_signer, 10, targetAsset, 9);
+    }
+
+    #[test(arg = @Bridge), expected_failure(abort_code = ETARGET_PROXY_NOT_BIND)]
+    fun bind_proxy_nil_failure_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        getTargetProxy(10);
+    }
+
+    #[test(arg = @Bridge)]
+    fun bind_proxy_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let targetProxy = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        bindProxy(&arg, 10, targetProxy);
+        assert!((getTargetProxy(10) == targetProxy), 0);
+    }
+
+    #[test(arg = @Bridge), expected_failure(abort_code = ETARGET_PROXY_NOT_BIND)]
+    fun unbind_proxy_test(arg: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let targetProxy = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        bindProxy(&arg, 10, targetProxy);
+        assert!((getTargetProxy(10) == targetProxy), 0);
+        unbindProxy(&arg, 10);
+        getTargetProxy(10);
+    }
+
+    #[test(arg = @Bridge, invalid_signer = @0x2), expected_failure]
+    fun bind_proxy_failure_test(arg: signer, invalid_signer: signer) acquires LockProxyStore {
+        test_setup(&arg);
+        let targetProxy = x"03233e3c0e6b48010873b947bddc4721b1bdff9648";
+        bindProxy(&invalid_signer, 10, targetProxy);
     }
 }

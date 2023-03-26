@@ -22,10 +22,10 @@ module Bridge::CrossChainType {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::STC;
-    use Bridge::CrossChainScript;
     use Bridge::CrossChainGlobal;
+    use Bridge::CrossChainScript;
     use Bridge::LockProxy;
+    use StarcoinFramework::STC;
 
     const CHAINID_STARCOIN: u64 = 8;
     const CHAINID_ETHEREUM: u64 = 1;
@@ -57,9 +57,8 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
-
     use Bridge::CrossChainScript;
+    use StarcoinFramework::Vector;
 
     // Excep failed for repeate initialize errors
     fun test_repeate_call_genesis_init(signer: signer) {
@@ -83,8 +82,8 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
     use Bridge::CrossChainRouter;
+    use StarcoinFramework::Vector;
 
     fun test_verify_header_and_execute_tx(_signer: signer) {
         let proof_x = x"d020e91d858cba58b3dff91bf4b3adcacabf899e106ed6ad86a16a4a29e7817e307c080000000000000020b697330bd7a5850235f97d1bcd1c37739f4bc79a4f8e635dcb46ba45bc600ef4012f14f71b55ef55cedc91fd007f7a9ba386ec978f3aa80200000000000000144ddcf539d13e92d4151b7f5e607d4a09f725c47d06756e6c6f636b4a14000000000000000000000000000000000000000014344cfc3b8635f72f14200aaf2168d9f75df86fd36226100000000000000000000000000000000000000000000000000000000000";
@@ -111,3 +110,60 @@ script {
 // check: "Keep(ABORTED { code: 27137"
 // TODO: must set a correct native address
 
+
+
+//# run --signers Bridge
+script {
+    use Bridge::Address;
+    use Bridge::Bytes;
+    use Bridge::CrossChainConstant;
+    use Bridge::CrossChainGlobal;
+    use Bridge::ZeroCopySink;
+
+    use StarcoinFramework::BCS;
+    use StarcoinFramework::Debug;
+    use StarcoinFramework::Hash;
+    use StarcoinFramework::Vector;
+
+    fun test_cross_chain_make_tx_param(_signer: signer) {
+        let raw_param = Vector::empty<u8>();
+
+        // Tx hash index
+        let param_tx_hash = BCS::to_bytes(&b"12345");
+
+        // Reverse little edian to big edian
+        Vector::reverse(&mut param_tx_hash);
+
+        // --------- serialize MakeTxParam start ---------
+        // Golang version:
+        // type MakeTxParam struct {
+        // 	TxHash              []byte
+        // 	CrossChainID        []byte
+        // 	FromContractAddress []byte
+        // 	ToChainID           uint64
+        // 	ToContractAddress   []byte
+        // 	Method              string
+        // 	Args                []byte
+        // }
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&param_tx_hash));
+        // hash genesis_addr and tx_hash to CrossChainID!
+        // Solidity code:
+        // Contract address: ZeroCopySink.WriteVarBytes(abi.encodePacked(sha256(abi.encodePacked(address(this), paramTxHash))))
+        let genesis_addr_byte = Address::bytify(CrossChainGlobal::genesis_account());
+        let cross_chain_id =
+            Hash::sha3_256(Bytes::concat(&genesis_addr_byte, *&param_tx_hash));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&cross_chain_id));
+        raw_param = Bytes::concat(
+            &raw_param,
+            ZeroCopySink::write_var_bytes(&CrossChainConstant::get_proxy_hash_starcoin())
+        );
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_u64(318));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&b"to_contract"));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&b"method"));
+        raw_param = Bytes::concat(&raw_param, ZeroCopySink::write_var_bytes(&b"args"));
+        // --------- serialize MakeTxParam end ---------
+
+        Debug::print(&raw_param);
+    }
+}
+// check: EXECUTED

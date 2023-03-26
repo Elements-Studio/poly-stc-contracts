@@ -28,7 +28,6 @@ script {
     use Bridge::SafeMath;
     use Bridge::zion_cross_chain_manager;
     use Bridge::zion_lock_proxy;
-
     use StarcoinFramework::STC::STC;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Token;
@@ -60,10 +59,10 @@ script {
 //# run --signers alice
 script {
     use Bridge::zion_lock_proxy;
-    use StarcoinFramework::STC::STC;
     use StarcoinFramework::Account;
-    use StarcoinFramework::Token;
     use StarcoinFramework::BCS;
+    use StarcoinFramework::STC::STC;
+    use StarcoinFramework::Token;
 
     fun alice_lock_stc(sender: signer) {
         let to_chain_id = 998;
@@ -79,8 +78,8 @@ script {
 //# run --signers Bridge
 script {
     use Bridge::zion_cross_chain_utils;
-    use StarcoinFramework::Vector;
     use StarcoinFramework::Debug;
+    use StarcoinFramework::Vector;
 
     fun raw_header_check(_sender: signer) {
         // Raw header from https://explorer.aptoslabs.com/txn/436952160/payload, next from the data using in `init` function
@@ -128,6 +127,26 @@ script {
             storage_proof,
             raw_cross_tx
         );
+    }
+}
+// check: EXECUTED
+
+//# run --signers Bridge
+script {
+    use Bridge::zion_cross_chain_utils;
+    use StarcoinFramework::Debug;
+
+    fun test_eth_tx_param(_sender: signer) {
+        let param = zion_cross_chain_utils::encode_tx_param(
+            x"61a081eeb1e847d53c9afd9f048a05f3a88e9a2f3a1afafc50a89280c5e3dd7c",
+            b"1111",
+            b"22222",
+            318,
+            x"dfe8ca002624bcaecb4188da78d42043",
+            b"unlock",
+            b"dadafa",
+        );
+        Debug::print(&param)
     }
 }
 // check: EXECUTED

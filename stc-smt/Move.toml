@@ -4,8 +4,8 @@ version = "2.0.1"
 
 [addresses]
 StarcoinFramework = "0x1"
-Bridge = "0xe52552637c5897a2d499fbf08216f73e"
+Bridge = "0xdfe8ca002624bcaecb4188da78d42043"
 
 [dependencies]
-StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "2ee2378d0d6eaa4ebc1ac6d3e33c4aee11bc2fe4" }
+StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "aaedc734971551c9df26a0bcc11b7c925264c8a4" }
 Bridge-STC-Utils = { local = "../stc-utils" }
