@@ -10,6 +10,7 @@ module Bridge::zion_cross_chain_manager {
     use StarcoinFramework::SimpleMap::{Self, SimpleMap};
     use StarcoinFramework::Vector;
     use Bridge::CrossChainLibrary;
+    use StarcoinFramework::Debug;
 
     // Errors
     const EINVALID_SIGNER: u64 = 1;
@@ -323,6 +324,9 @@ module Bridge::zion_cross_chain_manager {
         let (_, height) = zion_cross_chain_utils::decode_header(&raw_header);
         let (epoch_end_height, validators) = zion_cross_chain_utils::decode_extra(&raw_header);
 
+        Debug::print(&111111);
+        Debug::print(&validators);
+
         // init global config
         let config = CrossChainGlobalConfig {
             polyId,
@@ -365,20 +369,20 @@ module Bridge::zion_cross_chain_manager {
     // change book keeper
     public /*entry*/ fun change_epoch(
         _account: &signer,
-        raw_header: vector<u8>,
-        raw_seals: vector<u8>
+        raw_header: &vector<u8>,
+        raw_seals: &vector<u8>
     ) acquires CrossChainGlobalConfig, EventStore {
         // decode
-        let (_, height) = zion_cross_chain_utils::decode_header(&raw_header);
-        let (epoch_end_height, new_validators) = zion_cross_chain_utils::decode_extra(&raw_header);
-        let header_hash = zion_cross_chain_utils::get_header_hash(*&raw_header);
+        let (_, height) = zion_cross_chain_utils::decode_header(raw_header);
+        let (epoch_end_height, new_validators) = zion_cross_chain_utils::decode_extra(raw_header);
+        let header_hash = zion_cross_chain_utils::get_header_hash(*raw_header);
         let old_validators = getCurValidators();
 
         // check
         assert!(height >= getCurEpochStartHeight(), EINVLAID_BLOCK_HEIGHT);
         assert!(Vector::length<vector<u8>>(&new_validators) != 0, EEMPTY_VALIDATOR_SET);
         assert!(
-            zion_cross_chain_utils::verify_header(&header_hash, &raw_seals, &old_validators),
+            zion_cross_chain_utils::verify_header(&header_hash, raw_seals, &old_validators),
             EVERIFY_HEADER_FAILED
         );
 
@@ -392,7 +396,7 @@ module Bridge::zion_cross_chain_manager {
             &mut event_store.change_epoch_event,
             ChangeEpochEvent {
                 height,
-                raw_header: *&raw_header,
+                raw_header: *raw_header,
                 old_validators,
                 new_validators,
             },
@@ -503,6 +507,7 @@ module Bridge::zion_cross_chain_manager {
         ) = zion_cross_chain_utils::decode_cross_tx(
             raw_cross_tx
         );
+
         let (root, height) = zion_cross_chain_utils::decode_header(raw_header);
         let header_hash = zion_cross_chain_utils::get_header_hash(*raw_header);
         let validators = getCurValidators();

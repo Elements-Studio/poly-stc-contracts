@@ -27,6 +27,6 @@ module Bridge::zion_cross_chain_manager_script {
         raw_header: vector<u8>,
         raw_seals: vector<u8>
     ) {
-        zion_cross_chain_manager::change_epoch(&account, raw_header, raw_seals);
+        zion_cross_chain_manager::change_epoch(&account, &raw_header, &raw_seals);
     }
 }

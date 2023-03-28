@@ -27,7 +27,7 @@ module Bridge::zion_upgrade_script {
         zion_lock_proxy::bindAsset<STC>(
             &admin,
             starcoin_poly_id,
-            b"0x1::STC::STC",
+            b"0x00000000000000000000000000000001::STC::STC",
             SafeMath::log10(Token::scaling_factor<STC>())
         );
 

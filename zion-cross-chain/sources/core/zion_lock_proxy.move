@@ -91,7 +91,7 @@ module Bridge::zion_lock_proxy {
     public fun init(admin: &signer) {
         let admin_addr = Signer::address_of(admin);
         assert!(admin_addr == @Bridge, EINVALID_SIGNER);
-        assert!(exists<LockProxyStore>(admin_addr), EALREADY_INIT);
+        assert!(!exists<LockProxyStore>(admin_addr), EALREADY_INIT);
 
         move_to<LockProxyStore>(admin, LockProxyStore {
             proxy_map: SimpleMap::create<u64, vector<u8>>(),
