@@ -6,8 +6,9 @@ module Bridge::zion_upgrade_script {
 
     use StarcoinFramework::BCS;
     use StarcoinFramework::STC::STC;
-    use StarcoinFramework::Signer;
     use StarcoinFramework::Token;
+    use StarcoinFramework::TypeInfo;
+    use StarcoinFramework::STC;
 
     fun migration_from_old_treasury() {
         // TODO(Bob Ong):
@@ -17,17 +18,18 @@ module Bridge::zion_upgrade_script {
         // Treasury
         zion_cross_chain_manager::init(&admin, raw_header, starcoin_poly_id);
 
-        let license = zion_cross_chain_manager::issueLicense(&admin, Signer::address_of(&admin), b"zion_lock_proxy");
+        let license = zion_cross_chain_manager::issueLicense(&admin, @Bridge, b"zion_lock_proxy");
+        let license_id = zion_cross_chain_manager::getLicenseId(&license);
         zion_lock_proxy::init(&admin);
         zion_lock_proxy::initTreasury<STC>(&admin);
         zion_lock_proxy::receiveLicense(license);
 
         // Bind STC
-        zion_lock_proxy::bindProxy(&admin, starcoin_poly_id, BCS::to_bytes(&@Bridge));
+        zion_lock_proxy::bindProxy(&admin, starcoin_poly_id, license_id);
         zion_lock_proxy::bindAsset<STC>(
             &admin,
             starcoin_poly_id,
-            b"0x00000000000000000000000000000001::STC::STC",
+            BCS::to_bytes(&TypeInfo::type_of<Token::Token<STC::STC>>()),
             SafeMath::log10(Token::scaling_factor<STC>())
         );
 

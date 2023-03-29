@@ -200,7 +200,7 @@ module Bridge::zion_lock_proxy {
             &mut config_ref.bind_proxy_event,
             BindProxyEvent {
                 to_chain_id,
-                target_proxy_hash: target_proxy_hash,
+                target_proxy_hash,
             },
         );
     }

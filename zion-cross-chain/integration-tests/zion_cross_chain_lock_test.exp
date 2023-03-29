@@ -31,7 +31,7 @@ task 9 'run'. lines 117-138:
     "MoveAbort": {
       "location": {
         "Module": {
-          "address": "0xf08ac0c1c6c8f2be528b358247550540",
+          "address": "0x29ce635e538f628632963e92ed506d25",
           "name": "zion_cross_chain_manager"
         }
       },

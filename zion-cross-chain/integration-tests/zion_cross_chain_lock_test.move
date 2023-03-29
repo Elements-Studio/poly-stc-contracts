@@ -28,20 +28,20 @@ script {
     use Bridge::SafeMath;
     use Bridge::zion_cross_chain_manager;
     use Bridge::zion_lock_proxy;
-    use StarcoinFramework::STC::STC;
-    use StarcoinFramework::Signer;
-    use StarcoinFramework::Token;
+
     use StarcoinFramework::BCS;
-    use StarcoinFramework::Debug;
+    use StarcoinFramework::STC::STC;
+    use StarcoinFramework::Token;
+    use StarcoinFramework::TypeInfo;
 
     fun test_genesis_initialize(signer: signer) {
-        let aptos_poly_id = 998; // The poly id of aptos is 998, because the test data was from aptos
+        let aptos_poly_id = 318; // The poly id of aptos is 998, because the test data was from aptos
 
         // https://explorer.aptoslabs.com/txn/411144842/payload
         let raw_header = x"f9027ca045222668f471a19044c1680ff108e16f812f1b9f0afb66cfd8a06185ab25c360a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d4934794258af48e28e4a6846e931ddff8e1cdf8579821e5a01abaede3abcb324f60a3d1498cb7cebad9242889ada1162a85209f3be42845d1a090f45e25789803f8ca15ba58ff8775d1ae2d988b8c6d99a0d0bb71ff09fda3aaa0d4e4d938901e00ea4da08917593dba522a19b68413162444389bb35251dd96e3b901000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001820bb88411e1a30083029bf88463c63b59b8810000000000000000000000000000000000000000000000000000000000000000f85f820bb8821770f85494258af48e28e4a6846e931ddff8e1cdf8579821e5946a708455c8777630aac9d1e7702d13f7a865b27c948c09d936a1b408d6e0afaa537ba4e06c4504a0ae94ad3bf5ed640cc72f37bd21d64a65c3c756e9c88c80c080a063746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365880000000000000000";
         zion_cross_chain_manager::init(&signer, raw_header, aptos_poly_id);
 
-        let license = zion_cross_chain_manager::issueLicense(&signer, Signer::address_of(&signer), b"zion_lock_proxy");
+        let license = zion_cross_chain_manager::issueLicense(&signer, @Bridge, b"zion_lock_proxy");
         zion_lock_proxy::init(&signer);
         zion_lock_proxy::initTreasury<STC>(&signer);
         zion_lock_proxy::receiveLicense(license);
@@ -51,7 +51,7 @@ script {
         zion_lock_proxy::bindAsset<STC>(
             &signer,
             aptos_poly_id,
-            b"0x00000000000000000000000000000001::STC::STC",
+            BCS::to_bytes(&TypeInfo::type_of<STC>()),
             SafeMath::log10(Token::scaling_factor<STC>())
         );
     }

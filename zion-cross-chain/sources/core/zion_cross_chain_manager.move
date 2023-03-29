@@ -9,8 +9,6 @@ module Bridge::zion_cross_chain_manager {
     use StarcoinFramework::Signer;
     use StarcoinFramework::SimpleMap::{Self, SimpleMap};
     use StarcoinFramework::Vector;
-    use Bridge::CrossChainLibrary;
-    use StarcoinFramework::Debug;
 
     // Errors
     const EINVALID_SIGNER: u64 = 1;
@@ -31,7 +29,7 @@ module Bridge::zion_cross_chain_manager {
     const EINVLAID_BLOCK_HEIGHT: u64 = 17;
     const EEMPTY_VALIDATOR_SET: u64 = 18;
 
-    const ZION_CROSS_CHAIN_MANAGER_ADDRESS: vector<u8> = x"e52552637c5897a2d499fbf08216f73e";
+    const ZION_CROSS_CHAIN_MANAGER_ADDRESS: vector<u8> = x"0000000000000000000000000000000000001003";
 
     // access control
     struct ACLStore has key, store {
@@ -324,9 +322,6 @@ module Bridge::zion_cross_chain_manager {
         let (_, height) = zion_cross_chain_utils::decode_header(&raw_header);
         let (epoch_end_height, validators) = zion_cross_chain_utils::decode_extra(&raw_header);
 
-        Debug::print(&111111);
-        Debug::print(&validators);
-
         // init global config
         let config = CrossChainGlobalConfig {
             polyId,
@@ -526,7 +521,7 @@ module Bridge::zion_cross_chain_manager {
         let storage_value = zion_cross_chain_utils::verify_account_proof(
             account_proof,
             &root,
-            &getZionCrossChainManagerAddr(),
+            &ZION_CROSS_CHAIN_MANAGER_ADDRESS,
             storage_proof,
             &storage_index
         );
@@ -568,9 +563,9 @@ module Bridge::zion_cross_chain_manager {
         }
     }
 
-    fun getZionCrossChainManagerAddr(): vector<u8> {
-        let ret = Vector::empty<u8>();
-        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@Bridge));
-        ret
-    }
+    // fun getZionCrossChainManagerAddr(): vector<u8> {
+    //     let ret = Vector::empty<u8>();
+    //     Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@Bridge));
+    //     ret
+    // }
 }
