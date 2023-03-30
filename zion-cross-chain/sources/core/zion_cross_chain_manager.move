@@ -418,8 +418,11 @@ module Bridge::zion_cross_chain_manager {
         let param_tx_hash = BCS::to_bytes(&tx_hash_index);
         Vector::reverse(&mut param_tx_hash);
 
-        let cross_chain_id = b"StarcoinCrossChainManager";
+        let cross_chain_id = Vector::empty<u8>();
+        Vector::append(&mut cross_chain_id, BCS::to_bytes(&@Bridge));
+        Vector::append(&mut cross_chain_id, b"::StarcoinCrossChainManager");
         Vector::append(&mut cross_chain_id, *&param_tx_hash);
+
         cross_chain_id = Hash::keccak_256(cross_chain_id);
 
         let raw_param = zion_cross_chain_utils::encode_tx_param(
