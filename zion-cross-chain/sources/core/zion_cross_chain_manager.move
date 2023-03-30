@@ -539,6 +539,7 @@ module Bridge::zion_cross_chain_manager {
 
         // check verifier
         let msg_sender = getLicenseId(license);
+
         assert!(msg_sender == copy to_contract, EVERIFIER_NOT_RECEIVER);
 
         // check black list

@@ -33,6 +33,7 @@ script {
     use StarcoinFramework::STC::STC;
     use StarcoinFramework::Token;
     use StarcoinFramework::TypeInfo;
+    use StarcoinFramework::Debug;
 
     fun test_genesis_initialize(signer: signer) {
         let aptos_poly_id = 318; // The poly id of aptos is 998, because the test data was from aptos
@@ -46,6 +47,9 @@ script {
         zion_lock_proxy::init(&signer);
         zion_lock_proxy::initTreasury<STC>(&signer);
         zion_lock_proxy::receiveLicense(license);
+
+        Debug::print(&11111111);
+        Debug::print(&BCS::to_bytes(&TypeInfo::type_of<STC>()));
 
         // Bind STC
         zion_lock_proxy::bindProxy(&signer, aptos_poly_id, license_id);

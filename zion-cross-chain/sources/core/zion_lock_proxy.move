@@ -17,6 +17,7 @@ module Bridge::zion_lock_proxy {
     use StarcoinFramework::Vector;
 
     #[test_only] use StarcoinFramework::STC::STC;
+    use StarcoinFramework::Debug;
 
     const DEPRECATED: u64 = 1;
     const ENOT_OWNER: u64 = 2;
@@ -364,7 +365,11 @@ module Bridge::zion_lock_proxy {
 
         // pack args
         let tx_data = serializeTxArgs(&to_asset, toAddress, target_chain_amount);
+
         // cross chain
+
+        Debug::print(&22222222);
+        Debug::print(&to_proxy);
         zion_cross_chain_manager::crossChain(account, license_ref, toChainId, &to_proxy, &b"unlock", &tx_data);
 
         // emit Event 
