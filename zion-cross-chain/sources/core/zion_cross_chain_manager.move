@@ -1,13 +1,12 @@
 module Bridge::zion_cross_chain_manager {
-    use Bridge::ACL;
-    use Bridge::SimpleMapWrapper;
     use Bridge::zion_cross_chain_utils;
 
+    use StarcoinFramework::ACL;
     use StarcoinFramework::BCS;
     use StarcoinFramework::Event;
     use StarcoinFramework::Hash;
     use StarcoinFramework::Signer;
-    use StarcoinFramework::SimpleMap::{Self, SimpleMap};
+    use StarcoinFramework::Table::{Self, Table};
     use StarcoinFramework::Vector;
 
     // Errors
@@ -33,8 +32,8 @@ module Bridge::zion_cross_chain_manager {
 
     // access control
     struct ACLStore has key, store {
-        role_acls: SimpleMap::SimpleMap<u64, ACL::ACL>,
-        license_black_list: SimpleMap::SimpleMap<vector<u8>, u8>
+        role_acls: Table::Table<u64, ACL::ACL>,
+        license_black_list: Table::Table<vector<u8>, u8>
     }
 
     const ADMIN_ROLE: u64 = 1;
@@ -43,8 +42,8 @@ module Bridge::zion_cross_chain_manager {
 
     public fun hasRole(role: u64, account: address): bool acquires ACLStore {
         let acl_store_ref = borrow_global<ACLStore>(@Bridge);
-        if (SimpleMap::contains_key(&acl_store_ref.role_acls, &role)) {
-            let role_acl = SimpleMap::borrow(&acl_store_ref.role_acls, &role);
+        if (Table::contains(&acl_store_ref.role_acls, copy role)) {
+            let role_acl = Table::borrow(&acl_store_ref.role_acls, copy role);
             return ACL::contains(role_acl, account)
         } else {
             return false
@@ -55,13 +54,13 @@ module Bridge::zion_cross_chain_manager {
         assert!(hasRole(ADMIN_ROLE, Signer::address_of(admin)), ENOT_ADMIN);
         assert!(!hasRole(role, account), EALREADY_HAS_ROLE);
         let acl_store_ref = borrow_global_mut<ACLStore>(@Bridge);
-        if (SimpleMap::contains_key(&acl_store_ref.role_acls, &role)) {
-            let role_acl = SimpleMap::borrow_mut(&mut acl_store_ref.role_acls, &role);
+        if (Table::contains(&acl_store_ref.role_acls, copy role)) {
+            let role_acl = Table::borrow_mut(&mut acl_store_ref.role_acls, copy role);
             ACL::add(role_acl, account);
         } else {
             let role_acl = ACL::empty();
             ACL::add(&mut role_acl, account);
-            SimpleMap::add(&mut acl_store_ref.role_acls, role, role_acl);
+            Table::add(&mut acl_store_ref.role_acls, role, role_acl);
         }
     }
 
@@ -69,7 +68,7 @@ module Bridge::zion_cross_chain_manager {
         assert!(hasRole(ADMIN_ROLE, Signer::address_of(admin)), ENOT_ADMIN);
         assert!(hasRole(role, account), ENOT_HAS_ROLE);
         let acl_store_ref = borrow_global_mut<ACLStore>(@Bridge);
-        let role_acl = SimpleMap::borrow_mut(&mut acl_store_ref.role_acls, &role);
+        let role_acl = Table::borrow_mut(&mut acl_store_ref.role_acls, copy role);
         ACL::remove(role_acl, account);
     }
 
@@ -112,8 +111,8 @@ module Bridge::zion_cross_chain_manager {
     // access level: 0b000000xy , x means blackListed as fromContract , y means blackListed as toContract
     public fun isBlackListedFrom(license_id: &vector<u8>): bool acquires ACLStore {
         let acl_store_ref = borrow_global<ACLStore>(@Bridge);
-        if (SimpleMap::contains_key(&acl_store_ref.license_black_list, license_id)) {
-            let access_level = *SimpleMap::borrow(&acl_store_ref.license_black_list, license_id);
+        if (Table::contains(&acl_store_ref.license_black_list, *license_id)) {
+            let access_level = *Table::borrow(&acl_store_ref.license_black_list, *license_id);
             return (access_level & 0x02) != 0
         } else {
             return false
@@ -122,8 +121,8 @@ module Bridge::zion_cross_chain_manager {
 
     public fun isBlackListedTo(license_id: &vector<u8>): bool acquires ACLStore {
         let acl_store_ref = borrow_global<ACLStore>(@Bridge);
-        if (SimpleMap::contains_key(&acl_store_ref.license_black_list, license_id)) {
-            let access_level = *SimpleMap::borrow(&acl_store_ref.license_black_list, license_id);
+        if (Table::contains(&acl_store_ref.license_black_list, *license_id)) {
+            let access_level = *Table::borrow(&acl_store_ref.license_black_list, *license_id);
             return (access_level & 0x01) != 0
         } else {
             return false
@@ -133,7 +132,7 @@ module Bridge::zion_cross_chain_manager {
     public /*entry*/ fun setBlackList(ca: &signer, license_id: vector<u8>, access_level: u8) acquires ACLStore {
         assert!(hasRole(CA_ROLE, Signer::address_of(ca)), ENOT_CA_ROLE);
         let acl_store_ref = borrow_global_mut<ACLStore>(@Bridge);
-        let v_ref = SimpleMapWrapper::borrow_mut_with_default(
+        let v_ref = Table::borrow_mut_with_default(
             &mut acl_store_ref.license_black_list,
             license_id,
             access_level
@@ -185,9 +184,9 @@ module Bridge::zion_cross_chain_manager {
         curValidators: vector<vector<u8>>,
         curEpochStartHeight: u64,
         curEpochEndHeight: u64,
-        aptosToPolyTxHashIndex: u128,
-        aptosToPolyTxHashMap: SimpleMap<u128, vector<u8>>,
-        fromChainTxExist: SimpleMap<u64, SimpleMap<vector<u8>, bool>>,
+        starcoinToPolyTxHashIndex: u128,
+        aptosToPolyTxHashMap: Table<u128, vector<u8>>,
+        fromChainTxExist: Table<u64, Table<vector<u8>, bool>>,
     }
 
     fun putPolyId(polyId: u64) acquires CrossChainGlobalConfig {
@@ -232,17 +231,17 @@ module Bridge::zion_cross_chain_manager {
 
     fun markFromChainTxExist(fromChainId: u64, fromChainTx: &vector<u8>) acquires CrossChainGlobalConfig {
         let config_ref = borrow_global_mut<CrossChainGlobalConfig>(@Bridge);
-        if (SimpleMap::contains_key(&config_ref.fromChainTxExist, &fromChainId)) {
-            SimpleMapWrapper::upsert(
-                SimpleMap::borrow_mut(&mut config_ref.fromChainTxExist, &fromChainId),
+        if (Table::contains(&config_ref.fromChainTxExist, copy fromChainId)) {
+            Table::upsert(
+                Table::borrow_mut(&mut config_ref.fromChainTxExist, copy fromChainId),
                 *fromChainTx,
                 true
             );
             return
         } else {
-            let subTable = SimpleMap::create<vector<u8>, bool>();
-            SimpleMap::add(&mut subTable, *fromChainTx, true);
-            SimpleMap::add(&mut config_ref.fromChainTxExist, fromChainId, subTable);
+            let subTable = Table::new<vector<u8>, bool>();
+            Table::add(&mut subTable, *fromChainTx, true);
+            Table::add(&mut config_ref.fromChainTxExist, fromChainId, subTable);
             return
         }
     }
@@ -252,29 +251,29 @@ module Bridge::zion_cross_chain_manager {
         fromChainTx: &vector<u8>
     ): bool acquires CrossChainGlobalConfig {
         let config_ref = borrow_global<CrossChainGlobalConfig>(@Bridge);
-        if (SimpleMap::contains_key(&config_ref.fromChainTxExist, &fromChainId)) {
-            if (SimpleMap::contains_key(SimpleMap::borrow(&config_ref.fromChainTxExist, &fromChainId), fromChainTx)) {
-                return *SimpleMap::borrow(SimpleMap::borrow(&config_ref.fromChainTxExist, &fromChainId), fromChainTx)
+        if (Table::contains(&config_ref.fromChainTxExist, copy fromChainId)) {
+            if (Table::contains(Table::borrow(&config_ref.fromChainTxExist, copy fromChainId), *fromChainTx)) {
+                return *Table::borrow(Table::borrow(&config_ref.fromChainTxExist, copy fromChainId), *fromChainTx)
             };
         };
         return false
     }
 
-    public fun getAptosTxHashIndex(): u128 acquires CrossChainGlobalConfig {
+    public fun getStarcoinTxHashIndex(): u128 acquires CrossChainGlobalConfig {
         let config_ref = borrow_global<CrossChainGlobalConfig>(@Bridge);
-        return config_ref.aptosToPolyTxHashIndex
+        return config_ref.starcoinToPolyTxHashIndex
     }
 
-    fun putAptosTxHash(hash: &vector<u8>) acquires CrossChainGlobalConfig {
+    fun putStarcoinTxHash(hash: &vector<u8>) acquires CrossChainGlobalConfig {
         let config_ref = borrow_global_mut<CrossChainGlobalConfig>(@Bridge);
-        let index = config_ref.aptosToPolyTxHashIndex;
-        SimpleMapWrapper::upsert(&mut config_ref.aptosToPolyTxHashMap, index, *hash);
-        config_ref.aptosToPolyTxHashIndex = index + 1;
+        let index = config_ref.starcoinToPolyTxHashIndex;
+        Table::upsert(&mut config_ref.aptosToPolyTxHashMap, index, *hash);
+        config_ref.starcoinToPolyTxHashIndex = index + 1;
     }
 
     public fun getAptosTxHash(aptosHashIndex: u128): vector<u8> acquires CrossChainGlobalConfig {
         let config_ref = borrow_global<CrossChainGlobalConfig>(@Bridge);
-        return *SimpleMap::borrow(&config_ref.aptosToPolyTxHashMap, &aptosHashIndex)
+        return *Table::borrow(&config_ref.aptosToPolyTxHashMap, copy aptosHashIndex)
     }
 
 
@@ -303,19 +302,19 @@ module Bridge::zion_cross_chain_manager {
         assert!(!exists<CrossChainGlobalConfig>(@Bridge), EALREADY_INITIALIZED);
 
         // init access control lists
-        let acls = SimpleMap::create<u64, ACL::ACL>();
+        let acls = Table::new<u64, ACL::ACL>();
         let admin_acl = ACL::empty();
         let pause_acl = ACL::empty();
         let ca_acl = ACL::empty();
         ACL::add(&mut admin_acl, @Bridge);
         ACL::add(&mut pause_acl, @Bridge);
         ACL::add(&mut ca_acl, @Bridge);
-        SimpleMap::add(&mut acls, ADMIN_ROLE, admin_acl);
-        SimpleMap::add(&mut acls, PAUSE_ROLE, pause_acl);
-        SimpleMap::add(&mut acls, CA_ROLE, ca_acl);
+        Table::add(&mut acls, ADMIN_ROLE, admin_acl);
+        Table::add(&mut acls, PAUSE_ROLE, pause_acl);
+        Table::add(&mut acls, CA_ROLE, ca_acl);
         move_to<ACLStore>(account, ACLStore {
             role_acls: acls,
-            license_black_list: SimpleMap::create<vector<u8>, u8>()
+            license_black_list: Table::new<vector<u8>, u8>()
         });
 
         // decode header
@@ -329,9 +328,9 @@ module Bridge::zion_cross_chain_manager {
             curValidators: validators,
             curEpochStartHeight: height + 1,
             curEpochEndHeight: epoch_end_height,
-            aptosToPolyTxHashIndex: 0,
-            aptosToPolyTxHashMap: SimpleMap::create<u128, vector<u8>>(),
-            fromChainTxExist: SimpleMap::create<u64, SimpleMap<vector<u8>, bool>>()
+            starcoinToPolyTxHashIndex: 0,
+            aptosToPolyTxHashMap: Table::new<u128, vector<u8>>(),
+            fromChainTxExist: Table::new<u64, Table<vector<u8>, bool>>()
         };
         move_to<CrossChainGlobalConfig>(account, config);
 
@@ -414,7 +413,7 @@ module Bridge::zion_cross_chain_manager {
         assert!(!isBlackListedFrom(&msg_sender), EBLACKLISTED_FROM);
 
         // pack args
-        let tx_hash_index = getAptosTxHashIndex();
+        let tx_hash_index = getStarcoinTxHashIndex();
         let param_tx_hash = BCS::to_bytes(&tx_hash_index);
         Vector::reverse(&mut param_tx_hash);
 
@@ -436,7 +435,7 @@ module Bridge::zion_cross_chain_manager {
         );
 
         // mark
-        putAptosTxHash(&Hash::keccak_256(*&raw_param));
+        putStarcoinTxHash(&Hash::keccak_256(*&raw_param));
 
         // emit event
         let event_store = borrow_global_mut<EventStore>(@Bridge);

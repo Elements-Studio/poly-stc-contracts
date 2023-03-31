@@ -1,6 +1,5 @@
 module Bridge::zion_lock_proxy {
     use Bridge::SafeMath;
-    use Bridge::SimpleMapWrapper;
     use Bridge::zero_copy_sink;
     use Bridge::zero_copy_source;
     use Bridge::zion_cross_chain_manager::{Self, License};
@@ -11,13 +10,13 @@ module Bridge::zion_lock_proxy {
     use StarcoinFramework::Event;
     use StarcoinFramework::Option;
     use StarcoinFramework::Signer;
-    use StarcoinFramework::SimpleMap::{Self, SimpleMap};
     use StarcoinFramework::Token;
     use StarcoinFramework::TypeInfo::{Self, TypeInfo};
     use StarcoinFramework::Vector;
 
     #[test_only] use StarcoinFramework::STC::STC;
     use StarcoinFramework::Debug;
+    use StarcoinFramework::Table::{Self, Table};
 
     const DEPRECATED: u64 = 1;
     const ENOT_OWNER: u64 = 2;
@@ -39,8 +38,8 @@ module Bridge::zion_lock_proxy {
 
 
     struct LockProxyStore has key, store {
-        proxy_map: SimpleMap<u64, vector<u8>>,
-        asset_map: SimpleMap<TypeInfo, SimpleMap<u64, vector<u8>>>,
+        proxy_map: Table<u64, vector<u8>>,
+        asset_map: Table<TypeInfo, Table<u64, vector<u8>>>,
         paused: bool,
         owner: address,
         bind_proxy_event: Event::EventHandle<BindProxyEvent>,
@@ -95,8 +94,8 @@ module Bridge::zion_lock_proxy {
         assert!(!exists<LockProxyStore>(admin_addr), EALREADY_INIT);
 
         move_to<LockProxyStore>(admin, LockProxyStore {
-            proxy_map: SimpleMap::create<u64, vector<u8>>(),
-            asset_map: SimpleMap::create<TypeInfo, SimpleMap<u64, vector<u8>>>(),
+            proxy_map: Table::new<u64, vector<u8>>(),
+            asset_map: Table::new<TypeInfo, Table<u64, vector<u8>>>(),
             paused: false,
             owner: Signer::address_of(admin),
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(admin),
@@ -121,8 +120,8 @@ module Bridge::zion_lock_proxy {
     // getter function
     public fun getTargetProxy(to_chain_id: u64): vector<u8> acquires LockProxyStore {
         let config_ref = borrow_global<LockProxyStore>(@Bridge);
-        if (SimpleMap::contains_key(&config_ref.proxy_map, &to_chain_id)) {
-            return *SimpleMap::borrow(&config_ref.proxy_map, &to_chain_id)
+        if (Table::contains(&config_ref.proxy_map, copy to_chain_id)) {
+            return *Table::borrow(&config_ref.proxy_map, copy to_chain_id)
         } else {
             abort ETARGET_PROXY_NOT_BIND
         }
@@ -132,10 +131,10 @@ module Bridge::zion_lock_proxy {
         let config_ref = borrow_global<LockProxyStore>(@Bridge);
         let from_asset = TypeInfo::type_of<Token::Token<CoinType>>();
 
-        if (SimpleMap::contains_key(&config_ref.asset_map, &from_asset)) {
-            let sub_table = SimpleMap::borrow(&config_ref.asset_map, &from_asset);
-            if (SimpleMap::contains_key(sub_table, &to_chain_id)) {
-                let decimals_concat_to_asset = SimpleMap::borrow(sub_table, &to_chain_id);
+        if (Table::contains(&config_ref.asset_map, copy from_asset)) {
+            let sub_table = Table::borrow(&config_ref.asset_map, copy from_asset);
+            if (Table::contains(sub_table, copy to_chain_id)) {
+                let decimals_concat_to_asset = Table::borrow(sub_table, copy to_chain_id);
                 let decimals = *Vector::borrow(decimals_concat_to_asset, 0);
                 let to_asset = zion_utils::slice(decimals_concat_to_asset, 1, Vector::length(decimals_concat_to_asset) - 1);
                 return (to_asset, decimals)
@@ -195,7 +194,7 @@ module Bridge::zion_lock_proxy {
     ) acquires LockProxyStore {
         onlyOwner(owner);
         let config_ref = borrow_global_mut<LockProxyStore>(@Bridge);
-        SimpleMapWrapper::upsert(&mut config_ref.proxy_map, to_chain_id, copy target_proxy_hash);
+        Table::upsert(&mut config_ref.proxy_map, to_chain_id, copy target_proxy_hash);
 
         Event::emit_event(
             &mut config_ref.bind_proxy_event,
@@ -209,8 +208,8 @@ module Bridge::zion_lock_proxy {
     public /*entry*/ fun unbindProxy(owner: &signer, to_chain_id: u64) acquires LockProxyStore {
         onlyOwner(owner);
         let config_ref = borrow_global_mut<LockProxyStore>(@Bridge);
-        if (SimpleMap::contains_key(&config_ref.proxy_map, &to_chain_id)) {
-            SimpleMap::remove(&mut config_ref.proxy_map, &to_chain_id);
+        if (Table::contains(&config_ref.proxy_map, copy to_chain_id)) {
+            Table::remove(&mut config_ref.proxy_map, copy to_chain_id);
         } else {
             abort ETARGET_PROXY_NOT_BIND
         };
@@ -235,16 +234,16 @@ module Bridge::zion_lock_proxy {
         let config_ref = borrow_global_mut<LockProxyStore>(@Bridge);
         let decimals_concat_to_asset = Vector::singleton(to_asset_decimals);
         Vector::append(&mut decimals_concat_to_asset, copy to_asset_hash);
-        if (SimpleMap::contains_key(&config_ref.asset_map, &from_asset)) {
-            SimpleMapWrapper::upsert(
-                SimpleMap::borrow_mut(&mut config_ref.asset_map, &from_asset),
+        if (Table::contains(&config_ref.asset_map, copy from_asset)) {
+            Table::upsert(
+                Table::borrow_mut(&mut config_ref.asset_map, copy from_asset),
                 to_chain_id,
                 decimals_concat_to_asset
             );
         } else {
-            let subTable = SimpleMap::create<u64, vector<u8>>();
-            SimpleMap::add(&mut subTable, to_chain_id, decimals_concat_to_asset);
-            SimpleMap::add(&mut config_ref.asset_map, copy from_asset, subTable);
+            let subTable = Table::new<u64, vector<u8>>();
+            Table::add(&mut subTable, to_chain_id, decimals_concat_to_asset);
+            Table::add(&mut config_ref.asset_map, copy from_asset, subTable);
         };
 
         Event::emit_event(
@@ -262,11 +261,11 @@ module Bridge::zion_lock_proxy {
         onlyOwner(owner);
         let from_asset = TypeInfo::type_of<Token::Token<CoinType>>();
         let config_ref = borrow_global_mut<LockProxyStore>(@Bridge);
-        if (SimpleMap::contains_key(&config_ref.asset_map, &from_asset)) {
+        if (Table::contains(&config_ref.asset_map, copy from_asset)) {
             let sub_table =
-                SimpleMap::borrow_mut(&mut config_ref.asset_map, &from_asset);
-            if (SimpleMap::contains_key(sub_table, &to_chain_id)) {
-                SimpleMap::remove(sub_table, &to_chain_id);
+                Table::borrow_mut(&mut config_ref.asset_map, copy from_asset);
+            if (Table::contains(sub_table, copy to_chain_id)) {
+                Table::remove(sub_table, copy to_chain_id);
             } else {
                 abort ETARGET_ASSET_NOT_BIND
             };
@@ -498,8 +497,8 @@ module Bridge::zion_lock_proxy {
         assert!(Signer::address_of(admin) == @Bridge, EINVALID_SIGNER);
 
         move_to<LockProxyStore>(admin, LockProxyStore{
-            proxy_map: SimpleMap::create<u64, vector<u8>>(),
-            asset_map: SimpleMap::create<TypeInfo, SimpleMap<u64, vector<u8>>>(),
+            proxy_map: Table::new<u64, vector<u8>>(),
+            asset_map: Table::new<TypeInfo, Table<u64, vector<u8>>>(),
             paused: false,
             owner: Signer::address_of(admin),
             bind_proxy_event: Event::new_event_handle<BindProxyEvent>(admin),
