@@ -44,6 +44,10 @@ module PolyBridge::UpgradeScript {
         ZionBridge::zion_lock_proxy::deposit<TokenT>(tokens);
     }
 
+    ///
+    /// When this function is called, all its code will be discarded, and the new code refers to the git library:
+    /// https://github.com/Elements-Studio/zion-stc-contracts.git
+    ///
     public entry fun upgrade_v1_to_v2_zion(admin: signer) {
         migrate_treasury<STC>(&admin);
         migrate_treasury<XUSDT>(&admin);
