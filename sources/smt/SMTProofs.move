@@ -47,14 +47,14 @@
 // height
 // Note: @ denotes placeholder hash.
 // ```
-module Bridge::SMTProofs {
+module PolyBridge::SMTProofs {
 
     use StarcoinFramework::Errors;
     use StarcoinFramework::Vector;
     use StarcoinFramework::Debug;
 
-    use Bridge::SMTUtils;
-    use Bridge::SMTreeHasher;
+    use PolyBridge::SMTUtils;
+    use PolyBridge::SMTreeHasher;
 
     const ERROR_KEY_ALREADY_EXISTS_IN_PROOF: u64 = 101;
     const ERROR_COUNT_COMMON_PREFIX: u64 = 102;
@@ -210,18 +210,18 @@ module Bridge::SMTProofs {
 }
 
 #[test_only]
-module Bridge::SMTNonMembershipProofTest {
+module PolyBridge::SMTNonMembershipProofTest {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Debug;
     use StarcoinFramework::BitOperators;
     use StarcoinFramework::Hash;
 
-    use Bridge::Bytes;
-    use Bridge::SMTProofs;
-    use Bridge::SMTProofUtils;
-    use Bridge::SMTUtils;
-    use Bridge::SMTreeHasher;
-    use Bridge::CrossChainSMTProofs;
+    use PolyBridge::Bytes;
+    use PolyBridge::SMTProofs;
+    use PolyBridge::SMTProofUtils;
+    use PolyBridge::SMTUtils;
+    use PolyBridge::SMTreeHasher;
+    use PolyBridge::CrossChainSMTProofs;
 
     const TEST_CHAIN_ID: u64 = 218;
 

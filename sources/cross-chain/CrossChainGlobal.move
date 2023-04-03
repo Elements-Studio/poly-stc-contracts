@@ -1,12 +1,12 @@
-module Bridge::CrossChainGlobal {
+module PolyBridge::CrossChainGlobal {
 
     use StarcoinFramework::Errors;
     use StarcoinFramework::Signer;
-    use Bridge::CrossChainConfig;
+    use PolyBridge::CrossChainConfig;
 
-    friend Bridge::CrossChainManager;
-    friend Bridge::CrossChainData;
-    friend Bridge::LockProxy;
+    friend PolyBridge::CrossChainManager;
+    friend PolyBridge::CrossChainData;
+    friend PolyBridge::LockProxy;
 
     const ERR_INVALID_ACCOUNT: u64 = 101;
     const ERR_TOKEN_TYPE_INVALID: u64 = 102;

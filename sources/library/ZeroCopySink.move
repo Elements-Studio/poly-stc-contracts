@@ -8,8 +8,8 @@
 // the risk of serious bugs and handfule, so it's recommended to use it.
 // Please note that risk can be minimized, yet not eliminated.
 
-module Bridge::ZeroCopySink {
-    use Bridge::Bytes;
+module PolyBridge::ZeroCopySink {
+    use PolyBridge::Bytes;
     use StarcoinFramework::Vector;
     use StarcoinFramework::BCS;
 

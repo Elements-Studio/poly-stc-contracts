@@ -1,15 +1,15 @@
-module Bridge::StarcoinVerifierScripts {
-    use Bridge::StarcoinVerifier;
+module PolyBridge::StarcoinVerifierScripts {
+    use PolyBridge::StarcoinVerifier;
     public entry fun create_merkle(signer: signer, merkle_root: vector<u8>) {
 
         StarcoinVerifier::create(&signer, merkle_root);
     }
 }
 
-module Bridge::StarcoinVerifier {
+module PolyBridge::StarcoinVerifier {
     use StarcoinFramework::Vector;
-    use Bridge::Bit;
-    use Bridge::MerkleProofStructuredHash;
+    use PolyBridge::Bit;
+    use PolyBridge::MerkleProofStructuredHash;
     use StarcoinFramework::Hash;
 
     struct StarcoinMerkle has key {
@@ -59,7 +59,7 @@ module Bridge::StarcoinVerifier {
     }
 }
 
-module Bridge::Bit {
+module PolyBridge::Bit {
     use StarcoinFramework::Vector;
     public fun get_bit(data: &vector<u8>, index: u64): bool {
         let pos = index / 8;
@@ -69,11 +69,11 @@ module Bridge::Bit {
 }
 
 #[test_only]
-module Bridge::StarcoinVerifyTest {
+module PolyBridge::StarcoinVerifyTest {
     use StarcoinFramework::Debug::{Self};
     use StarcoinFramework::Vector;
-    use Bridge::StarcoinVerifier;
-    use Bridge::MerkleProofStructuredHash;
+    use PolyBridge::StarcoinVerifier;
+    use PolyBridge::MerkleProofStructuredHash;
 
     struct StarcoinProof has key, store, drop  {
         state: vector<u8>,

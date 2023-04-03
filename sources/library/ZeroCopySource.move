@@ -8,8 +8,8 @@
 // the risk of serious bugs and handfule, so it's recommended to use it.
 // Please note that risk can be minimized
 
-module Bridge::ZeroCopySource {
-    use Bridge::Bytes;
+module PolyBridge::ZeroCopySource {
+    use PolyBridge::Bytes;
     use StarcoinFramework::Vector;
     use StarcoinFramework::Errors;
 
@@ -211,10 +211,10 @@ module Bridge::ZeroCopySource {
 }
 
 #[test_only]
-module Bridge::ZeroCopyTest {
-    use Bridge::Bytes;
-    use Bridge::ZeroCopySink;
-    use Bridge::ZeroCopySource;
+module PolyBridge::ZeroCopyTest {
+    use PolyBridge::Bytes;
+    use PolyBridge::ZeroCopySink;
+    use PolyBridge::ZeroCopySource;
     use StarcoinFramework::Debug::{Self};
     use StarcoinFramework::Vector;
 

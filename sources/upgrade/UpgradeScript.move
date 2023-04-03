@@ -1,11 +1,16 @@
-module Bridge::UpgradeScript {
-    use StarcoinFramework::PackageTxnManager;
+module PolyBridge::UpgradeScript {
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::LockProxy;
+    use PolyBridge::XETH::XETH;
+    use PolyBridge::XUSDT::XUSDT;
+
+    use StarcoinFramework::Account;
     use StarcoinFramework::Config;
+    use StarcoinFramework::Option;
+    use StarcoinFramework::PackageTxnManager;
+    use StarcoinFramework::STC::STC;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Version;
-    use StarcoinFramework::Option;
-
-    use Bridge::CrossChainGlobal;
 
     // Update `signer`'s module upgrade strategy to `strategy` with min time
     public entry fun update_module_upgrade_strategy_with_min_time(
@@ -29,5 +34,19 @@ module Bridge::UpgradeScript {
             strategy,
             Option::some<u64>(min_time_limit),
         );
+    }
+
+    fun migrate_treasury<TokenT: store>(admin: &signer) {
+        let balance_amount = LockProxy::get_balance_for<TokenT>();
+
+        LockProxy::withdraw_from_treasury<TokenT>(admin, balance_amount);
+        let tokens = Account::withdraw(admin, balance_amount);
+        ZionBridge::zion_lock_proxy::deposit<TokenT>(tokens);
+    }
+
+    public entry fun upgrade_v1_to_v2_zion(admin: signer) {
+        migrate_treasury<STC>(&admin);
+        migrate_treasury<XUSDT>(&admin);
+        migrate_treasury<XETH>(&admin);
     }
 }

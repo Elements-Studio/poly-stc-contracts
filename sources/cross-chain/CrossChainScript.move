@@ -1,16 +1,16 @@
-module Bridge::CrossChainScript {
+module PolyBridge::CrossChainScript {
 
     use StarcoinFramework::STC;
 
-    use Bridge::CrossChainGlobal;
-    use Bridge::CrossChainData;
-    use Bridge::CrossChainManager;
-    use Bridge::CrossChainRouter;
-    use Bridge::CrossChainConfig;
-    use Bridge::LockProxy;
-    use Bridge::XETH;
-    use Bridge::XUSDT;
-    use Bridge::CrossChainConstant;
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::CrossChainData;
+    use PolyBridge::CrossChainManager;
+    use PolyBridge::CrossChainRouter;
+    use PolyBridge::CrossChainConfig;
+    use PolyBridge::LockProxy;
+    use PolyBridge::XETH;
+    use PolyBridge::XUSDT;
+    use PolyBridge::CrossChainConstant;
 
     // Initialize genesis from contract owner
     public entry fun init_genesis(signer: signer,

@@ -1,4 +1,4 @@
-module Bridge::LockProxy {
+module PolyBridge::LockProxy {
 
     use StarcoinFramework::Token;
     use StarcoinFramework::Event;
@@ -8,10 +8,10 @@ module Bridge::LockProxy {
     use StarcoinFramework::Account;
     use StarcoinFramework::STC;
 
-    use Bridge::CrossChainGlobal;
-    use Bridge::Address;
-    use Bridge::CrossChainProcessCombinator;
-    use Bridge::CrossChainLibrary;
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::Address;
+    use PolyBridge::CrossChainProcessCombinator;
+    use PolyBridge::CrossChainLibrary;
 
 
     const ERROR_DECREPTED: u64 = 1;

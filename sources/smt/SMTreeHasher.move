@@ -1,7 +1,7 @@
-module Bridge::SMTreeHasher {
+module PolyBridge::SMTreeHasher {
 
-    use Bridge::SMTHash;
-    use Bridge::SMTUtils;
+    use PolyBridge::SMTHash;
+    use PolyBridge::SMTUtils;
     use StarcoinFramework::Errors;
     use StarcoinFramework::Vector;
 

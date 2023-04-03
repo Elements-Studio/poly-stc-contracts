@@ -1,8 +1,8 @@
-module Bridge::CommonHelper {
+module PolyBridge::CommonHelper {
     use StarcoinFramework::Token;
     use StarcoinFramework::Account;
     use StarcoinFramework::Signer;
-    use Bridge::TokenMock;
+    use PolyBridge::TokenMock;
 
 
     const PRECISION_9: u8 = 9;

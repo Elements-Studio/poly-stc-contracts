@@ -1,4 +1,4 @@
-module Bridge::Address {
+module PolyBridge::Address {
     // use StarcoinFramework::Vector;
     use StarcoinFramework::BCS;
 

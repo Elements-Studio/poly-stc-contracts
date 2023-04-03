@@ -1,9 +1,9 @@
-module Bridge::MerkleProofStructuredHash {
+module PolyBridge::MerkleProofStructuredHash {
     use StarcoinFramework::Hash;
     use StarcoinFramework::Vector;
     use StarcoinFramework::BCS;
 
-    use Bridge::SMTreeHasher;
+    use PolyBridge::SMTreeHasher;
 
     const STARCOIN_HASH_PREFIX: vector<u8> = b"STARCOIN::";
 

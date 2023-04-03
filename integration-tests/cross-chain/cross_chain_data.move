@@ -1,11 +1,11 @@
-//# init -n test --public-keys Bridge=0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
+//# init -n test --public-keys PolyBridge=0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
 
-//# faucet --addr Bridge --amount 10000000000
+//# faucet --addr PolyBridge --amount 10000000000
 
 //# faucet --addr bob --amount 10000000000000000
 
 //# publish
-module Bridge::CrossChainType {
+module PolyBridge::CrossChainType {
     struct TokenA has copy, drop, store {}
 
     struct TokenB has copy, drop, store {}
@@ -19,10 +19,10 @@ module Bridge::CrossChainType {
     struct Bitcoin has key, store {}
 }
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::Vector;
-    use Bridge::CrossChainData;
+    use PolyBridge::CrossChainData;
 
     fun test_initialize_chain_placeholder(signer: signer) {
         CrossChainData::init_genesis(&signer);
@@ -42,10 +42,10 @@ script {
 }
 // check: EXECUTED
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
-    use Bridge::CrossChainGlobal;
-    use Bridge::CrossChainType;
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::CrossChainType;
 
     fun test_cross_chain_id_storage(signer: signer) {
         CrossChainGlobal::set_chain_id<CrossChainType::Starcoin>(&signer, 1);

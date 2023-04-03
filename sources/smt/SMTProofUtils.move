@@ -1,10 +1,10 @@
-module Bridge::SMTProofUtils {
+module PolyBridge::SMTProofUtils {
 
     use StarcoinFramework::Vector;
     use StarcoinFramework::Errors;
-    use Bridge::SMTUtils;
-    use Bridge::SMTreeHasher;
-    use Bridge::SMTHash;
+    use PolyBridge::SMTUtils;
+    use PolyBridge::SMTreeHasher;
+    use PolyBridge::SMTHash;
 
     const ERROR_INVALID_PATH_BYTES_LENGTH: u64 = 101;
     const ERROR_INVALID_PATH_BITS_LENGTH: u64 = 102;

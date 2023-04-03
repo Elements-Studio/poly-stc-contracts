@@ -1,15 +1,15 @@
-module Bridge::CrossChainRouter {
+module PolyBridge::CrossChainRouter {
 
     use StarcoinFramework::STC;
     use StarcoinFramework::Errors;
 
-    use Bridge::XUSDT;
-    use Bridge::XETH;
-    use Bridge::SMTProofUtils;
-    use Bridge::CrossChainManager;
-    use Bridge::CrossChainGlobal;
-    use Bridge::LockProxy;
-    use Bridge::CrossChainProcessCombinator;
+    use PolyBridge::XUSDT;
+    use PolyBridge::XETH;
+    use PolyBridge::SMTProofUtils;
+    use PolyBridge::CrossChainManager;
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::LockProxy;
+    use PolyBridge::CrossChainProcessCombinator;
 
     const ERROR_DECREPTED: u64 = 1;
 

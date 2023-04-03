@@ -1,4 +1,4 @@
-module Bridge::SMTHash {
+module PolyBridge::SMTHash {
     use StarcoinFramework::Hash;
     const SIZE_ZERO_BYTES: vector<u8> = x"0000000000000000000000000000000000000000000000000000000000000000";
 

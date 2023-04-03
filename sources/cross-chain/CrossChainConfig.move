@@ -1,4 +1,4 @@
-module Bridge::CrossChainConfig {
+module PolyBridge::CrossChainConfig {
     use StarcoinFramework::Config;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Errors;
@@ -89,7 +89,7 @@ module Bridge::CrossChainConfig {
     }
 
     public fun genesis_account(): address {
-        @Bridge
+        @PolyBridge
     }
 
     public fun assert_genesis(account: address) {

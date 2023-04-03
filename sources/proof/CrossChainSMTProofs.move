@@ -1,8 +1,8 @@
-module Bridge::CrossChainSMTProofs {
+module PolyBridge::CrossChainSMTProofs {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Hash;
-    use Bridge::SMTUtils;
-    use Bridge::ZeroCopySink;
+    use PolyBridge::SMTUtils;
+    use PolyBridge::ZeroCopySink;
 
 
     const LEAF_DEFAULT_VALUE_HASH: vector<u8> = x"2767f15c8af2f2c7225d5273fdd683edc714110a987d1054697c348aed4e6cc7";

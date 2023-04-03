@@ -1,4 +1,4 @@
-module Bridge::SafeMath {
+module PolyBridge::SafeMath {
     use StarcoinFramework::Math;
     use StarcoinFramework::Errors;
     use StarcoinFramework::U256::{Self, U256};

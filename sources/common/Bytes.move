@@ -1,4 +1,4 @@
-module Bridge::Bytes {
+module PolyBridge::Bytes {
     use StarcoinFramework::Vector;
     use StarcoinFramework::BitOperators;
 
@@ -133,7 +133,7 @@ module Bridge::Bytes {
 }
 
 #[test_only]
-module Bridge::BCSTest {
+module PolyBridge::BCSTest {
     //use StarcoinFramework::Vector;
     use StarcoinFramework::Debug;
     //use StarcoinFramework::BitOperators;
@@ -141,7 +141,7 @@ module Bridge::BCSTest {
     use StarcoinFramework::BCS;
     use StarcoinFramework::STC;
     use StarcoinFramework::Token;
-    //use Bridge::LockProxy;
+    //use PolyBridge::LockProxy;
 
     struct CrossChainFeeLockEvent has store, drop {
         from_asset: Token::TokenCode,
@@ -157,7 +157,7 @@ module Bridge::BCSTest {
     public fun test_bcs_serialize() {
         let cc_fee_event = CrossChainFeeLockEvent{
             from_asset: Token::token_code<STC::STC>(),
-            sender: @Bridge,//Signer::address_of(signer),
+            sender: @PolyBridge,//Signer::address_of(signer),
             to_chain_id: 11,
             to_address: x"18351d311d32201149a4df2a9fc2db8a",//*to_address,
             net: 111,
@@ -170,8 +170,8 @@ module Bridge::BCSTest {
 }
 
 #[test_only]
-module Bridge::BytesTest {
-    use Bridge::Bytes;
+module PolyBridge::BytesTest {
+    use PolyBridge::Bytes;
     use StarcoinFramework::Debug::{Self};
     use StarcoinFramework::Vector;
     use StarcoinFramework::BCS;

@@ -1,4 +1,4 @@
-module Bridge::SMTUtils {
+module PolyBridge::SMTUtils {
     use StarcoinFramework::BitOperators;
     use StarcoinFramework::Vector;
     use StarcoinFramework::Errors;

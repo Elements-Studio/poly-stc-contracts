@@ -1,10 +1,10 @@
-module Bridge::CrossChainProcessCombinator {
+module PolyBridge::CrossChainProcessCombinator {
 
     use StarcoinFramework::Errors;
 
-    use Bridge::CrossChainSMTProofs;
-    use Bridge::CrossChainData;
-    use Bridge::CrossChainLibrary;
+    use PolyBridge::CrossChainSMTProofs;
+    use PolyBridge::CrossChainData;
+    use PolyBridge::CrossChainLibrary;
 
     struct LockToChainParamPack has drop {
         to_chain_id: u64,
@@ -31,9 +31,9 @@ module Bridge::CrossChainProcessCombinator {
 
     const ERR_TRANSACTION_EXECUTE_REPEATE: u64 = 101;
 
-    friend Bridge::CrossChainRouter;
-    friend Bridge::CrossChainManager;
-    friend Bridge::LockProxy;
+    friend PolyBridge::CrossChainRouter;
+    friend PolyBridge::CrossChainManager;
+    friend PolyBridge::LockProxy;
 
 
     public(friend) fun lock_to_chain_parameters(to_chain_id: u64,

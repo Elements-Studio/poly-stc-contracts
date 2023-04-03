@@ -1,7 +1,7 @@
-module Bridge::CrossChainLibrary {
-    use Bridge::Bytes;
-    use Bridge::ZeroCopySink;
-    use Bridge::ZeroCopySource;
+module PolyBridge::CrossChainLibrary {
+    use PolyBridge::Bytes;
+    use PolyBridge::ZeroCopySink;
+    use PolyBridge::ZeroCopySource;
 
     use StarcoinFramework::Vector;
     use StarcoinFramework::Hash;
@@ -420,12 +420,12 @@ module Bridge::CrossChainLibrary {
 }
 
 #[test_only]
-module Bridge::CrossChainLibraryTest {
-    use Bridge::CrossChainLibrary;
-    use Bridge::ZeroCopySource;
+module PolyBridge::CrossChainLibraryTest {
+    use PolyBridge::CrossChainLibrary;
+    use PolyBridge::ZeroCopySource;
     use StarcoinFramework::Debug::{Self};
     use StarcoinFramework::Vector;
-    use Bridge::CrossChainLibrary::address_to_hex_string;
+    use PolyBridge::CrossChainLibrary::address_to_hex_string;
 
     const POLYCHAIN_PUBKEY_LEN: u64 = 67;
     const POLYCHAIN_SIGNATURE_LEN: u64 = 65;

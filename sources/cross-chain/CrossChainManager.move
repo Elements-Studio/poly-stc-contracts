@@ -1,4 +1,4 @@
-module Bridge::CrossChainManager {
+module PolyBridge::CrossChainManager {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Event;
     use StarcoinFramework::Errors;
@@ -6,14 +6,14 @@ module Bridge::CrossChainManager {
     use StarcoinFramework::BCS;
     use StarcoinFramework::Hash;
 
-    use Bridge::Address;
-    use Bridge::CrossChainData;
-    use Bridge::CrossChainLibrary;
-    use Bridge::CrossChainGlobal;
-    use Bridge::ZeroCopySink;
-    use Bridge::Bytes;
-    use Bridge::CrossChainProcessCombinator;
-    use Bridge::CrossChainConstant;
+    use PolyBridge::Address;
+    use PolyBridge::CrossChainData;
+    use PolyBridge::CrossChainLibrary;
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::ZeroCopySink;
+    use PolyBridge::Bytes;
+    use PolyBridge::CrossChainProcessCombinator;
+    use PolyBridge::CrossChainConstant;
 
     const ERR_DECREPTED: u64 = 1;
 
@@ -493,9 +493,9 @@ module Bridge::CrossChainManager {
 }
 
 #[test_only]
-module Bridge::CrossChainManagerTest {
+module PolyBridge::CrossChainManagerTest {
     use StarcoinFramework::Debug;
-    use Bridge::CrossChainLibrary;
+    use PolyBridge::CrossChainLibrary;
 
     #[test]
     fun testParseUnlockParams1() {

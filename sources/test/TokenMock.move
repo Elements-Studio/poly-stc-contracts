@@ -1,5 +1,5 @@
 // token holder address, not admin address
-module Bridge::TokenMock {
+module PolyBridge::TokenMock {
     use StarcoinFramework::Token;
     use StarcoinFramework::Account;
 

@@ -1,11 +1,11 @@
-//# init -n test --public-keys Bridge=0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
+//# init -n test --public-keys PolyBridge=0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
 
-//# faucet --addr Bridge --amount 10000000000
+//# faucet --addr PolyBridge --amount 10000000000
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::Vector;
-    use Bridge::SMTProofs;
+    use PolyBridge::SMTProofs;
 
     fun test_root_hash_check() {
         let root_hash = x"da3c17cfd8be129f09b61272f8afcf42bf5b77cf7e405f5aa20c30684a205488";
@@ -17,10 +17,10 @@ script {
 // check: EXECUTED
 
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::Vector;
-    use Bridge::SMTProofs;
+    use PolyBridge::SMTProofs;
 
     fun test_root_hash_check() {
         let element_key = x"b736de0143487e6d2f87a525edb9ef795a9db5be7b031979726a197af1e4c239";
@@ -34,13 +34,13 @@ script {
 }
 // check: EXECUTED
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Debug;
 
-    use Bridge::SMTProofs;
-    use Bridge::CrossChainSMTProofs;
+    use PolyBridge::SMTProofs;
+    use PolyBridge::CrossChainSMTProofs;
 
 
     fun test_root_update_leaf_check() {
@@ -62,13 +62,13 @@ script {
 }
 // check: EXECUTED
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::Vector;
     use StarcoinFramework::Debug;
 
-    use Bridge::SMTProofs;
-    use Bridge::CrossChainSMTProofs;
+    use PolyBridge::SMTProofs;
+    use PolyBridge::CrossChainSMTProofs;
 
     // index=5 txn="Test key 4",
     fun test_root_update_leaf_check() {

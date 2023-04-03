@@ -1,6 +1,6 @@
-module Bridge::CrossChainConstant {
+module PolyBridge::CrossChainConstant {
 
-    use Bridge::CrossChainLibrary;
+    use PolyBridge::CrossChainLibrary;
     use StarcoinFramework::Vector;
 
     const DEFAULT_CHAINID_STARCOIN: u64 = 31;
@@ -14,7 +14,7 @@ module Bridge::CrossChainConstant {
 
     public fun get_proxy_hash_starcoin(): vector<u8> {
         let ret = Vector::empty<u8>();
-        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@Bridge));
+        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@PolyBridge));
         Vector::append(&mut ret, PROXY_HASH_STARCOIN);
         ret
     }
@@ -25,14 +25,14 @@ module Bridge::CrossChainConstant {
 
     public fun get_asset_hash_xeth(): vector<u8> {
         let ret = Vector::empty<u8>();
-        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@Bridge));
+        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@PolyBridge));
         Vector::append(&mut ret, ASSET_HASH_XETH);
         ret
     }
 
     public fun get_asset_hash_xusdt(): vector<u8> {
         let ret = Vector::empty<u8>();
-        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@Bridge));
+        Vector::append(&mut ret, CrossChainLibrary::address_to_hex_string(@PolyBridge));
         Vector::append(&mut ret, ASSET_HASH_XUSDT);
         ret
     }

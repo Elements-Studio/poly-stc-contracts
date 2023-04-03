@@ -1,12 +1,12 @@
-//# init -n test --public-keys Bridge=0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
+//# init -n test --public-keys PolyBridge=0x8085e172ecf785692da465ba3339da46c4b43640c3f92a45db803690cc3c4a36
 
-//# faucet --addr Bridge --amount 10000000000
+//# faucet --addr PolyBridge --amount 10000000000
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::Math;
     use StarcoinFramework::Debug;
-    use Bridge::SafeMath;
+    use PolyBridge::SafeMath;
 
     // case : x*y/z overflow
     fun math_overflow(_: signer) {
@@ -27,7 +27,7 @@ script {
 // check: EXECUTED
 
 
-//# run --signers Bridge
+//# run --signers PolyBridge
 script {
     use StarcoinFramework::BCS;
     use StarcoinFramework::Debug;

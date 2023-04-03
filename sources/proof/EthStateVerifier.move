@@ -1,6 +1,6 @@
-module Bridge::RLP {
+module PolyBridge::RLP {
     use StarcoinFramework::Vector;
-    use Bridge::Bytes;
+    use PolyBridge::Bytes;
     const INVALID_RLP_DATA: u64 = 100;
     const DATA_TOO_SHORT: u64 = 101;
 
@@ -69,11 +69,11 @@ module Bridge::RLP {
     }
 
 }
-module Bridge::EthStateVerifier {
-    use Bridge::RLP;
+module PolyBridge::EthStateVerifier {
+    use PolyBridge::RLP;
     use StarcoinFramework::Vector;
     use StarcoinFramework::Hash;
-    use Bridge::Bytes;
+    use PolyBridge::Bytes;
 
     const INVALID_PROOF: u64 = 400;
 
@@ -197,11 +197,11 @@ module Bridge::EthStateVerifier {
 }
 
 #[test_only]
-module Bridge::ProofVerifyTest {
+module PolyBridge::ProofVerifyTest {
     use StarcoinFramework::Vector;
     #[test_only]use StarcoinFramework::Debug;
-    use Bridge::Bytes;
-    #[test_only]use Bridge::EthStateVerifier;
+    use PolyBridge::Bytes;
+    #[test_only]use PolyBridge::EthStateVerifier;
     
     struct EthAccount has key, store, drop  {
         state_root: vector<u8>,

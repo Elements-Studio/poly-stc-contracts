@@ -1,17 +1,17 @@
-module Bridge::CrossChainData {
+module PolyBridge::CrossChainData {
 
-    use Bridge::CrossChainGlobal;
-    use Bridge::CrossChainSMTProofs;
-    use Bridge::SMTProofs;
-    use Bridge::SMTUtils;
-    use Bridge::SMTreeHasher;
+    use PolyBridge::CrossChainGlobal;
+    use PolyBridge::CrossChainSMTProofs;
+    use PolyBridge::SMTProofs;
+    use PolyBridge::SMTUtils;
+    use PolyBridge::SMTreeHasher;
 
     use StarcoinFramework::Errors;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Vector;
 
-    friend Bridge::CrossChainManager;
-    friend Bridge::CrossChainProcessCombinator;
+    friend PolyBridge::CrossChainManager;
+    friend PolyBridge::CrossChainProcessCombinator;
 
     const LEAF_DATA_VALUE_HASH_START_INDEX: u64 = 33;
     const LEAF_DATA_LEN: u64 = 65;

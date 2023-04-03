@@ -1,10 +1,12 @@
 [package]
 name = "Poly-STC-Bridge"
-version = "1.0.12"
+version = "2.0.1"
 
 [addresses]
 StarcoinFramework = "0x1"
-Bridge = "0xe52552637c5897a2d499fbf08216f73e"
+PolyBridge = "0xe52552637c5897a2d499fbf08216f73e"
 
 [dependencies]
 StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin-framework.git", rev = "c101e26a45401671ae04b5571387661f0fc3656f" }
+Poly-STC-Assets = { git = "https://github.com/Elements-Studio/poly-stc-assets.git", rev = "e2fc2eb61e939d77381e41a3ef9cb6c23b9c55a6" }
+Zion-STC-Contracts = { git = "https://github.com/Elements-Studio/zion-stc-contracts.git", rev = "f99568aee1b0c371440655a0be0eb819a2519f52" }
