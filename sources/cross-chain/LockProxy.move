@@ -12,6 +12,9 @@ module PolyBridge::LockProxy {
     use PolyBridge::Address;
     use PolyBridge::CrossChainProcessCombinator;
     use PolyBridge::CrossChainLibrary;
+    use PolyBridge::CrossChainGlobal::require_admin_account;
+
+    friend PolyBridge::UpgradeScript;
 
 
     const ERROR_DECREPTED: u64 = 1;
@@ -163,16 +166,27 @@ module PolyBridge::LockProxy {
         }
     }
 
-    public fun withdraw_from_treasury<TokenT: store>(signer: &signer, amount: u128) acquires LockTreasury {
-        // /////////////////////////////
-        let genesis_account = CrossChainGlobal::genesis_account();
-        assert!(genesis_account != Signer::address_of(signer), ERROR_ONLY_FOR_INIT_BUG_FIX);
-        // /////////////////////////////
-        let account = Signer::address_of(signer);
-        assert!(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
-        let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
-        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-        Account::deposit<TokenT>(account, deposit_token);
+    public fun withdraw_from_treasury<TokenT: store>(_signer: &signer, _amount: u128) {
+        abort ERROR_DECREPTED
+        // // /////////////////////////////
+        // let genesis_account = CrossChainGlobal::genesis_account();
+        // assert!(genesis_account != Signer::address_of(signer), ERROR_ONLY_FOR_INIT_BUG_FIX);
+        // // /////////////////////////////
+        // let account = Signer::address_of(signer);
+        // assert!(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
+        // let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
+        // let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
+        // Account::deposit<TokenT>(account, deposit_token);
+    }
+
+    public(friend) fun withdraw_all_treasury<TokenT: store>(
+        admin: &signer
+    ): Token::Token<TokenT> acquires LockTreasury {
+        let admin_account = Signer::address_of(admin);
+        require_admin_account(Signer::address_of(admin));
+        let token_store = borrow_global_mut<LockTreasury<TokenT>>(admin_account);
+        let amount = Token::value<TokenT>(&token_store.token);
+        Token::withdraw<TokenT>(&mut token_store.token, amount)
     }
 
     // Initialize proxy hash resource for `ChainType`
@@ -331,7 +345,10 @@ module PolyBridge::LockProxy {
             amount);
 
         let proxy_hash_map = borrow_global_mut<ProxyHashMap<ChainType>>(genesis_account);
-        assert!(Vector::length(&proxy_hash_map.to_proxy_hash) > 0, Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH));
+        assert!(
+            Vector::length(&proxy_hash_map.to_proxy_hash) > 0,
+            Errors::invalid_argument(ERROR_LOCK_EMPTY_ILLEGAL_TOPROXY_HASH)
+        );
 
         (
             // *&proxy_hash_map.to_proxy_hash,
@@ -423,8 +440,10 @@ module PolyBridge::LockProxy {
     *  @param fromContractAddr  The source chain contract address
     *  @param fromChainId       The source chain id
     */
-    public fun unlock_with_pack<TokenT: store, ChainType: store>(pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
-                                                                 cer: CrossChainProcessCombinator::MerkleProofCertificate):
+    public fun unlock_with_pack<TokenT: store, ChainType: store>(
+        pack: CrossChainProcessCombinator::HeaderVerifyedParamPack,
+        cer: CrossChainProcessCombinator::MerkleProofCertificate
+    ):
     UnlockEvent acquires ProxyHashMap, LockTreasury {
         CrossChainGlobal::require_not_freezing();
 
@@ -502,7 +521,10 @@ module PolyBridge::LockProxy {
     }
 
     // Emit an proxy hash event with `BindAssetEvent` object
-    fun inner_emit_asset_hash_event<TokenT: store>(to_chain_id: u64, target_proxy_hash: &vector<u8>) acquires LockEventStore, LockTreasury {
+    fun inner_emit_asset_hash_event<TokenT: store>(
+        to_chain_id: u64,
+        target_proxy_hash: &vector<u8>
+    ) acquires LockEventStore, LockTreasury {
         let event_store = borrow_global_mut<LockEventStore>(CrossChainGlobal::genesis_account());
         Event::emit_event(
             &mut event_store.bind_asset_event,
@@ -525,5 +547,4 @@ module PolyBridge::LockProxy {
             Token::value<TokenT>(&lock_token.token)
         }
     }
-
 }

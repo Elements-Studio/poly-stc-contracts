@@ -1,10 +1,10 @@
 module PolyBridge::UpgradeScript {
+    use ZionBridge::zion_lock_proxy;
+
     use PolyBridge::CrossChainGlobal;
     use PolyBridge::LockProxy;
     use PolyBridge::XETH::XETH;
     use PolyBridge::XUSDT::XUSDT;
-
-    use StarcoinFramework::Account;
     use StarcoinFramework::Config;
     use StarcoinFramework::Option;
     use StarcoinFramework::PackageTxnManager;
@@ -37,11 +37,7 @@ module PolyBridge::UpgradeScript {
     }
 
     fun migrate_treasury<TokenT: store>(admin: &signer) {
-        let balance_amount = LockProxy::get_balance_for<TokenT>();
-
-        LockProxy::withdraw_from_treasury<TokenT>(admin, balance_amount);
-        let tokens = Account::withdraw(admin, balance_amount);
-        ZionBridge::zion_lock_proxy::deposit<TokenT>(tokens);
+        zion_lock_proxy::deposit(LockProxy::withdraw_all_treasury<TokenT>(admin));
     }
 
     ///
