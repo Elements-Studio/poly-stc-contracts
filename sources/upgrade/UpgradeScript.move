@@ -8,7 +8,7 @@ module Bridge::UpgradeScript {
     use Bridge::CrossChainGlobal;
 
     // Update `signer`'s module upgrade strategy to `strategy` with min time
-    public(script) fun update_module_upgrade_strategy_with_min_time(
+    public entry fun update_module_upgrade_strategy_with_min_time(
         signer: signer,
         strategy: u8,
         min_time_limit: u64,

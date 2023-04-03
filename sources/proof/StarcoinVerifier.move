@@ -1,6 +1,6 @@
 module Bridge::StarcoinVerifierScripts {
     use Bridge::StarcoinVerifier;
-    public(script) fun create_merkle(signer: signer, merkle_root: vector<u8>) {
+    public entry fun create_merkle(signer: signer, merkle_root: vector<u8>) {
 
         StarcoinVerifier::create(&signer, merkle_root);
     }

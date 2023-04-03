@@ -32,18 +32,18 @@ module Bridge::XUSDTScripts {
     use Bridge::XUSDT;
     use Bridge::LockProxy;
 
-    public(script) fun init(account: signer) {
+    public entry fun init(account: signer) {
         XUSDT::init(&account);
     }
 
     /// Only called with someone who have mint capability
-    public(script) fun mint(account: signer, amount: u128) {
+    public entry fun mint(account: signer, amount: u128) {
         XUSDT::mint(&account, amount);
         LockProxy::move_to_treasury<XUSDT::XUSDT>(&account, amount);
     }
 
     /// Only called with someone who have burn capability
-    public(script) fun burn(account: signer, amount: u128) {
+    public entry fun burn(account: signer, amount: u128) {
         XUSDT::burn(&account, amount);
     }
 }
