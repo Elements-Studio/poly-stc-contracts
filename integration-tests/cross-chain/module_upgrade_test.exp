@@ -1,0 +1,25 @@
+processed 7 tasks
+
+task 3 'run'. lines 8-45:
+{
+  "gas_used": 22207849,
+  "status": "Executed"
+}
+
+task 4 'run'. lines 46-70:
+{
+  "gas_used": 609455,
+  "status": "Executed"
+}
+
+task 5 'run'. lines 72-82:
+{
+  "gas_used": 3337951,
+  "status": "Executed"
+}
+
+task 6 'run'. lines 85-103:
+{
+  "gas_used": 205930,
+  "status": "Executed"
+}
