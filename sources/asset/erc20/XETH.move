@@ -29,18 +29,18 @@ module Bridge::XETHScripts {
     use Bridge::XETH;
     use Bridge::LockProxy;
 
-    public(script) fun init(account: signer) {
+    public entry fun init(account: signer) {
         XETH::init(&account);
     }
 
     /// Only called with someone who have burn capability
-    public(script) fun mint(account: signer, amount: u128) {
+    public entry fun mint(account: signer, amount: u128) {
         XETH::mint(&account, amount);
         LockProxy::move_to_treasury<XETH::XETH>(&account, amount);
     }
 
     /// Only called with someone who have burn capability
-    public(script) fun burn(account: signer, amount: u128) {
+    public entry fun burn(account: signer, amount: u128) {
         XETH::burn(&account, amount);
     }
 }
