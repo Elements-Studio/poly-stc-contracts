@@ -1,6 +1,6 @@
 module Bridge::CrossChainConfig {
     use StarcoinFramework::on_chain_config as Config;
-    use StarcoinFramework::Signer;
+    use StarcoinFramework::signer as Signer;
     use MoveStdlib::error as Errors;
 
     const ERR_NOT_GENESIS_ACCOUNT: u64 = 101;

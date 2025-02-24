@@ -2,7 +2,7 @@ module Bridge::CrossChainManager {
     use MoveStdlib::vector as Vector;
     use StarcoinFramework::Event;
     use MoveStdlib::error as Errors;
-    use StarcoinFramework::Signer;
+    use StarcoinFramework::signer as Signer;
     use Bridge::BCS;
     use StarcoinFramework::Hash;
 

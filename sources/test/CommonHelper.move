@@ -1,7 +1,7 @@
 module Bridge::CommonHelper {
     use StarcoinFramework::Token;
     use StarcoinFramework::Account;
-    use StarcoinFramework::Signer;
+    use StarcoinFramework::signer as Signer;
     use Bridge::TokenMock;
 
 

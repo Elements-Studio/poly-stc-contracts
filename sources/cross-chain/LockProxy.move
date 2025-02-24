@@ -2,7 +2,7 @@ module Bridge::LockProxy {
 
     use StarcoinFramework::Token;
     use StarcoinFramework::Event;
-    use StarcoinFramework::Signer;
+    use StarcoinFramework::signer as Signer;
     use MoveStdlib::vector as Vector;
     use MoveStdlib::error as Errors;
     use StarcoinFramework::Account;
