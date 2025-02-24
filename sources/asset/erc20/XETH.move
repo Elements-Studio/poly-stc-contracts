@@ -1,7 +1,7 @@
 
 module Bridge::XETH {
-    use StarcoinFramework::Token;
-    use StarcoinFramework::Account;
+    use StarcoinFramework::coin;
+    use MoveStdlib::string;
 
     // XETH token marker.
     struct XETH has copy, drop, store {}
@@ -11,11 +11,12 @@ module Bridge::XETH {
 
     // XETH initialization.
     public fun init(account: &signer) {
-        Token::register_token<XETH>(account, PRECISION);
-        Account::do_accept_token<XETH>(account);
+        coin::initialize<XETH>(account, string::utf8(b"XETH"), string::utf8(b"XETH"), PRECISION);
+        coin::register<XETH>(account);
     }
 
     public fun mint(account: &signer, amount: u128) {
+        coin::mint(account, amount);
         let token = Token::mint<XETH>(account, amount);
         Account::deposit_to_self<XETH>(account, token);
     }

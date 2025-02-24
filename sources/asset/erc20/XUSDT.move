@@ -1,7 +1,8 @@
 
 module Bridge::XUSDT {
-    use StarcoinFramework::Token;
-    use StarcoinFramework::Account;
+    use std::signer;
+    use StarcoinFramework::coin;
+    use StarcoinFramework::managed_coin;
 
     // XUSDT token marker.
     struct XUSDT has copy, drop, store {}
@@ -14,17 +15,16 @@ module Bridge::XUSDT {
 
     // XUSDT initialization.
     public fun init(account: &signer) {
-        Token::register_token<XUSDT>(account, PRECISION);
-        Account::do_accept_token<XUSDT>(account);
+        managed_coin::initialize<XUSDT>(account, b"XUSDT", b"XUSDT", PRECISION, true);
+        coin::register<XUSDT>(account);
     }
 
     public fun mint(account: &signer, amount: u128) {
-        let token = Token::mint<XUSDT>(account, amount);
-        Account::deposit_to_self<XUSDT>(account, token)
+        managed_coin::mint<XUSDT>(account, signer::address_of(account), amount as u64);
     }
 
     public fun burn(account: &signer, amount: u128) {
-        Token::burn(account, Account::withdraw<XUSDT>(account, amount));
+        managed_coin::burn<XUSDT>(account, amount as u64);
     }
 }
 

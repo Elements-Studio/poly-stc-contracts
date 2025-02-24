@@ -1,11 +1,10 @@
 // token holder address, not admin address
 module Bridge::TokenMock {
-    use StarcoinFramework::Token;
-    use StarcoinFramework::Account;
+    use StarcoinFramework::coin;
 
     struct TokenSharedCapability<phantom TokenType> has key, store {
-        mint: Token::MintCapability<TokenType>,
-        burn: Token::BurnCapability<TokenType>,
+        mint: coin::MintCapability<TokenType>,
+        burn: coin::BurnCapability<TokenType>,
     }
 
     // mock ETH token
