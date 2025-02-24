@@ -11,7 +11,7 @@
 module Bridge::ZeroCopySource {
     use Bridge::Bytes;
     use MoveStdlib::vector as Vector;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
 
     const HEX_0XFD:vector<u8> = x"FD";
     const HEX_0XFFFF:vector<u8> = x"FFFF";

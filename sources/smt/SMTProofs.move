@@ -49,7 +49,7 @@
 // ```
 module Bridge::SMTProofs {
 
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
     use MoveStdlib::vector as Vector;
     use StarcoinFramework::Debug;
 

@@ -1,7 +1,7 @@
 module Bridge::CrossChainRouter {
 
     use StarcoinFramework::STC;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
 
     use Bridge::XUSDT;
     use Bridge::XETH;

@@ -1,6 +1,6 @@
 module Bridge::CrossChainGlobal {
 
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
     use StarcoinFramework::Signer;
     use Bridge::CrossChainConfig;
 

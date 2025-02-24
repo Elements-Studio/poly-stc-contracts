@@ -1,6 +1,6 @@
 module Bridge::SafeMath {
     use StarcoinFramework::Math;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
     use StarcoinFramework::U256::{Self, U256};
 
     const EXP_SCALE_9: u128 = 1000000000;// e9

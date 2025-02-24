@@ -5,7 +5,7 @@ module Bridge::CrossChainLibrary {
 
     use MoveStdlib::vector as Vector;
     use StarcoinFramework::Hash;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
     use StarcoinFramework::Signature;
     use StarcoinFramework::Option::{Self, Option};
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};

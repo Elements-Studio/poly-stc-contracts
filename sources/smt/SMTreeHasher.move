@@ -2,7 +2,7 @@ module Bridge::SMTreeHasher {
 
     use Bridge::SMTHash;
     use Bridge::SMTUtils;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
     use MoveStdlib::vector as Vector;
 
     // sparse merkle tree leaf(node) prefix.

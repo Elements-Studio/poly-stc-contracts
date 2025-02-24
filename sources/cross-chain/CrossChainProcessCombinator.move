@@ -1,6 +1,6 @@
 module Bridge::CrossChainProcessCombinator {
 
-    use StarcoinFramework::Errors;
+    use MoveStdlib::error as Errors;
 
     use Bridge::CrossChainSMTProofs;
     use Bridge::CrossChainData;
