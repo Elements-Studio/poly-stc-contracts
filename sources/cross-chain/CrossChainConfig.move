@@ -1,5 +1,5 @@
 module Bridge::CrossChainConfig {
-    use StarcoinFramework::Config;
+    use StarcoinFramework::on_chain_config as Config;
     use StarcoinFramework::Signer;
     use MoveStdlib::error as Errors;
 

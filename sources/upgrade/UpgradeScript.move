@@ -1,6 +1,6 @@
 module Bridge::UpgradeScript {
     use StarcoinFramework::PackageTxnManager;
-    use StarcoinFramework::Config;
+    use StarcoinFramework::on_chain_config as Config;
     use StarcoinFramework::Signer;
     use StarcoinFramework::Version;
     use StarcoinFramework::Option;
