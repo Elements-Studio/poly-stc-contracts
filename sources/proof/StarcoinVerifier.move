@@ -7,7 +7,7 @@ module Bridge::StarcoinVerifierScripts {
 }
 
 module Bridge::StarcoinVerifier {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::Bit;
     use Bridge::MerkleProofStructuredHash;
     use StarcoinFramework::Hash;
@@ -60,7 +60,7 @@ module Bridge::StarcoinVerifier {
 }
 
 module Bridge::Bit {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     public fun get_bit(data: &vector<u8>, index: u64): bool {
         let pos = index / 8;
         let bit = (7 - index % 8);
@@ -71,7 +71,7 @@ module Bridge::Bit {
 #[test_only]
 module Bridge::StarcoinVerifyTest {
     use StarcoinFramework::Debug::{Self};
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::StarcoinVerifier;
     use Bridge::MerkleProofStructuredHash;
 

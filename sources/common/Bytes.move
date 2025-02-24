@@ -1,5 +1,5 @@
 module Bridge::Bytes {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::BitOperators;
 
     // left shift n bits.
@@ -134,7 +134,7 @@ module Bridge::Bytes {
 
 #[test_only]
 module Bridge::BCSTest {
-    //use StarcoinFramework::Vector;
+    //use MoveStdlib::vector as Vector;
     use StarcoinFramework::Debug;
     //use StarcoinFramework::BitOperators;
     //use StarcoinFramework::Hash;
@@ -173,7 +173,7 @@ module Bridge::BCSTest {
 module Bridge::BytesTest {
     use Bridge::Bytes;
     use StarcoinFramework::Debug::{Self};
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::BCS;
 
     public fun slice(data: &vector<u8>, start: u64, end: u64): vector<u8> {

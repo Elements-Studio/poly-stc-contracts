@@ -1,7 +1,7 @@
 module Bridge::CrossChainConstant {
 
     use Bridge::CrossChainLibrary;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
 
     const DEFAULT_CHAINID_STARCOIN: u64 = 31;
     const DEFAULT_CHAINID_ETHEREUM: u64 = 2;

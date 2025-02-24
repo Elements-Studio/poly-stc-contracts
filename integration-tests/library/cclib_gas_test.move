@@ -5,7 +5,7 @@
 //# run --signers Bridge
 script {
     use StarcoinFramework::Debug;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::CrossChainLibrary;
 
     fun test_verify_sig(_: signer) {
@@ -41,7 +41,7 @@ script {
 //# run --signers Bridge
 script {
     use StarcoinFramework::Debug;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::CrossChainLibrary;
 
     fun test_get_book_keeper() {

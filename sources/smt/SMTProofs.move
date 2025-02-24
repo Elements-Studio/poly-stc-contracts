@@ -50,7 +50,7 @@
 module Bridge::SMTProofs {
 
     use StarcoinFramework::Errors;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Debug;
 
     use Bridge::SMTUtils;
@@ -211,7 +211,7 @@ module Bridge::SMTProofs {
 
 #[test_only]
 module Bridge::SMTNonMembershipProofTest {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Debug;
     use StarcoinFramework::BitOperators;
     use StarcoinFramework::Hash;

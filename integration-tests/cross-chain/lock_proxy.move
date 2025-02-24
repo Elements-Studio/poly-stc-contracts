@@ -74,7 +74,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
 
     use Bridge::CrossChainRouter;
 

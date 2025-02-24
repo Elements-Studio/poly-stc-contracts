@@ -3,7 +3,7 @@ module Bridge::CrossChainLibrary {
     use Bridge::ZeroCopySink;
     use Bridge::ZeroCopySource;
 
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Hash;
     use StarcoinFramework::Errors;
     use StarcoinFramework::Signature;
@@ -424,7 +424,7 @@ module Bridge::CrossChainLibraryTest {
     use Bridge::CrossChainLibrary;
     use Bridge::ZeroCopySource;
     use StarcoinFramework::Debug::{Self};
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::CrossChainLibrary::address_to_hex_string;
 
     const POLYCHAIN_PUBKEY_LEN: u64 = 67;

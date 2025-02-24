@@ -1,6 +1,6 @@
 module Bridge::SMTUtils {
     use StarcoinFramework::BitOperators;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Errors;
 
     const ERROR_VECTORS_NOT_SAME_LENGTH: u64 = 103;

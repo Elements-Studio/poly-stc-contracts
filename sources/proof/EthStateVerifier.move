@@ -1,5 +1,5 @@
 module Bridge::RLP {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::Bytes;
     const INVALID_RLP_DATA: u64 = 100;
     const DATA_TOO_SHORT: u64 = 101;
@@ -71,7 +71,7 @@ module Bridge::RLP {
 }
 module Bridge::EthStateVerifier {
     use Bridge::RLP;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Hash;
     use Bridge::Bytes;
 
@@ -198,7 +198,7 @@ module Bridge::EthStateVerifier {
 
 #[test_only]
 module Bridge::ProofVerifyTest {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     #[test_only]use StarcoinFramework::Debug;
     use Bridge::Bytes;
     #[test_only]use Bridge::EthStateVerifier;

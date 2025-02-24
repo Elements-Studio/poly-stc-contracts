@@ -57,7 +57,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
 
     use Bridge::CrossChainScript;
 
@@ -83,7 +83,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::CrossChainRouter;
 
     fun test_verify_header_and_execute_tx(_signer: signer) {

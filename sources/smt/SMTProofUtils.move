@@ -1,6 +1,6 @@
 module Bridge::SMTProofUtils {
 
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Errors;
     use Bridge::SMTUtils;
     use Bridge::SMTreeHasher;

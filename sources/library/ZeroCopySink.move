@@ -10,7 +10,7 @@
 
 module Bridge::ZeroCopySink {
     use Bridge::Bytes;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::BCS;
 
     const HEX_0XFD:vector<u8> = x"FD";

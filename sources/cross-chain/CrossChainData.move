@@ -8,7 +8,7 @@ module Bridge::CrossChainData {
 
     use StarcoinFramework::Errors;
     use StarcoinFramework::Signer;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
 
     friend Bridge::CrossChainManager;
     friend Bridge::CrossChainProcessCombinator;

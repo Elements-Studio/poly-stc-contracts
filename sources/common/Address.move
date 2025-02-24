@@ -1,5 +1,5 @@
 module Bridge::Address {
-    // use StarcoinFramework::Vector;
+    // use MoveStdlib::vector as Vector;
     use Bridge::BCS;
 
     public fun bytify(_addr: address): vector<u8> {
