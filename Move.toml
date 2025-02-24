@@ -4,7 +4,11 @@ version = "1.0.12"
 
 [addresses]
 StarcoinFramework = "0x1"
+StarcoinStdlib = "0x1"
+MoveStdlib = "0x1"
 Bridge = "0xe52552637c5897a2d499fbf08216f73e"
 
 [dependencies]
 StarcoinFramework = { git = "https://github.com/starcoinorg/starcoin.git", subdir = "vm/framework/starcoin-framework", rev = "20724635dd5323f797aa539d4d23277db12fd60c" }
+StarcoinStdlib = { git = "https://github.com/starcoinorg/starcoin.git", subdir = "vm/framework/starcoin-stdlib", rev = "20724635dd5323f797aa539d4d23277db12fd60c" }
+MoveStdlib = { git = "https://github.com/starcoinorg/starcoin.git", subdir = "vm/framework/move-stdlib", rev = "20724635dd5323f797aa539d4d23277db12fd60c" }

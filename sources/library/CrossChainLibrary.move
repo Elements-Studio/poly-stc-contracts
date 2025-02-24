@@ -9,7 +9,7 @@ module Bridge::CrossChainLibrary {
     use StarcoinFramework::Signature;
     use StarcoinFramework::Option::{Self, Option};
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
 
     // struct Header has key, store, drop, copy {
     //     version: u64, //origin uint32

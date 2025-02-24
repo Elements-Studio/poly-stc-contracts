@@ -29,7 +29,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
     use StarcoinFramework::Debug;
     use StarcoinFramework::Vector;
 

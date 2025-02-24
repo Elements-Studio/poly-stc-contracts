@@ -3,7 +3,7 @@ module Bridge::CrossChainManager {
     use StarcoinFramework::Event;
     use StarcoinFramework::Errors;
     use StarcoinFramework::Signer;
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
     use StarcoinFramework::Hash;
 
     use Bridge::Address;

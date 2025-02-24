@@ -1,7 +1,7 @@
 module Bridge::MerkleProofStructuredHash {
     use StarcoinFramework::Hash;
     use StarcoinFramework::Vector;
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
 
     use Bridge::SMTreeHasher;
 

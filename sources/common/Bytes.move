@@ -138,7 +138,7 @@ module Bridge::BCSTest {
     use StarcoinFramework::Debug;
     //use StarcoinFramework::BitOperators;
     //use StarcoinFramework::Hash;
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
     use StarcoinFramework::STC;
     use StarcoinFramework::Token;
     //use Bridge::LockProxy;
@@ -174,7 +174,7 @@ module Bridge::BytesTest {
     use Bridge::Bytes;
     use StarcoinFramework::Debug::{Self};
     use StarcoinFramework::Vector;
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
 
     public fun slice(data: &vector<u8>, start: u64, end: u64): vector<u8> {
         let i = start;
