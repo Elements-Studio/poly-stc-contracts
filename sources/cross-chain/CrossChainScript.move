@@ -1,6 +1,6 @@
 module Bridge::CrossChainScript {
 
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
 
     use Bridge::CrossChainGlobal;
     use Bridge::CrossChainData;

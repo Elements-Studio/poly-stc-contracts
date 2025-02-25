@@ -32,7 +32,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
     use Bridge::BCS;
     use Bridge::LockProxy;
     use Bridge::CrossChainGlobal;

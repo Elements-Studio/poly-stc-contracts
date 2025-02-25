@@ -22,7 +22,7 @@ module Bridge::CrossChainType {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
     use Bridge::CrossChainScript;
     use Bridge::CrossChainGlobal;
     use Bridge::LockProxy;

@@ -139,7 +139,7 @@ module Bridge::BCSTest {
     //use StarcoinFramework::BitOperators;
     //use StarcoinFramework::Hash;
     use Bridge::BCS;
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
     use StarcoinFramework::Token;
     //use Bridge::LockProxy;
 

@@ -6,7 +6,7 @@
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
 
     use Bridge::LockProxy;
     use Bridge::CrossChainGlobal;
@@ -42,7 +42,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
     use Bridge::LockProxy;
     use Bridge::CrossChainGlobal;
 
@@ -130,7 +130,7 @@ script {
 
 //# run --signers bob
 script {
-    use StarcoinFramework::STC;
+    use StarcoinFramework::starcoin_coin as STC;
     use Bridge::LockProxy;
     use Bridge::CrossChainGlobal;
 
