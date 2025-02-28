@@ -1,6 +1,6 @@
 module Bridge::CrossChainSMTProofs {
     use MoveStdlib::vector as Vector;
-    use StarcoinFramework::Hash;
+    use StarcoinFramework::hash;
     use Bridge::SMTUtils;
     use Bridge::ZeroCopySink;
 
@@ -14,7 +14,7 @@ module Bridge::CrossChainSMTProofs {
     // Generate leaf path from chain id and transaction hash
     public fun generate_leaf_path(chain_id: u64, tx_hash: &vector<u8>): vector<u8> {
         let key = generate_key(chain_id, tx_hash);
-        Hash::sha3_256(key)
+        hash::sha3_256(key)
     }
 
     public fun generate_key(chain_id: u64, tx_hash: &vector<u8>): vector<u8> {

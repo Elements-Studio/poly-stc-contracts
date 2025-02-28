@@ -20,11 +20,11 @@ module Bridge::XUSDT {
     }
 
     public fun mint(account: &signer, amount: u128) {
-        managed_coin::mint<XUSDT>(account, signer::address_of(account), amount as u64);
+        managed_coin::mint<XUSDT>(account, signer::address_of(account), (amount as u64));
     }
 
     public fun burn(account: &signer, amount: u128) {
-        managed_coin::burn<XUSDT>(account, amount as u64);
+        managed_coin::burn<XUSDT>(account, (amount as u64));
     }
 }
 

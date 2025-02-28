@@ -3,9 +3,10 @@ module Bridge::CrossChainLibrary {
     use Bridge::ZeroCopySink;
     use Bridge::ZeroCopySource;
 
-    use MoveStdlib::vector as Vector;
-    use StarcoinFramework::Hash;
-    use MoveStdlib::error as Errors;
+    use StarcoinFramework::vector as Vector;
+    use StarcoinFramework::hash as Hash;
+    use StarcoinFramework::starcoin_hash;
+    use StarcoinFramework::error as Errors;
     use StarcoinFramework::Signature;
     use StarcoinFramework::Option::{Self, Option};
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};
@@ -98,7 +99,7 @@ module Bridge::CrossChainLibrary {
         while ( i < key_len ){
             let public_key = Bytes::slice(pub_key_list, i*POLYCHAIN_PUBKEY_LEN, i*POLYCHAIN_PUBKEY_LEN + POLYCHAIN_PUBKEY_LEN);
             buf = Bytes::concat(&buf, ZeroCopySink::write_var_bytes(&compress_mc_pubkey(&public_key)));
-            let hash = Hash::keccak_256(Bytes::slice(&public_key, 3, 3 + 64));
+            let hash = starcoin_hash::keccak256(Bytes::slice(&public_key, 3, 3 + 64));
             //slice to 20 bytes
             let hash_len = Vector::length(&hash);
             let keeper:vector<u8>;
@@ -112,7 +113,7 @@ module Bridge::CrossChainLibrary {
         };
 
         buf = Bytes::concat(&buf, ZeroCopySink::write_u16(m));
-        let next_book_keeper = Hash::ripemd160(Hash::sha2_256(buf));
+        let next_book_keeper = starcoin_hash::ripemd160(Hash::sha2_256(buf));
         (next_book_keeper, keepers)
     }
 

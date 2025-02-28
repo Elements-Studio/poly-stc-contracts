@@ -141,7 +141,7 @@ module Bridge::LockProxy {
 
         let genesis_account = CrossChainGlobal::genesis_account();
 
-        let withdraw_token = coin::withdraw<TokenT>(signer, amount as u64);
+        let withdraw_token = coin::withdraw<TokenT>(signer, (amount as u64));
         if (!exists<LockTreasury<TokenT>>(genesis_account)) {
             assert!(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
             move_to(signer, LockTreasury<TokenT> {

@@ -112,12 +112,12 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Hash;
+    use StarcoinFramework::starcoin_hash;
 
     fun test_ripemd160() {
         let _data = x"6c041508df3a118feb6e59cea2fc23a2be8a04e911d13a30c94d66589f971bf2";
         let _hash = x"f8fc7a1f6a856313c591a3a747f4eca7218a820b";
-        let hash = Hash::ripemd160(_data);
+        let hash = starcoin_hash::ripemd160(_data);
         assert!(_hash == hash, 2032);
     }
 }
