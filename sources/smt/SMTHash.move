@@ -1,5 +1,5 @@
 module Bridge::SMTHash {
-    use StarcoinFramework::Hash;
+    use StarcoinFramework::hash as Hash;
     const SIZE_ZERO_BYTES: vector<u8> = x"0000000000000000000000000000000000000000000000000000000000000000";
 
     public fun size(): u64 {

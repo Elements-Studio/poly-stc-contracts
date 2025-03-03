@@ -49,9 +49,9 @@
 // ```
 module Bridge::SMTProofs {
 
+    use StarcoinStdlib::debug;
     use MoveStdlib::error as Errors;
     use MoveStdlib::vector as Vector;
-    use StarcoinFramework::Debug;
 
     use Bridge::SMTUtils;
     use Bridge::SMTreeHasher;
@@ -180,7 +180,7 @@ module Bridge::SMTProofs {
                           node_hash: &vector<u8>,
                           side_nodes: &vector<vector<u8>>): vector<u8> {
 
-        Debug::print(side_nodes);
+        debug::print(side_nodes);
         let side_nodes_len = Vector::length<vector<u8>>(side_nodes);
 
         let i = 0;
@@ -212,9 +212,8 @@ module Bridge::SMTProofs {
 #[test_only]
 module Bridge::SMTNonMembershipProofTest {
     use MoveStdlib::vector as Vector;
-    use StarcoinFramework::Debug;
-    use StarcoinFramework::BitOperators;
-    use StarcoinFramework::Hash;
+    use StarcoinFramework::debug as Debug;
+    use StarcoinFramework::hash as Hash;
 
     use Bridge::Bytes;
     use Bridge::SMTProofs;
@@ -246,9 +245,9 @@ module Bridge::SMTNonMembershipProofTest {
 
     #[test]
     public fun test_bit() {
-        assert!(BitOperators::and(1, 2) == 0, 1103);
-        assert!(BitOperators::and(1, 3) == 1, 1104);
-        assert!(BitOperators::and(1, 16 >> 4) == 1, 1105);
+        assert!(1 & 2 == 0, 1103);
+        assert!(1 & 3 == 1, 1104);
+        assert!(1 & (16 >> 4) == 1, 1105);
     }
 
     #[test]
@@ -272,7 +271,7 @@ module Bridge::SMTNonMembershipProofTest {
         let first_byte = *Vector::borrow(&origin_hash, 0);
         Debug::print(&first_byte);
 
-        let bit = BitOperators::and(BitOperators::rshift((first_byte as u64), 4), (1 as u64));
+        let bit = ((first_byte as u64)>> 4) & (1 as u64);
         Debug::print(&bit);
         assert!((first_byte >> 4 & 1) == 1, 1106);
 

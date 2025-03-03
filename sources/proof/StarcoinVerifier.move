@@ -10,7 +10,7 @@ module Bridge::StarcoinVerifier {
     use MoveStdlib::vector as Vector;
     use Bridge::Bit;
     use Bridge::MerkleProofStructuredHash;
-    use StarcoinFramework::Hash;
+    use StarcoinFramework::hash as Hash;
 
     struct StarcoinMerkle has key {
         merkle_root: vector<u8>,
