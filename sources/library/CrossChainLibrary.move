@@ -8,7 +8,7 @@ module Bridge::CrossChainLibrary {
     use StarcoinFramework::starcoin_hash;
     use StarcoinFramework::error as Errors;
     use StarcoinFramework::Signature;
-    use StarcoinFramework::Option::{Self, Option};
+    use StarcoinFramework::option::{Self, Option};
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};
     use Bridge::BCS;
 
@@ -150,10 +150,10 @@ module Bridge::CrossChainLibrary {
             let signer_buf = Hash::sha2_256(*&hash);
             let signature = Bytes::slice(sig_list, i * POLYCHAIN_SIGNATURE_LEN, (i + 1) * POLYCHAIN_SIGNATURE_LEN);
             let signer_opt: Option<EVMAddress> = Signature::ecrecover(signer_buf, signature);
-            if (Option::is_none<EVMAddress>(&signer_opt)) {
+            if (option::is_none<EVMAddress>(&signer_opt)) {
                 return false
             };
-            let signer = EVMAddress::as_bytes(Option::borrow(&signer_opt));
+            let signer = EVMAddress::as_bytes(option::borrow(&signer_opt));
             Vector::push_back(&mut signers, *signer);
             i = i + 1;
         };

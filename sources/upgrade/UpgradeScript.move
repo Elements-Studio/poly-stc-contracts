@@ -1,9 +1,9 @@
 module Bridge::UpgradeScript {
-    use StarcoinFramework::PackageTxnManager;
+    use StarcoinFramework::stc_transaction_package_validation as PackageTxnManager;
     use StarcoinFramework::on_chain_config as Config;
     use StarcoinFramework::signer as Signer;
-    use StarcoinFramework::Version;
-    use StarcoinFramework::Option;
+    use StarcoinFramework::stc_version as Version;
+    use StarcoinFramework::option;
 
     use Bridge::CrossChainGlobal;
 
@@ -27,7 +27,7 @@ module Bridge::UpgradeScript {
         PackageTxnManager::update_module_upgrade_strategy(
             &signer,
             strategy,
-            Option::some<u64>(min_time_limit),
+            option::some(min_time_limit),
         );
     }
 }

@@ -1,6 +1,8 @@
 // token holder address, not admin address
 module Bridge::TokenMock {
+    use StarcoinFramework::type_info;
     use StarcoinFramework::coin;
+    use StarcoinFramework::signer;
 
     struct TokenSharedCapability<phantom TokenType> has key, store {
         mint: coin::MintCapability<TokenType>,
@@ -24,23 +26,23 @@ module Bridge::TokenMock {
 
 
     public fun register_token<TokenType: store>(account: &signer, precision: u8){
-        Token::register_token<TokenType>(account, precision);
-        Account::do_accept_token<TokenType>(account);
+        let name = type_info::type_name<TokenType>();
+        let (burn_capability, _, mint_capability  ) =
+            coin::initialize<TokenType>(account, name, name, precision, true);
+        coin::register<TokenType>(account);
 
-        let mint_capability = Token::remove_mint_capability<TokenType>(account);
-        let burn_capability = Token::remove_burn_capability<TokenType>(account);
         move_to(account, TokenSharedCapability { mint: mint_capability, burn: burn_capability });
     }
 
-    public fun mint_token<TokenType: store>(amount: u128): Token::Token<TokenType> acquires TokenSharedCapability{
+    public fun mint_token<TokenType: store>(account: &signer, amount: u64): coin::Coin<TokenType> acquires TokenSharedCapability{
         //token holder address
-        let cap = borrow_global<TokenSharedCapability<TokenType>>(Token::token_address<TokenType>());
-        Token::mint_with_capability<TokenType>(&cap.mint, amount)
+        let cap = borrow_global<TokenSharedCapability<TokenType>>(signer::address_of(account));
+        coin::mint<TokenType>(amount, &cap.mint)
     }
 
-    public fun burn_token<TokenType: store>(tokens: Token::Token<TokenType>) acquires TokenSharedCapability{
+    public fun burn_token<TokenType: store>(account: &signer, tokens: coin::Coin<TokenType>) acquires TokenSharedCapability{
         //token holder address
-        let cap = borrow_global<TokenSharedCapability<TokenType>>(Token::token_address<TokenType>());
-        Token::burn_with_capability<TokenType>(&cap.burn, tokens);
+        let cap = borrow_global<TokenSharedCapability<TokenType>>(signer::address_of(account));
+        coin::burn<TokenType>(tokens, &cap.burn);
     }
 }

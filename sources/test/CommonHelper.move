@@ -18,7 +18,7 @@ module Bridge::CommonHelper {
         if (!is_accept_token) {
             coin::register<TokenType>(account);
         };
-        let token = TokenMock::mint_token<TokenType>(token_amount);
+        let token = TokenMock::mint_token<TokenType>(account, (token_amount as u64));
         coin::deposit<TokenType>(Signer::address_of(account), token);
     }
 
