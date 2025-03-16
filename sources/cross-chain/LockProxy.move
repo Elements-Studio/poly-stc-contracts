@@ -1,13 +1,15 @@
 module Bridge::LockProxy {
 
     use std::string;
-    use starcoin_std::type_info;
-    use StarcoinFramework::event as Event;
-    use StarcoinFramework::signer as Signer;
     use MoveStdlib::vector as Vector;
     use MoveStdlib::error as Errors;
+    use StarcoinFramework::create_signer;
+    use StarcoinFramework::type_info;
+    use StarcoinFramework::event as Event;
+    use StarcoinFramework::signer as Signer;
     use StarcoinFramework::coin;
     use StarcoinFramework::starcoin_coin as STC;
+    use StarcoinFramework::account;
 
     use Bridge::CrossChainGlobal;
     use Bridge::Address;
@@ -149,7 +151,7 @@ module Bridge::LockProxy {
             });
         } else {
             let treasury = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
-            coin::deposit(&mut treasury.token, withdraw_token);
+            coin::merge(&mut treasury.token, withdraw_token);
         };
     }
 
@@ -173,7 +175,7 @@ module Bridge::LockProxy {
         let account = Signer::address_of(signer);
         assert!(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
-        let deposit_token = coin::withdraw<TokenT>(&mut token_store.token, (amount as u64));
+        let deposit_token = coin::extract<TokenT>(&mut token_store.token, (amount as u64));
         coin::deposit<TokenT>(account, deposit_token);
     }
 
@@ -462,15 +464,14 @@ module Bridge::LockProxy {
         let payee = Address::addressify(*&to_address);
 
         // ////////////////////////////////
-        if (!Account::exists_at(payee)) {
-            Account::create_account_with_address<TokenT>(payee);
-        };
+        account::create_account_if_does_not_exist(payee);
+        coin::register<TokenT>(&create_signer::create_signer(payee));
         // ////////////////////////////////
 
         // Do unlock from lock token treasury
         assert!(exists<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account()), ERROR_LOCK_TREASURY_NOT_EXISTS);
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
-        let deposit_token = coin::withdraw<TokenT>(&mut token_store.token, (amount as u64));
+        let deposit_token = coin::extract<TokenT>(&mut token_store.token, (amount as u64));
         coin::deposit<TokenT>(payee, deposit_token);
 
         UnlockEvent {
