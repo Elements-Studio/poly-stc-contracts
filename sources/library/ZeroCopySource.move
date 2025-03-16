@@ -10,8 +10,8 @@
 
 module Bridge::ZeroCopySource {
     use Bridge::Bytes;
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::vector as Vector;
+    use MoveStdlib::error as Errors;
 
     const HEX_0XFD:vector<u8> = x"FD";
     const HEX_0XFFFF:vector<u8> = x"FFFF";
@@ -216,7 +216,7 @@ module Bridge::ZeroCopyTest {
     use Bridge::ZeroCopySink;
     use Bridge::ZeroCopySource;
     use StarcoinFramework::Debug::{Self};
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
 
     struct EthAccount has key, store, drop  {
         state_root: vector<u8>,

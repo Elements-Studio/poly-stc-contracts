@@ -1,12 +1,15 @@
 module Bridge::LockProxy {
 
-    use StarcoinFramework::Token;
-    use StarcoinFramework::Event;
-    use StarcoinFramework::Signer;
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Errors;
-    use StarcoinFramework::Account;
-    use StarcoinFramework::STC;
+    use std::string;
+    use MoveStdlib::vector as Vector;
+    use MoveStdlib::error as Errors;
+    use StarcoinFramework::create_signer;
+    use StarcoinFramework::type_info;
+    use StarcoinFramework::event as Event;
+    use StarcoinFramework::signer as Signer;
+    use StarcoinFramework::coin;
+    use StarcoinFramework::starcoin_coin as STC;
+    use StarcoinFramework::account;
 
     use Bridge::CrossChainGlobal;
     use Bridge::Address;
@@ -42,7 +45,7 @@ module Bridge::LockProxy {
     }
 
     struct LockTreasury<phantom TokenT> has key, store {
-        token: Token::Token<TokenT>,
+        token: coin::Coin<TokenT>,
     }
 
     struct LockEventStore has key, store {
@@ -66,7 +69,8 @@ module Bridge::LockProxy {
 
     struct BindAssetEvent has store, drop {
         to_chain_id: u64,
-        from_asset_hash: Token::TokenCode,
+        // todo: new TokenCode for coin?
+        from_asset_hash: string::String,
         target_proxy_hash: vector<u8>,
         initial_amount: u128,
     }
@@ -78,7 +82,7 @@ module Bridge::LockProxy {
     }
 
     struct LockEvent has store, drop {
-        from_asset_hash: Token::TokenCode,
+        from_asset_hash: string::String,
         from_address: vector<u8>,
         to_chain_id: u64,
         to_asset_hash: vector<u8>,
@@ -87,7 +91,7 @@ module Bridge::LockProxy {
     }
 
     struct CrossChainFeeLockEvent has store, drop {
-        from_asset: Token::TokenCode,
+        from_asset: string::String,
         sender: address,
         to_chain_id: u64,
         to_address: vector<u8>,
@@ -97,7 +101,7 @@ module Bridge::LockProxy {
     }
 
     struct CrossChainFeeSpeedUpEvent has store, drop {
-        from_asset: Token::TokenCode,
+        from_asset: string::String,
         sender: address,
         tx_hash: vector<u8>,
         efee: u128,
@@ -139,7 +143,7 @@ module Bridge::LockProxy {
 
         let genesis_account = CrossChainGlobal::genesis_account();
 
-        let withdraw_token = Account::withdraw<TokenT>(signer, amount);
+        let withdraw_token = coin::withdraw<TokenT>(signer, (amount as u64));
         if (!exists<LockTreasury<TokenT>>(genesis_account)) {
             assert!(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
             move_to(signer, LockTreasury<TokenT> {
@@ -147,7 +151,7 @@ module Bridge::LockProxy {
             });
         } else {
             let treasury = borrow_global_mut<LockTreasury<TokenT>>(genesis_account);
-            Token::deposit(&mut treasury.token, withdraw_token);
+            coin::merge(&mut treasury.token, withdraw_token);
         };
     }
 
@@ -155,7 +159,7 @@ module Bridge::LockProxy {
         let genesis_account = CrossChainGlobal::genesis_account();
         if (!exists<LockTreasury<STC::STC>>(genesis_account)) {
             // move 1 nanoSTC to lock-treasury to init it.
-            let withdraw_token = Account::withdraw<STC::STC>(signer, 1);
+            let withdraw_token = coin::withdraw<STC::STC>(signer, 1);
             assert!(genesis_account == Signer::address_of(signer), ERROR_ONLY_GENESIS_ACCOUNT_SIGNER_CAN_INIT);
             move_to(signer, LockTreasury<STC::STC> {
                 token: withdraw_token,
@@ -171,8 +175,8 @@ module Bridge::LockProxy {
         let account = Signer::address_of(signer);
         assert!(exists<LockTreasury<TokenT>>(account), ERROR_LOCK_TREASURY_NOT_EXISTS);
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(account);
-        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-        Account::deposit<TokenT>(account, deposit_token);
+        let deposit_token = coin::extract<TokenT>(&mut token_store.token, (amount as u64));
+        coin::deposit<TokenT>(account, deposit_token);
     }
 
     // Initialize proxy hash resource for `ChainType`
@@ -346,7 +350,7 @@ module Bridge::LockProxy {
             ),
             LockEvent {
                 from_address: Address::bytify(Signer::address_of(signer)),
-                from_asset_hash: Token::token_code<TokenT>(),
+                from_asset_hash: type_info::type_name<TokenT>(),
                 to_chain_id,
                 to_asset_hash: *&asset_hash_map.to_asset_hash,
                 to_address: *to_address,
@@ -365,12 +369,12 @@ module Bridge::LockProxy {
         let fee_collection_account = CrossChainGlobal::fee_collection_account();
 
         // ///////// lock STC fee here ///////////
-        let stc_token = Account::withdraw<STC::STC>(signer, stc_fee);
-        Account::deposit(fee_collection_account, stc_token);
+        let stc_token = coin::withdraw<STC::STC>(signer, (stc_fee as u64));
+        coin::deposit(fee_collection_account, stc_token);
 
         // ////////////////////////////////
         let cc_fee_event = CrossChainFeeLockEvent {
-            from_asset: Token::token_code<TokenT>(),
+            from_asset: type_info::type_name<TokenT>(),
             sender: Signer::address_of(signer),
             to_chain_id: to_chain_id,
             to_address: *to_address,
@@ -460,16 +464,15 @@ module Bridge::LockProxy {
         let payee = Address::addressify(*&to_address);
 
         // ////////////////////////////////
-        if (!Account::exists_at(payee)) {
-            Account::create_account_with_address<TokenT>(payee);
-        };
+        account::create_account_if_does_not_exist(payee);
+        coin::register<TokenT>(&create_signer::create_signer(payee));
         // ////////////////////////////////
 
         // Do unlock from lock token treasury
         assert!(exists<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account()), ERROR_LOCK_TREASURY_NOT_EXISTS);
         let token_store = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
-        let deposit_token = Token::withdraw<TokenT>(&mut token_store.token, amount);
-        Account::deposit<TokenT>(payee, deposit_token);
+        let deposit_token = coin::extract<TokenT>(&mut token_store.token, (amount as u64));
+        coin::deposit<TokenT>(payee, deposit_token);
 
         UnlockEvent {
             to_asset_hash,
@@ -508,7 +511,7 @@ module Bridge::LockProxy {
             &mut event_store.bind_asset_event,
             BindAssetEvent {
                 to_chain_id,
-                from_asset_hash: Token::token_code<TokenT>(),
+                from_asset_hash: type_info::type_name<TokenT>(),
                 target_proxy_hash: *target_proxy_hash,
                 initial_amount: get_balance_for<TokenT>(),
             },
@@ -522,7 +525,7 @@ module Bridge::LockProxy {
             0
         } else {
             let lock_token = borrow_global_mut<LockTreasury<TokenT>>(CrossChainGlobal::genesis_account());
-            Token::value<TokenT>(&lock_token.token)
+            (coin::value<TokenT>(&lock_token.token) as u128)
         }
     }
 

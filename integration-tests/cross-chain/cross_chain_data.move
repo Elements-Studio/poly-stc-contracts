@@ -21,7 +21,7 @@ module Bridge::CrossChainType {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::CrossChainData;
 
     fun test_initialize_chain_placeholder(signer: signer) {

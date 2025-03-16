@@ -2,8 +2,8 @@ module Bridge::SMTreeHasher {
 
     use Bridge::SMTHash;
     use Bridge::SMTUtils;
-    use StarcoinFramework::Errors;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::error as Errors;
+    use MoveStdlib::vector as Vector;
 
     // sparse merkle tree leaf(node) prefix.
     const LEAF_PREFIX: vector<u8> = x"00";

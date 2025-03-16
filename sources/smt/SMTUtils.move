@@ -1,7 +1,6 @@
 module Bridge::SMTUtils {
-    use StarcoinFramework::BitOperators;
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Errors;
+    use MoveStdlib::vector as Vector;
+    use MoveStdlib::error as Errors;
 
     const ERROR_VECTORS_NOT_SAME_LENGTH: u64 = 103;
     const BIT_RIGHT: bool = true;
@@ -11,8 +10,8 @@ module Bridge::SMTUtils {
     // Get the bit at an offset from the most significant bit.
     public fun get_bit_at_from_msb(data: &vector<u8>, position: u64): bool {
         let byte = (*Vector::borrow<u8>(data, position / 8) as u64);
-        let bit = BitOperators::rshift(byte, ((7 - (position % 8)) as u8));
-        if (BitOperators::and(bit, 1) != 0) {
+        let bit = (byte >> ((7 - (position % 8)) as u8));
+        if (bit & 1 != 0) {
             BIT_RIGHT
         } else {
             BIT_LEFT

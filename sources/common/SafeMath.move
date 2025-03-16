@@ -1,17 +1,12 @@
 module Bridge::SafeMath {
-    use StarcoinFramework::Math;
-    use StarcoinFramework::Errors;
-    use StarcoinFramework::U256::{Self, U256};
+    use StarcoinFramework::math128;
+    use MoveStdlib::error as Errors;
 
-    const EXP_SCALE_9: u128 = 1000000000;// e9
+    const EXP_SCALE_9:  u128 = 1000000000;// e9
     const EXP_SCALE_10: u128 = 10000000000;// e10
     const EXP_SCALE_18: u128 = 1000000000000000000;// e18
-    const U64_MAX:u64 = 18446744073709551615;  //length(U64_MAX)==20
-    const U128_MAX:u128 = 340282366920938463463374607431768211455;  //length(U128_MAX)==39
-
-    const EQUAL: u8 = 0;
-    const LESS_THAN: u8 = 1;
-    const GREATER_THAN: u8 = 2;
+    const U64_MAX:      u64  = 18446744073709551615;  //length(U64_MAX)==20
+    const U128_MAX:     u128 = 340282366920938463463374607431768211455;  //length(U128_MAX)==39
 
     const ERR_U128_OVERFLOW: u64 = 1001;
     const ERR_DIVIDE_BY_ZERO: u64 = 1002;
@@ -21,27 +16,26 @@ module Bridge::SafeMath {
     public fun safe_mul_div(x: u128, y: u128, z: u128): u128 {
         let r_u256 = mul_div_u256(x, y ,z);
 
-        let u128_max = U256::from_u128(U128_MAX);
-        let cmp_order = U256::compare(&r_u256, &u128_max);
-        if (cmp_order == GREATER_THAN) {
+        let u128_max = (U128_MAX as u256);
+        if (r_u256 > u128_max) {
             abort Errors::invalid_argument(ERR_U128_OVERFLOW)
         };
-        U256::to_u128(&r_u256)
+        (r_u256 as u128)
     }
 
-    public fun mul_div_u256(x: u128, y: u128, z: u128): U256 {
+    public fun mul_div_u256(x: u128, y: u128, z: u128): u256 {
         if ( z == 0) {
             abort Errors::invalid_argument(ERR_DIVIDE_BY_ZERO)
         };
 
         if (x <= EXP_SCALE_18 && y <= EXP_SCALE_18) {
-            return U256::from_u128(x * y / z)
+            return ((x * y / z) as u256);
         };
 
-        let x_u256 = U256::from_u128(x);
-        let y_u256 = U256::from_u128(y);
-        let z_u256 = U256::from_u128(z);
-        U256::div(U256::mul(x_u256, y_u256), z_u256)
+        let x_u256 = (x as u256);
+        let y_u256 = (y as u256);
+        let z_u256 = (z as u256);
+        (x_u256 * y_u256) / z_u256
     }
 
     #[test]
@@ -70,36 +64,28 @@ module Bridge::SafeMath {
     }
 
 
-    // support 18-bit or larger precision token
-    public fun safe_compare_u256(x1: u128, y1: u128, x2: u128, y2: u128): u8 {
-        let r1 = U256::mul(U256::from_u128(x1), U256::from_u128(y1));
-        let r2 = U256::mul(U256::from_u128(x2), U256::from_u128(y2));
-        U256::compare(&r1, &r2)
-    }
-
-    public fun mul_u256(x: u128, y: u128): U256 {
-        U256::mul(U256::from_u128(x), U256::from_u128(y))
+    public fun mul_u256(x: u128, y: u128): u256 {
+        (x as u256) * (y as u256)
     }
 
     // support 18-bit or larger precision token
-    // base on native U256
+    // base on native u256
     // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
-    public fun sqrt_u256(y: U256): u128 {
-        let u128_max = U256::from_u128(U128_MAX);
-        let cmp_order = U256::compare(&y, &u128_max);
-        if (cmp_order == LESS_THAN || LESS_THAN == EQUAL){
-            let z = Math::sqrt(U256::to_u128(&y));
+    public fun sqrt_u256(y: u256): u128 {
+        let u128_max = (U128_MAX as u256);
+        if (y <= u128_max) {
+            let z = math128::sqrt((y as u128));
             (z as u128)
         } else {
             let z = copy y;
-            let one_u256 = U256::from_u128(1u128);
-            let two_u256 = U256::from_u128(2u128);
-            let x = U256::add(U256::div(copy y, copy two_u256), one_u256);
-            while (U256::compare(&x, &z) == LESS_THAN) {
+            let one_u256 = 1u256;
+            let two_u256 = 2u256;
+            let x = (copy y / copy two_u256) + one_u256;
+            while (x < z) {
                 z = copy x;
-                x = U256::div(U256::add(U256::div(copy y, copy x), copy x), copy two_u256);
+                x = ((copy y / copy x) + copy x) / copy two_u256;
             };
-            U256::to_u128(&z)
+            (z as u128)
         }
     }
 
@@ -118,16 +104,15 @@ module Bridge::SafeMath {
     #[test]
     public fun test_sqrt_u256_by_max_u128() {
         let _r_expected:u128 = 18446744073709551615;
-        let r = Self::sqrt_u256(U256::from_u128(U128_MAX));
+        let r = Self::sqrt_u256((U128_MAX as u256));
         assert!(r == _r_expected, 3004);
     }
 
-    public fun get_safe_u128(x: U256): u128 {
-        let u128_max = U256::from_u128(U128_MAX);
-        let cmp_order = U256::compare(&x, &u128_max);
-        if (cmp_order == GREATER_THAN) {
+    public fun get_safe_u128(x: u256): u128 {
+        let u128_max = (U128_MAX as u256);
+        if (x > u128_max) {
             abort Errors::invalid_argument(ERR_U128_OVERFLOW)
         };
-        U256::to_u128(&x)
+        (x as u128)
     }
 }

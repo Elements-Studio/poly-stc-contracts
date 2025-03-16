@@ -1,6 +1,5 @@
 module Bridge::Bytes {
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::BitOperators;
+    use MoveStdlib::vector as Vector;
 
     // left shift n bits.
     public fun lshift_u128(x: u128, n: u8): u128 {
@@ -64,7 +63,7 @@ module Bridge::Bytes {
             let slice = *Vector::borrow(data, i);
             let bit = (len - (i + 1) as u8);
             //BitOperators::lshift return only u64
-            number = number + BitOperators::lshift((slice as u64), bit * 8);
+            number = number + ((slice as u64) << bit * 8);
             i = i + 1;
         };
         number
@@ -134,12 +133,12 @@ module Bridge::Bytes {
 
 #[test_only]
 module Bridge::BCSTest {
-    //use StarcoinFramework::Vector;
-    use StarcoinFramework::Debug;
+    //use MoveStdlib::vector as Vector;
+    use StarcoinFramework::debug as Debug;
     //use StarcoinFramework::BitOperators;
     //use StarcoinFramework::Hash;
-    use StarcoinFramework::BCS;
-    use StarcoinFramework::STC;
+    use Bridge::BCS;
+    use StarcoinFramework::starcoin_coin as STC;
     use StarcoinFramework::Token;
     //use Bridge::LockProxy;
 
@@ -173,8 +172,8 @@ module Bridge::BCSTest {
 module Bridge::BytesTest {
     use Bridge::Bytes;
     use StarcoinFramework::Debug::{Self};
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::BCS;
+    use MoveStdlib::vector as Vector;
+    use Bridge::BCS;
 
     public fun slice(data: &vector<u8>, start: u64, end: u64): vector<u8> {
         let i = start;

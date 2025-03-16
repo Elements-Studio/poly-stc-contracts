@@ -1,6 +1,6 @@
 module Bridge::CrossChainSMTProofs {
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Hash;
+    use MoveStdlib::vector as Vector;
+    use StarcoinFramework::hash as Hash;
     use Bridge::SMTUtils;
     use Bridge::ZeroCopySink;
 

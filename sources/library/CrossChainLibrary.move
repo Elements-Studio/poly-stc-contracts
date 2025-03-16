@@ -3,13 +3,14 @@ module Bridge::CrossChainLibrary {
     use Bridge::ZeroCopySink;
     use Bridge::ZeroCopySource;
 
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Hash;
-    use StarcoinFramework::Errors;
+    use StarcoinFramework::vector as Vector;
+    use StarcoinFramework::hash as Hash;
+    use StarcoinFramework::starcoin_hash;
+    use StarcoinFramework::error as Errors;
     use StarcoinFramework::Signature;
-    use StarcoinFramework::Option::{Self, Option};
+    use StarcoinFramework::option::{Self, Option};
     use StarcoinFramework::EVMAddress::{Self, EVMAddress};
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
 
     // struct Header has key, store, drop, copy {
     //     version: u64, //origin uint32
@@ -98,7 +99,7 @@ module Bridge::CrossChainLibrary {
         while ( i < key_len ){
             let public_key = Bytes::slice(pub_key_list, i*POLYCHAIN_PUBKEY_LEN, i*POLYCHAIN_PUBKEY_LEN + POLYCHAIN_PUBKEY_LEN);
             buf = Bytes::concat(&buf, ZeroCopySink::write_var_bytes(&compress_mc_pubkey(&public_key)));
-            let hash = Hash::keccak_256(Bytes::slice(&public_key, 3, 3 + 64));
+            let hash = starcoin_hash::keccak256(Bytes::slice(&public_key, 3, 3 + 64));
             //slice to 20 bytes
             let hash_len = Vector::length(&hash);
             let keeper:vector<u8>;
@@ -112,7 +113,7 @@ module Bridge::CrossChainLibrary {
         };
 
         buf = Bytes::concat(&buf, ZeroCopySink::write_u16(m));
-        let next_book_keeper = Hash::ripemd160(Hash::sha2_256(buf));
+        let next_book_keeper = starcoin_hash::ripemd160(Hash::sha2_256(buf));
         (next_book_keeper, keepers)
     }
 
@@ -149,10 +150,10 @@ module Bridge::CrossChainLibrary {
             let signer_buf = Hash::sha2_256(*&hash);
             let signature = Bytes::slice(sig_list, i * POLYCHAIN_SIGNATURE_LEN, (i + 1) * POLYCHAIN_SIGNATURE_LEN);
             let signer_opt: Option<EVMAddress> = Signature::ecrecover(signer_buf, signature);
-            if (Option::is_none<EVMAddress>(&signer_opt)) {
+            if (option::is_none<EVMAddress>(&signer_opt)) {
                 return false
             };
-            let signer = EVMAddress::as_bytes(Option::borrow(&signer_opt));
+            let signer = EVMAddress::as_bytes(option::borrow(&signer_opt));
             Vector::push_back(&mut signers, *signer);
             i = i + 1;
         };
@@ -424,7 +425,7 @@ module Bridge::CrossChainLibraryTest {
     use Bridge::CrossChainLibrary;
     use Bridge::ZeroCopySource;
     use StarcoinFramework::Debug::{Self};
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::CrossChainLibrary::address_to_hex_string;
 
     const POLYCHAIN_PUBKEY_LEN: u64 = 67;

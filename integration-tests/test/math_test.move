@@ -29,9 +29,9 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::BCS;
+    use Bridge::BCS;
     use StarcoinFramework::Debug;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
 
     // case : x*y/z overflow
     fun bcs_test_u64(_: signer) {

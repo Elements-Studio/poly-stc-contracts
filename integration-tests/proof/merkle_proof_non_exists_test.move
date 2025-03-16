@@ -4,7 +4,7 @@
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::SMTProofs;
 
     fun test_root_hash_check() {
@@ -19,7 +19,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::SMTProofs;
 
     fun test_root_hash_check() {
@@ -36,7 +36,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Debug;
 
     use Bridge::SMTProofs;
@@ -64,7 +64,7 @@ script {
 
 //# run --signers Bridge
 script {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use StarcoinFramework::Debug;
 
     use Bridge::SMTProofs;

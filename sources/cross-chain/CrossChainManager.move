@@ -1,10 +1,11 @@
 module Bridge::CrossChainManager {
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Event;
-    use StarcoinFramework::Errors;
-    use StarcoinFramework::Signer;
-    use StarcoinFramework::BCS;
-    use StarcoinFramework::Hash;
+    use MoveStdlib::error as Errors;
+    use MoveStdlib::vector as Vector;
+    use StarcoinStdlib::starcoin_hash;
+    use StarcoinFramework::event as Event;
+    use StarcoinFramework::signer as Signer;
+    use StarcoinFramework::hash as Hash;
+    use Bridge::BCS;
 
     use Bridge::Address;
     use Bridge::CrossChainData;
@@ -306,7 +307,7 @@ module Bridge::CrossChainManager {
         // --------- serialize MakeTxParam end ---------
 
         // Must save it in the storage to be included in the proof to be verified.
-        CrossChainData::put_eth_tx_hash(Hash::keccak_256(*&raw_param));
+        CrossChainData::put_eth_tx_hash(starcoin_hash::keccak256(*&raw_param));
         let event_store = borrow_global_mut<EventStore>(CrossChainGlobal::genesis_account());
 
         Event::emit_event(
@@ -494,7 +495,7 @@ module Bridge::CrossChainManager {
 
 #[test_only]
 module Bridge::CrossChainManagerTest {
-    use StarcoinFramework::Debug;
+    use StarcoinFramework::debug as Debug;
     use Bridge::CrossChainLibrary;
 
     #[test]

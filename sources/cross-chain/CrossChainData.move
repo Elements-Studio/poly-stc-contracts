@@ -6,9 +6,9 @@ module Bridge::CrossChainData {
     use Bridge::SMTUtils;
     use Bridge::SMTreeHasher;
 
-    use StarcoinFramework::Errors;
-    use StarcoinFramework::Signer;
-    use StarcoinFramework::Vector;
+    use MoveStdlib::error as Errors;
+    use StarcoinFramework::signer as Signer;
+    use MoveStdlib::vector as Vector;
 
     friend Bridge::CrossChainManager;
     friend Bridge::CrossChainProcessCombinator;

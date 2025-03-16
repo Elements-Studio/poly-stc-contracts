@@ -1,5 +1,5 @@
 module Bridge::RLP {
-    use StarcoinFramework::Vector;
+    use MoveStdlib::vector as Vector;
     use Bridge::Bytes;
     const INVALID_RLP_DATA: u64 = 100;
     const DATA_TOO_SHORT: u64 = 101;
@@ -71,8 +71,8 @@ module Bridge::RLP {
 }
 module Bridge::EthStateVerifier {
     use Bridge::RLP;
-    use StarcoinFramework::Vector;
-    use StarcoinFramework::Hash;
+    use MoveStdlib::vector as Vector;
+    use StarcoinFramework::starcoin_hash as Hash;
     use Bridge::Bytes;
 
     const INVALID_PROOF: u64 = 400;
@@ -112,7 +112,7 @@ module Bridge::EthStateVerifier {
         let dec = RLP::decode_list(node);
         // trie root is always a hash
         if (key_index == 0 || Vector::length(node) >= 32u64) {
-            if (Hash::keccak_256(*node) != expected_root) {
+            if (Hash::keccak256(*node) != expected_root) {
                 return false
             }
         } else {
@@ -190,7 +190,7 @@ module Bridge::EthStateVerifier {
         proof: vector<vector<u8>>,
         expected_value: vector<u8>,
     ): bool {
-        let hashed_key = Hash::keccak_256(key);
+        let hashed_key = Hash::keccak256(key);
         let key = to_nibbles(&hashed_key);
         return verify_inner(expected_root, key, proof, expected_value, 0, 0)
     }
@@ -198,8 +198,8 @@ module Bridge::EthStateVerifier {
 
 #[test_only]
 module Bridge::ProofVerifyTest {
-    use StarcoinFramework::Vector;
-    #[test_only]use StarcoinFramework::Debug;
+    use MoveStdlib::vector as Vector;
+    #[test_only]use StarcoinFramework::debug as Debug;
     use Bridge::Bytes;
     #[test_only]use Bridge::EthStateVerifier;
     
